@@ -28,8 +28,8 @@
   --shadow: 0 4px 0 var(--ink);
   --shadow-sm: 0 2px 0 var(--ink);
   --r: 6px;
-  --font: 'Kawaii Cubes', 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --pixel: 'Kawaii Cubes', 'VT323', ui-monospace, monospace;
+  --font: 'Kawaii Cubes', 'Cute Cubes', 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --pixel: 'Kawaii Cubes', 'Cute Cubes', 'VT323', ui-monospace, monospace;
   color-scheme: light;
 }
 

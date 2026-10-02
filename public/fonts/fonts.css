@@ -1,7 +1,16 @@
 /* VT323 and Be Vietnam Pro, SIL Open Font License 1.1. Self-hosted so the game works offline. */
 
-/* Kawaii Cubes (Hipfonts, paid): drop the licensed file in this folder as KawaiiCubes.woff2 (or .ttf)
-   and the whole game switches to it. Until then the fallbacks below are used. */
+/* Cute Cubes by Archer Waynwood, from FontGet (listed there as free for personal and commercial use;
+   the download carried no licence file of its own). The game's display face. */
+@font-face {
+  font-family: 'Cute Cubes';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./fonts/CuteCubes.ttf') format('truetype');
+}
+/* Kawaii Cubes (Hipfonts, paid): if the licensed file is ever added as KawaiiCubes.woff2 or .ttf,
+   it takes precedence over Cute Cubes. */
 @font-face {
   font-family: 'Kawaii Cubes';
   font-style: normal;

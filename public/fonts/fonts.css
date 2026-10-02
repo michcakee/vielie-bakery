@@ -1,4 +1,14 @@
 /* VT323 and Be Vietnam Pro, SIL Open Font License 1.1. Self-hosted so the game works offline. */
+
+/* Kawaii Cubes (Hipfonts, paid): drop the licensed file in this folder as KawaiiCubes.woff2 (or .ttf)
+   and the whole game switches to it. Until then the fallbacks below are used. */
+@font-face {
+  font-family: 'Kawaii Cubes';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./fonts/KawaiiCubes.woff2') format('woff2'), url('./fonts/KawaiiCubes.ttf') format('truetype');
+}
 @font-face {
   font-family: 'Be Vietnam Pro';
   font-style: normal;

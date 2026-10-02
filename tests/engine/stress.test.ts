@@ -188,3 +188,45 @@ describe('long-term goals and endings', () => {
     expect(s.ending!.value).toBeGreaterThan(0);
   });
 });
+
+describe('content added after a save was written', () => {
+  it('a save from before the Gress menu and new ingredients still loads and plays', async () => {
+    const { saveGame, loadGame } = await import('../../src/engine/save');
+    // Strip everything the Gress update added from a fresh game, as an older save would lack it.
+    const old = JSON.parse(JSON.stringify(createNewGame(12))) as GameState;
+    for (const p of ['gressCupcake', 'gressTeaLight', 'gressOreo', 'gressCoffee', 'gressHoneycomb', 'gressBoba', 'gressPie', 'gressMilkshake', 'gressCrepe', 'gressCake'] as const) {
+      delete (old.display as Partial<typeof old.display>)[p];
+      delete (old.prices as Partial<typeof old.prices>)[p];
+      delete (old.bakedToday as Partial<typeof old.bakedToday>)[p];
+      delete (old.lifetime.sold as Partial<typeof old.lifetime.sold>)[p];
+      delete (old.today.sold as Partial<typeof old.today.sold>)[p];
+      old.unlocked = old.unlocked.filter((x) => x !== p);
+      old.menu = old.menu.filter((x) => x !== p);
+    }
+    for (const id of ['gress', 'greenApple', 'lychee'] as const) {
+      delete (old.pantry as Partial<typeof old.pantry>)[id];
+      delete (old.market.prices as Partial<typeof old.market.prices>)[id];
+      delete (old.market.walk as Partial<typeof old.market.walk>)[id];
+    }
+    const m = new Map<string, string>();
+    const store = { getItem: (k: string) => m.get(k) ?? null, setItem: (k: string, v: string) => void m.set(k, v), removeItem: (k: string) => void m.delete(k) };
+    saveGame(old, 1, store);
+    let back = loadGame(1, store);
+    expect(back).not.toBeNull();
+    expect(back!.prices.gressCupcake).toBeGreaterThan(0);
+    for (let d = 0; d < 5; d++) back = autoDay(back!);
+    check(back!);
+    expect(back!.unlocked).toContain('gressCupcake');
+  });
+
+  it('the first applicants are always the owner’s friends, in order, until hired', () => {
+    let s = createNewGame(3);
+    for (let d = 0; d < 8 && !s.applicants.length; d++) s = autoDay(s);
+    expect(s.applicants.slice(0, 6).map((a) => a.name)).toEqual(['Vy', 'Sang', 'Hieu', 'Yen Vy', 'Phuong Khanh', 'Vien']);
+    s = morning(s);
+    s = gameReducer({ ...s, cash: s.cash + 2000 }, { type: 'hire', applicantId: s.applicants[0].id });
+    expect(s.staff.map((e) => e.name)).toContain('Vy');
+    for (let d = 0; d < 8; d++) s = autoDay(s);
+    expect(s.applicants.slice(0, 5).map((a) => a.name)).toEqual(['Sang', 'Hieu', 'Yen Vy', 'Phuong Khanh', 'Vien']);
+  });
+});

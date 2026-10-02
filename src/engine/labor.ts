@@ -1,5 +1,5 @@
 import { ECON } from '../data/config';
-import { ROLES, ROLE_ORDER, STAFF_NAMES } from '../data/world';
+import { FRIENDS, ROLES, ROLE_ORDER, STAFF_NAMES } from '../data/world';
 import { has, productivity } from './economy';
 import { rngFor } from './rng';
 import { randomLook } from './look';
@@ -17,11 +17,17 @@ export function weeklyApplicants(s: GameState): Applicant[] {
   const rand = rngFor(s.seed, s.day, 501);
   const n = Math.round(2 + s.macro.unemployment * 40 + rand() * 2);
   const out: Applicant[] = [];
+  // Friends first: anyone not already on the team applies again, same look, same role.
+  const onStaff = new Set(s.staff.map((e) => e.name));
+  for (const f of FRIENDS) {
+    if (onStaff.has(f.name)) continue;
+    out.push({ id: s.nextId + out.length, name: f.name, role: f.role, wage: round2(marketWage(s, f.role, 3) * (0.97 + rand() * 0.08)), skill: 3, look: { ...f.look } });
+  }
   for (let i = 0; i < n; i++) {
     const role = ROLE_ORDER[Math.floor(rand() * ROLE_ORDER.length)];
     const skill = 1 + Math.floor(rand() * rand() * 5);
     const ask = marketWage(s, role, skill) * (0.95 + rand() * 0.15);
-    out.push({ id: s.nextId + i, name: STAFF_NAMES[Math.floor(rand() * STAFF_NAMES.length)], role, wage: round2(ask), skill, look: { ...randomLook(rand), apron: Math.floor(rand() * 5) } });
+    out.push({ id: s.nextId + out.length, name: STAFF_NAMES[Math.floor(rand() * STAFF_NAMES.length)], role, wage: round2(ask), skill, look: { ...randomLook(rand), apron: Math.floor(rand() * 5) } });
   }
   return out;
 }

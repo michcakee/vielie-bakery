@@ -3,17 +3,20 @@
   --ink: #3b2a25;
   --ink-soft: #5a4038;
   --muted: #7d6558;
-  --cream: #fff4de;
-  --paper: #fffaf0;
-  --paper-2: #fdebc8;
-  --bg: #f7e6c6;
-  --mango: #f6c343;
-  --gold: #e0a04a;
+  /* Two main colours: cream and mint (from the owner's swatch). */
+  --cream: #f7f5ea;
+  --paper: #fbfaf3;
+  --paper-2: #e4eee2;
+  --bg: #edeada;
+  --mint: #bfe0c4;
+  --mint-dark: #8fc79c;
+  --mango: #bfe0c4;
+  --gold: #8fc79c;
   --crust: #b5651d;
   --coffee: #6b3f2a;
-  --pandan: #6fa84b;
-  --pandan-dark: #4f8a35;
-  --forest: #2f5d3a;
+  --pandan: #74b885;
+  --pandan-dark: #559a68;
+  --forest: #3b6b4c;
   --leaf: #a8d672;
   --pink: #ee8a9e;
   --peach: #f7c5a0;
@@ -25,8 +28,8 @@
   --shadow: 0 4px 0 var(--ink);
   --shadow-sm: 0 2px 0 var(--ink);
   --r: 6px;
-  --font: 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --pixel: 'VT323', ui-monospace, monospace;
+  --font: 'Kawaii Cubes', 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --pixel: 'Kawaii Cubes', 'VT323', ui-monospace, monospace;
   color-scheme: light;
 }
 
@@ -165,7 +168,7 @@ kbd {
   background: var(--mango);
 }
 .btn-primary:hover:not(:disabled) {
-  background: #ffd36a;
+  background: #d4ebd7;
 }
 .btn-go {
   background: var(--pandan);
@@ -173,7 +176,7 @@ kbd {
   text-shadow: 0 2px 0 var(--forest);
 }
 .btn-go:hover:not(:disabled) {
-  background: #7fbb58;
+  background: #86c796;
 }
 .btn-danger {
   background: var(--red);
@@ -467,15 +470,15 @@ kbd {
   gap: 16px;
   flex-wrap: wrap;
   padding: 8px 16px;
-  background: var(--forest);
-  color: var(--cream);
+  background: var(--mint);
+  color: var(--ink);
   border-bottom: 4px solid var(--ink);
   box-shadow: 0 3px 0 rgba(59, 42, 37, 0.3);
 }
 .hud-name h1 {
   font-size: 32px;
-  color: var(--mango);
-  text-shadow: 2px 2px 0 var(--ink);
+  color: var(--forest);
+  text-shadow: 2px 2px 0 rgba(255, 255, 255, 0.6);
 }
 .hud-day {
   font-size: 13px;
@@ -500,8 +503,8 @@ kbd {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: rgba(255, 244, 222, 0.12);
-  border: 2px solid rgba(0, 0, 0, 0.25);
+  background: rgba(255, 255, 255, 0.5);
+  border: 2px solid rgba(59, 42, 37, 0.35);
   border-radius: var(--r);
   padding: 3px 9px;
   font-family: var(--pixel);
@@ -509,14 +512,14 @@ kbd {
   line-height: 1;
 }
 .hud-stat.cash b {
-  color: var(--mango);
+  color: var(--forest);
   min-width: 70px;
 }
 .hud-stat b.neg {
-  color: #ff9a8a;
+  color: var(--bad);
 }
 .hud-stat.clock b {
-  color: #cfe8f0;
+  color: var(--forest);
 }
 .hud-level {
   display: grid;
@@ -650,6 +653,9 @@ kbd {
   bottom: 9px;
   left: -24px;
   line-height: 0;
+  /* people on the street are across the road, so they're smaller than people in the shop */
+  transform: scale(0.65);
+  transform-origin: bottom center;
 }
 .mover.moto {
   bottom: 6px;
@@ -2971,7 +2977,7 @@ textarea {
   font-size: clamp(64px, 9vw, 120px);
   line-height: 0.82;
   color: var(--forest);
-  text-shadow: 4px 4px 0 var(--mango), 8px 8px 0 var(--ink);
+  text-shadow: 4px 4px 0 var(--paper), 8px 8px 0 var(--ink);
 }
 .title-logo span:last-child {
   color: var(--red);
@@ -3145,7 +3151,7 @@ textarea {
     z-index: 35;
     margin: 0;
     gap: 0;
-    background: var(--forest);
+    background: var(--mint);
     border-top: 4px solid var(--ink);
     padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
   }
@@ -3153,10 +3159,10 @@ textarea {
     border: 0;
     box-shadow: none;
     background: transparent;
-    color: var(--cream);
+    color: var(--ink);
   }
   .tab.on {
-    background: var(--mango);
+    background: var(--paper);
     color: var(--ink);
     transform: none;
   }

@@ -1,5 +1,5 @@
 import type { Difficulty } from './config';
-import type { LocationId, ProductId, RoleId, ScenarioId, SegmentId } from '../engine/types';
+import type { LocationId, Look, ProductId, RoleId, ScenarioId, SegmentId } from '../engine/types';
 
 // ------------------------------------------------------------------ neighbourhoods
 
@@ -162,7 +162,7 @@ export const SEGMENTS: Record<SegmentId, SegmentDef> = {
     blurb: 'Tight budgets, big appetites, coffee and trà tắc.',
     income: 0.78,
     sensitivity: 1.4,
-    prefs: { banhMi: 1.4, traTac: 1.6, caPhe: 1.2, banhBao: 1.3, che: 1.4 },
+    prefs: { banhMi: 1.4, traTac: 1.6, caPhe: 1.2, banhBao: 1.3, che: 1.4, gressBoba: 1.9, gressMilkshake: 1.7, gressOreo: 1.4, gressTeaLight: 1.3 },
     loyalty: 0.45,
     patience: 0.9,
     times: [0.8, 1.3, 1.2, 1],
@@ -178,7 +178,7 @@ export const SEGMENTS: Record<SegmentId, SegmentDef> = {
     blurb: 'Buy for everyone: sweets, cakes and buns.',
     income: 1.05,
     sensitivity: 1,
-    prefs: { flan: 1.3, banhChuoi: 1.4, banhKem: 2, banhBao: 1.3, che: 1.3, mutDua: 1.3 },
+    prefs: { flan: 1.3, banhChuoi: 1.4, banhKem: 2, banhBao: 1.3, che: 1.3, mutDua: 1.3, gressCupcake: 1.5, gressCake: 1.6, gressPie: 1.3 },
     loyalty: 0.6,
     patience: 1,
     times: [0.6, 1, 1.5, 1.2],
@@ -274,7 +274,7 @@ export const SEGMENTS: Record<SegmentId, SegmentDef> = {
     blurb: 'Pay for quality and atmosphere.',
     income: 1.6,
     sensitivity: 0.55,
-    prefs: { banhKem: 2, pateChaud: 1.3, caPhe: 1.3, banhBo: 1.2, banhTrungThu: 1.4 },
+    prefs: { banhKem: 2, pateChaud: 1.3, caPhe: 1.3, banhBo: 1.2, banhTrungThu: 1.4, gressCrepe: 1.7, gressCake: 1.5, gressCoffee: 1.3 },
     loyalty: 0.5,
     patience: 1,
     times: [0.7, 1, 1.3, 1.2],
@@ -290,7 +290,7 @@ export const SEGMENTS: Record<SegmentId, SegmentDef> = {
     blurb: 'Same order every morning. Barely notice a small price rise.',
     income: 1,
     sensitivity: 0.6,
-    prefs: { caPhe: 3, traTac: 1.4 },
+    prefs: { caPhe: 3, traTac: 1.4, gressCoffee: 1.8, gressTeaLight: 1.2 },
     loyalty: 0.9,
     patience: 0.9,
     times: [2.1, 0.6, 0.8, 0.3],
@@ -306,7 +306,7 @@ export const SEGMENTS: Record<SegmentId, SegmentDef> = {
     blurb: 'Birthdays, weddings, Tết: big orders for special days.',
     income: 1.4,
     sensitivity: 0.85,
-    prefs: { banhKem: 3, mutDua: 2, banhTrungThu: 2.2, banhBao: 1.2 },
+    prefs: { banhKem: 3, mutDua: 2, banhTrungThu: 2.2, banhBao: 1.2, gressCake: 2.5, gressCrepe: 1.5 },
     loyalty: 0.4,
     patience: 1.2,
     times: [0.5, 1, 1.3, 1.3],
@@ -342,6 +342,19 @@ export const ROLES: Record<RoleId, RoleDef> = {
 };
 
 export const ROLE_ORDER: RoleId[] = ['cashier', 'barista', 'cook', 'baker', 'pastryChef', 'delivery', 'manager', 'marketer'];
+
+/**
+ * The owner's friends. They are always the first people to apply (in this order), each with a
+ * fixed look and role so they are recognisable, and they keep coming back until hired.
+ */
+export const FRIENDS: { name: string; role: RoleId; look: Look }[] = [
+  { name: 'Vy', role: 'cashier', look: { skin: 1, hair: 3, hairColor: 0, shirt: 7, apron: 1, accessory: 2 } },
+  { name: 'Sang', role: 'baker', look: { skin: 2, hair: 2, hairColor: 0, shirt: 1, apron: 0, accessory: 0 } },
+  { name: 'Hieu', role: 'cook', look: { skin: 1, hair: 2, hairColor: 1, shirt: 3, apron: 3, accessory: 1 } },
+  { name: 'Yen Vy', role: 'barista', look: { skin: 0, hair: 0, hairColor: 2, shirt: 5, apron: 4, accessory: 0 } },
+  { name: 'Phuong Khanh', role: 'pastryChef', look: { skin: 1, hair: 1, hairColor: 0, shirt: 6, apron: 2, accessory: 4 } },
+  { name: 'Vien', role: 'marketer', look: { skin: 2, hair: 3, hairColor: 4, shirt: 0, apron: 1, accessory: 0 } },
+];
 
 export const STAFF_NAMES = ['Thảo', 'Bảo', 'Hiền', 'Khánh', 'Trung', 'Ngân', 'Phát', 'Uyên', 'Tài', 'Diễm', 'Lộc', 'Quyên', 'Hưng', 'Vân', 'Thịnh', 'Kim', 'Sang', 'Như', 'Đức', 'Mỹ'];
 

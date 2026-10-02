@@ -24,6 +24,10 @@ const STEP_ICON: Record<string, string> = {
   tea: 'tea',
   kumquat: 'kumquat',
   sugar: 'sugar',
+  gress: 'gress',
+  lychee: 'lychee',
+  blend: 'spoon',
+  cream: 'cream',
 };
 
 export function stepsFor(p: ProductId, coffeeBar: boolean) {

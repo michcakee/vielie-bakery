@@ -10,7 +10,17 @@ export type ProductId =
   | 'che'
   | 'banhKem'
   | 'mutDua'
-  | 'banhTrungThu';
+  | 'banhTrungThu'
+  | 'gressCupcake'
+  | 'gressTeaLight'
+  | 'gressOreo'
+  | 'gressCoffee'
+  | 'gressHoneycomb'
+  | 'gressBoba'
+  | 'gressPie'
+  | 'gressMilkshake'
+  | 'gressCrepe'
+  | 'gressCake';
 
 export type IngredientId =
   | 'flour'
@@ -30,7 +40,10 @@ export type IngredientId =
   | 'cream'
   | 'beans'
   | 'pandan'
-  | 'lotus';
+  | 'lotus'
+  | 'gress'
+  | 'greenApple'
+  | 'lychee';
 
 export type SupplierId = 'cho' | 'farm' | 'premium' | 'distributor';
 export type Weather = 'sunny' | 'cloudy' | 'rainy' | 'hot' | 'cool';

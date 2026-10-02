@@ -1,4 +1,4 @@
-import { INGREDIENT_ORDER, PRODUCTS, PRODUCT_ORDER, UPGRADES } from '../data/catalog';
+import { INGREDIENTS, INGREDIENT_ORDER, PRODUCTS, PRODUCT_ORDER, UPGRADES } from '../data/catalog';
 import { balanceSheet } from './accounting';
 import { refreshKinds } from './events';
 import { createNewGame, SAVE_VERSION } from './state';
@@ -26,7 +26,33 @@ function storage(): StorageLike | null {
 const finite = (v: unknown) => typeof v === 'number' && Number.isFinite(v);
 
 /** Reject anything that would break the game: wrong version, NaN money, negative stock. */
+/**
+ * Content added after a save was written (new products, new ingredients) gets default entries,
+ * so an older v3 save keeps loading. Mutates the freshly parsed object before validation.
+ */
+export function fillNewContent(data: unknown): void {
+  const s = data as GameState;
+  if (!s || typeof s !== 'object' || s.version !== SAVE_VERSION || !s.display || !s.prices || !s.pantry) return;
+  for (const p of PRODUCT_ORDER) {
+    if (!s.display[p]) s.display[p] = { qty: 0, quality: 70, unitCost: 0 };
+    if (!finite(s.prices[p])) s.prices[p] = PRODUCTS[p].ref;
+    if (s.bakedToday && !finite(s.bakedToday[p])) s.bakedToday[p] = 0;
+    if (s.lifetime?.sold && !finite(s.lifetime.sold[p])) s.lifetime.sold[p] = 0;
+    for (const k of ['made', 'sold', 'revenueBy', 'cogsBy'] as const) {
+      const m = s.today?.[k] as Record<string, number> | undefined;
+      if (m && !finite(m[p])) m[p] = 0;
+    }
+  }
+  for (const id of INGREDIENT_ORDER) {
+    const def = INGREDIENTS[id];
+    if (!s.pantry[id]) s.pantry[id] = { qty: 0, avgCost: def.price / def.pack, quality: 70, eco: 50 };
+    if (s.market?.prices && !finite(s.market.prices[id])) s.market.prices[id] = def.price * (s.macro?.priceIndex ?? 1);
+    if (s.market?.walk && !finite(s.market.walk[id])) s.market.walk[id] = 1;
+  }
+}
+
 export function validSave(data: unknown): data is GameState {
+  fillNewContent(data);
   const s = data as GameState;
   if (!s || typeof s !== 'object' || s.version !== SAVE_VERSION) return false;
   if (!finite(s.day) || s.day < 1 || !finite(s.cash) || !finite(s.safetyFund) || !finite(s.xp)) return false;

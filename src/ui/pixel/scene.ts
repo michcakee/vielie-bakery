@@ -72,6 +72,11 @@ export function drawStreet(ctx: CanvasRenderingContext2D, o: SceneOpts) {
   const iw = w - 4;
   const ih = h - 4;
   const sky = SKY[o.weather][o.light];
+  // Nothing outside may paint over the window frame.
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(ix, iy, iw, ih);
+  ctx.clip();
   rect(ctx, ix, iy, iw, ih, sky);
   if (o.light === 4) for (const [sx, sy] of [[ix + 6, iy + 4], [ix + 22, iy + 8], [ix + 40, iy + 3], [ix + 54, iy + 9]]) rect(ctx, sx, sy, 1, 1, '#fff4de');
   // power lines
@@ -94,8 +99,9 @@ export function drawStreet(ctx: CanvasRenderingContext2D, o: SceneOpts) {
   if (o.competitor) box(ctx, bx + 19, by + 18, 12, 7, '#f6c343');
   else for (let i = 0; i < 4; i++) rect(ctx, bx + 19 + i * 3, by + 20, 2, 2, ['#ee8a9e', '#f6c343', '#fff4de', '#c2453d'][i]);
   // second building and a tree
-  rect(ctx, ix + 42, iy + 6, 20, 34, o.light === 4 ? '#4f5a66' : '#f6d38c');
-  for (let r = 0; r < 3; r++) for (let c = 0; c < 2; c++) box(ctx, ix + 45 + c * 8, iy + 10 + r * 9, 6, 6, o.light >= 3 ? '#ffd98a' : '#bfe3ef');
+  rect(ctx, ix + 41, iy + 8, 18, 32, o.light === 4 ? '#4f5a66' : '#f6d38c');
+  rect(ctx, ix + 41, iy + 8, 18, 2, PAL.ink);
+  for (let r = 0; r < 3; r++) for (let c = 0; c < 2; c++) box(ctx, ix + 43 + c * 8, iy + 12 + r * 9, 6, 6, o.light >= 3 ? '#ffd98a' : '#bfe3ef');
   rect(ctx, ix + 37, iy + 24, 3, 18, PAL.coffee);
   for (const [tx, ty, r] of [[38, 18, 7], [33, 22, 5], [43, 22, 5]]) {
     ctx.fillStyle = o.light === 4 ? '#24442f' : PAL.pandan;
@@ -112,6 +118,7 @@ export function drawStreet(ctx: CanvasRenderingContext2D, o: SceneOpts) {
     for (const wx of [ix + 48, ix + 58]) box(ctx, wx - 2, iy + 37, 5, 5, '#e8e0d0');
     box(ctx, ix + 46, iy + 32, 6, 4, '#ee8a9e');
   }
+  ctx.restore();
 }
 
 export function drawRoom(ctx: CanvasRenderingContext2D, o: SceneOpts) {

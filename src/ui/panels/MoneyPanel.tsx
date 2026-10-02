@@ -1,9 +1,10 @@
-import { CONFIG, INGREDIENT_ORDER } from '../../data/catalog';
+import { INGREDIENT_ORDER } from '../../data/catalog';
 import { NOTEBOOK, NOTEBOOK_ORDER } from '../../data/notebook';
-import { effectActive, fixedCosts, levelOf } from '../../engine/economy';
+import { fixedCosts, levelOf } from '../../engine/economy';
 import { COOPS } from '../../engine/market';
-import { LOAN_SIZES, MARKETING } from '../../engine/state';
-import type { CoopId } from '../../engine/types';
+import { CAMPAIGNS, LOAN_SIZES } from '../../engine/state';
+import { quoteLoan } from '../../engine/finance';
+import type { CampaignKind, CoopId } from '../../engine/types';
 import { money, money2, signedMoney } from '../../lib/format';
 import { useGame } from '../GameContext';
 import { Btn, Card, Empty, Tip } from '../kit';
@@ -44,7 +45,6 @@ export function MoneyPanel() {
   const busy = s.phase === 'service';
   const r = s.lastReport;
   const pantryValue = INGREDIENT_ORDER.reduce((t, id) => t + s.pantry[id].qty * s.pantry[id].avgCost, 0);
-  const marketing = s.effects.find((e) => e.id === 'marketing' && e.until >= s.day);
 
   return (
     <div className="panel-stack">
@@ -155,60 +155,59 @@ export function MoneyPanel() {
       </Card>
 
       <Card title="Spread the word" icon="phone" aside={level < 2 ? <span className="lock-tag">Level 2</span> : undefined}>
-        {marketing ? (
-          <p>
-            <b>{String(marketing.data?.source ?? 'Your campaign')}</b> is running until day {marketing.until}: about {Math.round(Number(marketing.data?.total ?? 0))} extra customers in total.
-          </p>
-        ) : (
-          <ul className="choice-list">
-            {(Object.keys(MARKETING) as (keyof typeof MARKETING)[]).map((k) => (
+        <ul className="choice-list">
+          {(Object.keys(CAMPAIGNS) as CampaignKind[]).map((k) => {
+            const c = CAMPAIGNS[k];
+            const cost = Math.round(c.cost * s.macro.priceIndex);
+            const running = s.campaigns.find((x) => x.kind === k && x.endDay >= s.day);
+            const expected = c.reach * c.conversion;
+            return (
               <li key={k}>
                 <div>
-                  <b>{MARKETING[k].name}</b>
-                  <span className="small">{MARKETING[k].blurb}</span>
+                  <b>{c.name}</b>
+                  <span className="small">{c.blurb}</span>
+                  {expected > 0 && <span className="small muted">Reach ~{c.reach.toLocaleString('en-US')} · expected ~{Math.round(expected)} new customers · ~{money2(cost / expected)} per customer</span>}
+                  {running && <span className="small effect">Running until day {running.endDay}</span>}
                 </div>
-                <Btn disabled={level < 2 || s.phase !== 'morning' || s.cash < MARKETING[k].cost || effectActive(s, 'marketing')} onClick={() => dispatch({ type: 'marketing', kind: k })}>
-                  {money(MARKETING[k].cost)}
+                <Btn disabled={level < 2 || s.phase !== 'morning' || s.cash < cost || !!running || (!!c.needs && !s.upgrades.includes(c.needs))} onClick={() => dispatch({ type: 'campaign', kind: k })}>
+                  {money(cost)}
                 </Btn>
               </li>
-            ))}
-          </ul>
-        )}
+            );
+          })}
+        </ul>
         <p className="muted small">
           Results are uncertain: that's <Tip concept="risk">risk and return</Tip>.
         </p>
       </Card>
 
-      <Card title="Bank loan" icon="house" aside={level < 3 ? <span className="lock-tag">Level 3</span> : undefined}>
-        {s.loan ? (
-          <>
-            <p>
-              You owe <b>{money2(s.loan.remaining)}</b>. Each evening <b>{money2(s.loan.daily)}</b> is paid back automatically.
-            </p>
-            <Btn disabled={busy || s.cash < s.loan.remaining} onClick={() => dispatch({ type: 'repayLoan' })}>
-              Pay it all now ({money2(s.loan.remaining)})
+      <Card title="Bank loans" icon="house">
+        {s.loans.map((l) => (
+          <p key={l.id} className="small">
+            <b>{l.lender}</b>: {money2(l.balance)} left at {(l.rate * 100).toFixed(1)}%, {money2(l.payment)} a month for {l.monthsLeft} more months.{' '}
+            <Btn disabled={busy || s.cash < l.balance + l.accrued} onClick={() => dispatch({ type: 'repayLoan', id: l.id })}>
+              Pay off ({money2(l.balance + l.accrued)})
             </Btn>
-          </>
-        ) : (
-          <ul className="choice-list">
-            {LOAN_SIZES.map((n) => {
-              const total = n * (1 + CONFIG.loanFee);
-              return (
-                <li key={n}>
-                  <div>
-                    <b>Borrow {money(n)}</b>
-                    <span className="small">
-                      Pay back {money2(total)} in total: {money2(total / CONFIG.loanDays)} a day for {CONFIG.loanDays} days.
-                    </span>
-                  </div>
-                  <Btn disabled={level < 3 || busy} onClick={() => dispatch({ type: 'borrow', amount: n })}>
-                    Borrow
-                  </Btn>
-                </li>
-              );
-            })}
-          </ul>
-        )}
+          </p>
+        ))}
+        <ul className="choice-list">
+          {LOAN_SIZES.slice(0, 3).map((n) => {
+            const q = quoteLoan(s, n, 12);
+            return (
+              <li key={n}>
+                <div>
+                  <b>Borrow {money(n)} for 12 months</b>
+                  <span className="small">
+                    {(q.rate * 100).toFixed(1)}% a year: {money2(q.payment)} a month, {money2(q.totalInterest)} interest in total.
+                  </span>
+                </div>
+                <Btn disabled={busy} onClick={() => dispatch({ type: 'takeLoan', principal: n, term: 12 })}>
+                  Borrow
+                </Btn>
+              </li>
+            );
+          })}
+        </ul>
         <p className="muted small">
           A loan helps you buy something big now. The extra you pay back is <Tip concept="interest">interest</Tip>.
         </p>
@@ -216,7 +215,7 @@ export function MoneyPanel() {
 
       <Card title="Co-op shares" icon="chart" aside={level < 3 ? <span className="lock-tag">Level 3</span> : undefined}>
         <p className="small">
-          Own a small piece of the farms you buy from. Prices move every day; each week you get a {CONFIG.coopDividend * 100}% <Tip concept="dividends">dividend</Tip>. Owning several is{' '}
+          Own a small piece of the farms you buy from. Prices move every day; each week you get a 1.5% <Tip concept="dividends">dividend</Tip>. Owning several is{' '}
           <Tip concept="diversification">diversification</Tip>.
         </p>
         <ul className="choice-list">

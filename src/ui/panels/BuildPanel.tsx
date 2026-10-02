@@ -10,17 +10,26 @@ import { LookEditor } from '../LookEditor';
 import { Sprite } from '../pixel/Sprite';
 
 const UP_ICON: Record<UpgradeId, string> = {
+  ovenBasic: 'hot',
   oven2: 'hot',
   oven3: 'hot',
+  mixer: 'gear',
+  steamer: 'banhBao',
   fridge: 'fridge',
+  walkIn: 'fridge',
+  storage: 'box',
   display: 'shop',
   coffeeBar: 'caPhe',
-  helper: 'people',
+  pos: 'coin',
   fan: 'cool',
   solar: 'sun',
   compost: 'leaf',
+  bike: 'moto',
+  van: 'box',
+  website: 'phone',
   corner: 'cafe',
   garden: 'veg',
+  renovation: 'house',
   loft: 'house',
 };
 const DECOR_ICON: Record<DecorId, string> = {

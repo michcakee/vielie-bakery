@@ -3,15 +3,14 @@ import { BAGUETTE, CONFIG, INGREDIENTS, PRODUCTS, WEATHER } from '../../data/cat
 import {
   acceptance,
   canBakeTray,
-  COMPETITOR,
-  competitorOpen,
+  activeRivals,
   demandLabel,
   expectedWalkIns,
   itemCost,
   makeable,
   missingFor,
   onMenu,
-  ovenCapacity,
+  trayCapacity,
   priceBounds,
   recipeCost,
 } from '../../engine/economy';
@@ -107,7 +106,7 @@ function OvenGame({ item, onDone, onCancel }: { item: Bakeable; onDone: (q: numb
 function OvenCard() {
   const { state: s, dispatch } = useGame();
   const [baking, setBaking] = useState<Bakeable | null>(null);
-  const cap = ovenCapacity(s);
+  const cap = trayCapacity(s);
   const left = cap - s.traysToday;
   const items: Bakeable[] = ['baguette', ...onMenu(s).filter((p) => PRODUCTS[p].kind === 'tray')];
   const morning = s.phase === 'morning' && !s.events.length;
@@ -185,12 +184,13 @@ function PriceRow({ p }: { p: ProductId }) {
   const { state: s, dispatch } = useGame();
   const d = PRODUCTS[p];
   const price = s.prices[p];
-  const [lo, hi] = priceBounds(p);
+  const [lo, hi] = priceBounds(s, p);
   const a = acceptance(s, p);
   const lab = demandLabel(a);
   const cost = itemCost(s, p);
   const keep = price - cost;
-  const theirs = competitorOpen(s.day) ? COMPETITOR.prices[p] : undefined;
+  const rival = activeRivals(s).find((c) => c.prices[p] !== undefined);
+  const theirs = rival?.prices[p];
   const stock = d.kind === 'tray' ? s.display[p].qty : makeable(s, p);
   return (
     <li className="price-row">
@@ -212,7 +212,7 @@ function PriceRow({ p }: { p: ProductId }) {
             Costs {money2(cost)} to make · <Tip concept="margin">you keep</Tip> <b className={keep < 0 ? 'neg' : 'pos'}>{money2(keep)}</b> ({pct(price > 0 ? keep / price : 0)})
           </span>
           <span>{d.kind === 'tray' ? `${stock} in the case` : `${stock} can be made`}</span>
-          {theirs !== undefined && <span className="rival">Cô Tư: {money2(theirs)}</span>}
+          {theirs !== undefined && <span className="rival">{rival!.name}: {money2(theirs)}</span>}
         </div>
       </div>
     </li>

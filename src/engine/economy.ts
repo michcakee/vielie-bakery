@@ -1,19 +1,19 @@
-import { BAGUETTE, CONFIG, DECOR, GIFT_BOX_COST, INGREDIENTS, LEVELS, LOYALTY, PACKAGING, PRODUCTS, SUPPLIERS, UPGRADES, WEATHER } from '../data/catalog';
+import { BAGUETTE, DECOR, INGREDIENTS, LEVELS, LOYALTY, PACKAGING, PRODUCTS, PRODUCT_ORDER, SUPPLIERS, UPGRADES, WEATHER } from '../data/catalog';
+import { DIFFICULTY, ECON } from '../data/config';
+import { LOCATIONS, SEGMENTS, SEGMENT_ORDER } from '../data/world';
+import { dateOf, festivalsOn, giftSeason, isTetDay, mooncakeSeason } from './calendar';
+import { priceSensitivity, spendingFactor, trafficFactor } from './macro';
 import { gaussian, mulberry32 } from './rng';
-import type { GameState, IngredientId, ProductId, SupplierId } from './types';
+import { clamp, round2 } from './util';
+import type { Competitor, GameState, IngredientId, ProductId, SegmentId, SupplierId, UpgradeId } from './types';
 
-export const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
-export const round2 = (v: number) => Math.round(v * 100) / 100;
+export { clamp, round2 };
 
-// ---------------------------------------------------------------- calendar
+// ---------------------------------------------------------------- calendar shims
 
-export const yearDay = (day: number) => ((day - 1) % CONFIG.yearLength) + 1;
+export const isTet = (day: number) => isTetDay(day);
 export const weekdayIndex = (day: number) => (day - 1) % 7;
 export const isWeekend = (day: number) => weekdayIndex(day) >= 5;
-export const isTet = (day: number) => {
-  const y = yearDay(day);
-  return y >= CONFIG.tetStart && y <= CONFIG.tetEnd;
-};
 export const competitorOpen = (day: number) => day >= 15;
 
 // ---------------------------------------------------------------- progression
@@ -32,46 +32,127 @@ export function levelProgress(xp: number): { level: number; into: number; span: 
   return { level, into: xp - cur.xp, span: next.xp - cur.xp };
 }
 
-export const has = (s: Pick<GameState, 'upgrades'>, id: keyof typeof UPGRADES) => s.upgrades.includes(id);
-
-export function ovenCapacity(s: Pick<GameState, 'upgrades'>): number {
-  if (has(s, 'oven3')) return CONFIG.ovenTrays[2];
-  if (has(s, 'oven2')) return CONFIG.ovenTrays[1];
-  return CONFIG.ovenTrays[0];
+export function businessStage(s: GameState): number {
+  const open = s.branches.filter((b) => !b.closed).length;
+  if (open >= 2 && s.staff.length >= 12) return 6;
+  if (open >= 1) return 5;
+  if (has(s, 'loft') || s.staff.length >= 6 || has(s, 'oven3')) return 4;
+  if (s.staff.length >= 3 || has(s, 'corner')) return 3;
+  if (s.staff.length >= 1) return 2;
+  return 1;
 }
 
-export function onMenu(s: Pick<GameState, 'unlocked' | 'day'>): ProductId[] {
-  const list: ProductId[] = s.unlocked.filter((p) => p !== 'mutDua');
-  if (isTet(s.day)) list.push('mutDua');
-  return list;
+// ---------------------------------------------------------------- equipment & capacity
+
+export const has = (s: Pick<GameState, 'upgrades'>, id: UpgradeId) => s.upgrades.includes(id);
+export const countOf = (s: Pick<GameState, 'equipment'>, id: UpgradeId) => s.equipment.filter((e) => e.kind === id).length;
+const working = (s: Pick<GameState, 'equipment'>) => s.equipment.filter((e) => !e.broken);
+
+export function ovenCapacity(s: Pick<GameState, 'equipment'>): number {
+  return working(s).reduce((t, e) => t + (UPGRADES[e.kind].trays ?? 0), 0);
 }
 
-// ---------------------------------------------------------------- buying
+export const flagshipStaff = (s: Pick<GameState, 'staff'>) => s.staff.filter((e) => e.branch === null);
+
+export function productivity(e: { skill: number; morale: number; trainingUntil: number }, day: number): number {
+  const training = e.trainingUntil >= day ? 0.6 : 1;
+  return (0.6 + 0.08 * e.skill) * (0.7 + 0.3 * (e.morale / 100)) * training;
+}
+
+/** Trays the team can physically prepare each morning. */
+export function laborTrays(s: GameState): number {
+  let t = ECON.production.ownerTrays;
+  const mixer = has(s, 'mixer') ? ECON.production.mixerBoost : 1;
+  for (const e of flagshipStaff(s)) {
+    if (e.role === 'baker') t += (ECON.production.bakerTraysBase + ECON.production.bakerTraysPerSkill * e.skill) * productivity(e, s.day) * mixer;
+    if (e.role === 'pastryChef') t += (1 + 0.4 * e.skill) * productivity(e, s.day) * mixer;
+  }
+  return Math.floor(t);
+}
+
+export function trayCapacity(s: GameState): number {
+  return Math.min(ovenCapacity(s), laborTrays(s));
+}
+
+export function displayCapacity(s: Pick<GameState, 'equipment'>): number {
+  return ECON.production.displayBase + working(s).reduce((t, e) => t + (UPGRADES[e.kind].display ?? 0), 0);
+}
+
+export function coldCapacity(s: Pick<GameState, 'equipment'>): number {
+  return ECON.inventory.coldBase + working(s).reduce((t, e) => t + (UPGRADES[e.kind].cold ?? 0), 0);
+}
+
+export function dryCapacity(s: Pick<GameState, 'equipment'>): number {
+  return ECON.inventory.dryCapacity + working(s).reduce((t, e) => t + (UPGRADES[e.kind].dry ?? 0), 0);
+}
+
+export function storageUse(s: Pick<GameState, 'pantry'>, cold: boolean): number {
+  let u = 0;
+  for (const [id, p] of Object.entries(s.pantry) as [IngredientId, { qty: number }][]) if (INGREDIENTS[id].cold === cold) u += p.qty;
+  return u;
+}
+
+export const fridgeWorks = (s: GameState) => working(s).some((e) => e.kind === 'fridge' || e.kind === 'walkIn') && !effectActive(s, 'fridgeBroken');
+
+export const displayUse = (s: Pick<GameState, 'display'>) => PRODUCT_ORDER.reduce((t, p) => t + s.display[p].qty, 0);
+
+// ---------------------------------------------------------------- menu
+
+export function seasonOk(p: ProductId, day: number): boolean {
+  const season = PRODUCTS[p].season;
+  if (season === 'gift') return giftSeason(day);
+  if (season === 'mooncake') return mooncakeSeason(day);
+  return true;
+}
+
+export function canOffer(s: GameState, p: ProductId): boolean {
+  const d = PRODUCTS[p];
+  if (d.season === 'gift') return giftSeason(s.day);
+  if (!s.unlocked.includes(p)) return false;
+  if (!seasonOk(p, s.day)) return false;
+  if (d.equipment && !has(s, d.equipment)) return false;
+  return true;
+}
+
+export function onMenu(s: GameState): ProductId[] {
+  return PRODUCT_ORDER.filter((p) => canOffer(s, p) && (s.menu.includes(p) || !!PRODUCTS[p].season));
+}
+
+// ---------------------------------------------------------------- effects
 
 export function effectActive(s: Pick<GameState, 'effects' | 'day'>, id: string): boolean {
   return s.effects.some((e) => e.id === id && e.until >= s.day);
 }
 
+// ---------------------------------------------------------------- buying
+
 export function loyaltyDiscount(s: Pick<GameState, 'supplierLoyalty'>, supplier: SupplierId): number {
   return Math.min(LOYALTY.maxDiscount, Math.floor((s.supplierLoyalty[supplier] ?? 0) / LOYALTY.packsPerPoint) / 100);
 }
 
-/** Today's market multiplier for an ingredient, after any price lock. */
+export function bulkDiscount(packs: number): number {
+  for (const [n, d] of ECON.inventory.bulkTiers) if (packs >= n) return d;
+  return 0;
+}
+
 export function marketMult(s: Pick<GameState, 'market' | 'locks' | 'day'>, id: IngredientId): number {
   const lock = s.locks.find((l) => l.ingredient === id && l.until >= s.day);
   return lock ? Math.min(lock.price, s.market.prices[id]) : s.market.prices[id];
 }
 
-export function packPrice(s: Pick<GameState, 'market' | 'locks' | 'day' | 'supplierLoyalty' | 'effects'>, id: IngredientId, supplier: SupplierId): number {
+/** Price of one pack today, including any bulk discount for the order size. Market prices already include inflation. */
+export function packPrice(s: GameState, id: IngredientId, supplier: SupplierId, packs = 1): number {
   let mult = marketMult(s, id);
-  if (supplier === 'farm' && id === 'eggs' && effectActive(s, 'farmEggs')) mult = Math.min(mult, s.market.walk.eggs);
+  if (supplier === 'farm' && id === 'eggs' && effectActive(s, 'farmEggs')) mult = Math.min(mult, s.market.walk.eggs * s.macro.priceIndex);
   let base = INGREDIENTS[id].price * mult * SUPPLIERS[supplier].priceMult;
   if (supplier === 'premium' && effectActive(s, 'premiumSale')) base *= 0.7;
-  return round2(base * (1 - loyaltyDiscount(s, supplier)));
+  if (supplier === 'distributor' && effectActive(s, 'distributorDeal')) base *= 0.8;
+  if (supplier !== 'cho') base *= 1 + LOCATIONS[s.location].deliverySurcharge;
+  return round2(base * (1 - loyaltyDiscount(s, supplier)) * (1 - bulkDiscount(packs)));
 }
 
-/** What the same pack would cost at an ordinary market price, for "you saved" messages. */
-export const normalPackPrice = (id: IngredientId) => INGREDIENTS[id].price;
+/** What a pack would cost at a normal market price, for "you saved" messages. */
+export const normalPackPrice = (s: GameState, id: IngredientId) => INGREDIENTS[id].price * s.macro.priceIndex;
 
 export function inStock(s: Pick<GameState, 'market'>, id: IngredientId, supplier: SupplierId): boolean {
   return !s.market.outOfStock.some((o) => o.ingredient === id && o.supplier === supplier);
@@ -79,23 +160,23 @@ export function inStock(s: Pick<GameState, 'market'>, id: IngredientId, supplier
 
 // ---------------------------------------------------------------- costs
 
-export function unitCost(s: Pick<GameState, 'pantry'>, id: IngredientId): number {
+export function unitCost(s: Pick<GameState, 'pantry' | 'macro'>, id: IngredientId): number {
   const p = s.pantry[id];
-  return p.qty > 0 ? p.avgCost : INGREDIENTS[id].price / INGREDIENTS[id].pack;
+  return p.qty > 0 ? p.avgCost : (INGREDIENTS[id].price / INGREDIENTS[id].pack) * s.macro.priceIndex;
 }
 
-export function recipeCost(s: Pick<GameState, 'pantry'>, recipe: Partial<Record<IngredientId, number>>): number {
+export function recipeCost(s: Pick<GameState, 'pantry' | 'macro'>, recipe: Partial<Record<IngredientId, number>>): number {
   let c = 0;
   for (const [id, n] of Object.entries(recipe) as [IngredientId, number][]) c += n * unitCost(s, id);
   return c;
 }
 
-export function packagingCost(s: Pick<GameState, 'packaging'>, p: ProductId): number {
-  return PACKAGING[s.packaging].cost + (p === 'mutDua' ? GIFT_BOX_COST : 0);
+export function packagingCost(s: Pick<GameState, 'packaging' | 'macro'>, p: ProductId): number {
+  return (PACKAGING[s.packaging].cost + (PRODUCTS[p].boxCost ?? 0)) * s.macro.priceIndex;
 }
 
-/** Cost to make one item: ingredients (and its share of a baguette) plus packaging. */
-export function itemCost(s: Pick<GameState, 'pantry' | 'packaging' | 'baguettes' | 'display'>, p: ProductId): number {
+/** Variable cost to make and sell one item. */
+export function itemCost(s: GameState, p: ProductId): number {
   const def = PRODUCTS[p];
   let c = recipeCost(s, def.recipe) / def.yield;
   if (p === 'banhMi') c += s.baguettes.qty > 0 ? s.baguettes.unitCost : recipeCost(s, BAGUETTE.recipe) / BAGUETTE.yield;
@@ -122,7 +203,6 @@ export function available(s: Pick<GameState, 'pantry' | 'baguettes' | 'display'>
   return PRODUCTS[p].kind === 'tray' ? s.display[p].qty >= qty : canMake(s, p, qty);
 }
 
-/** How many more of a made-to-order item the pantry supports right now. */
 export function makeable(s: Pick<GameState, 'pantry' | 'baguettes'>, p: ProductId): number {
   const def = PRODUCTS[p];
   let n = Infinity;
@@ -131,65 +211,143 @@ export function makeable(s: Pick<GameState, 'pantry' | 'baguettes'>, p: ProductI
   return Number.isFinite(n) ? n : 0;
 }
 
-export function rent(s: Pick<GameState, 'upgrades'>): number {
-  return CONFIG.rentPerDay + s.upgrades.reduce((t, u) => t + (UPGRADES[u].rent ?? 0), 0);
+export function rent(s: GameState): number {
+  const rooms = s.equipment.reduce((t, e) => t + (UPGRADES[e.kind].rent ?? 0), 0);
+  return (LOCATIONS[s.location].rent + rooms) * s.macro.rentIndex;
 }
 
-export function wages(s: Pick<GameState, 'upgrades'>): number {
-  return s.upgrades.reduce((t, u) => t + (UPGRADES[u].wage ?? 0), 0);
+export function wages(s: GameState, branch: number | null = null): number {
+  return s.staff.filter((e) => e.branch === branch).reduce((t, e) => t + e.wage * ECON.labor.hoursPerShift, 0) * (1 + ECON.labor.payrollOverhead);
 }
 
-export function energyCost(s: Pick<GameState, 'upgrades'>, trays: number): number {
-  const perTray = CONFIG.energyPerTray * (has(s, 'oven3') ? 1.2 : 1) * (has(s, 'solar') ? 0.4 : 1);
-  return trays * perTray + 1;
+export function utilities(s: GameState, trays: number): number {
+  const equip = s.equipment.reduce((t, e) => t + (UPGRADES[e.kind].utilities ?? 0), 0);
+  const raw = ECON.costs.utilitiesBase + ECON.costs.utilitiesPerTray * trays + equip;
+  return raw * (has(s, 'solar') ? 0.4 : 1) * s.macro.priceIndex;
 }
 
-export function fixedCosts(s: Pick<GameState, 'upgrades' | 'loan'>): number {
-  return rent(s) + wages(s) + (s.loan ? s.loan.fee / CONFIG.loanDays : 0);
+export const energyCost = utilities;
+
+export function maintenance(s: GameState): number {
+  return s.equipment.reduce((t, e) => t + (UPGRADES[e.kind].maintenance ?? 0), 0) * s.macro.priceIndex;
 }
 
-// ---------------------------------------------------------------- demand
+export function depreciationPerDay(cost: number, years: number): number {
+  return cost / (years * 360);
+}
 
-/** A fixed panel of shoppers' budgets: the same one drives the demand meter and real customers. */
-const BUDGETS: number[] = (() => {
+export function dailyDepreciation(s: GameState): number {
+  let d = 0;
+  for (const e of s.equipment) if (e.depreciated < e.cost) d += Math.min(e.cost - e.depreciated, depreciationPerDay(e.cost, UPGRADES[e.kind].life));
+  return d;
+}
+
+export const creditLineRate = (s: GameState) => s.macro.rate + ECON.finance.creditLineSpread;
+
+export function dailyInterest(s: GameState): number {
+  const loans = s.loans.reduce((t, l) => t + (l.balance * l.rate) / 360, 0);
+  const line = (s.creditLine.balance * creditLineRate(s)) / 360;
+  const bonds = s.bonds.reduce((t, b) => t + (b.amount * b.rate) / 360, 0);
+  return loans + line + bonds;
+}
+
+/** Costs that arrive every day whether you sell anything or not. */
+export function fixedCosts(s: GameState): number {
+  return rent(s) + wages(s) + ECON.costs.utilitiesBase * s.macro.priceIndex * (has(s, 'solar') ? 0.4 : 1) + maintenance(s) + dailyDepreciation(s) + dailyInterest(s);
+}
+
+// ---------------------------------------------------------------- willingness to pay
+
+/** A fixed panel of shoppers (standard-normal draws) shared by the meter and real customers. */
+const PANEL: number[] = (() => {
   const r = mulberry32(20240607);
-  return Array.from({ length: 400 }, () => sampleBudget(r));
+  return Array.from({ length: 300 }, () => gaussian(r));
 })();
 
-export function sampleBudget(rand: () => number): number {
-  return clamp(1.12 + 0.22 * gaussian(rand), 0.6, 1.8);
+/** Spread of willingness to pay: price-sensitive segments and hard times bunch shoppers near the price. */
+export function sigmaFor(s: GameState, p: ProductId, seg: SegmentId): number {
+  return ECON.demand.budgetSigma / (Math.sqrt(PRODUCTS[p].elasticity) * SEGMENTS[seg].sensitivity * priceSensitivity(s.macro));
 }
 
-export function qualityFactor(q: number): number {
-  return 0.8 + 0.4 * clamp(q, 0, 100) / 100;
+/**
+ * Habit goods (coffee) sit well above their price for most shoppers, so a price rise loses few of them;
+ * treats (cake) sit close to it, so small rises lose many. This is where product elasticity comes from.
+ */
+export const habitFactor = (p: ProductId) => 1 + 0.45 * (1 - PRODUCTS[p].elasticity);
+
+export function budgetFromZ(z: number, sigma: number): number {
+  return ECON.demand.budgetMean * Math.exp(sigma * z - (sigma * sigma) / 2);
 }
 
-/** The highest price a shopper with this budget will pay today. */
-export function willingToPay(s: GameState, p: ProductId, budget: number, quality: number, ecoMinded: boolean): number {
+export const qualityFactor = (q: number) => 0.8 + 0.4 * clamp(q, 0, 100) / 100;
+
+export function reputationFactor(rep: number): number {
+  const [lo, hi] = ECON.demand.reputationWTP;
+  return lo + (hi - lo) * clamp(rep, 0, 100) / 100;
+}
+
+export function festivalWTP(s: GameState, p: ProductId, seg: SegmentId): number {
+  const f = festivalsOn(s.day);
+  let m = 1;
+  if (f.includes('tet')) m *= 1 + 0.15 * SEGMENTS[seg].heritage;
+  if (f.includes('trungThu') && p === 'banhTrungThu') m *= 1.15;
+  if (effectActive(s, 'festival')) m *= 1.08;
+  return m;
+}
+
+/** The highest price one shopper will pay today. */
+export function willingToPay(s: GameState, p: ProductId, budget: number, quality: number, ecoMinded: boolean, seg: SegmentId = 'vnFamilies', loyal = false): number {
   const def = PRODUCTS[p];
-  let w = def.ref * budget * qualityFactor(quality);
+  const sd = SEGMENTS[seg];
+  let w = def.ref * habitFactor(p) * s.macro.priceIndex * budget * sd.income * LOCATIONS[s.location].income * spendingFactor(s.macro) * qualityFactor(quality) * reputationFactor(s.reputation);
+  if (sd.heritage > 1 && def.heritage > 0.8) w *= 1 + (0.1 * (quality - 70)) / 30;
   if (def.kind === 'tray' && has(s, 'display')) w *= 1.08;
-  if (ecoMinded) w *= 0.85 + 0.35 * ecoScore(s) / 100;
-  if (isTet(s.day)) w *= 1.15;
-  if (effectActive(s, 'festival')) w *= 1.08;
-  return w;
+  if (ecoMinded) w *= 0.85 + (0.35 * ecoScore(s)) / 100;
+  if (loyal) w *= ECON.demand.loyalWTP;
+  return w * festivalWTP(s, p, seg);
 }
 
 export function effectivePrice(s: GameState, p: ProductId): number {
   const base = s.prices[p];
-  return s.service?.lastCall && PRODUCTS[p].kind === 'tray' ? round2(base * (1 - CONFIG.lastCallDiscount)) : base;
+  return s.service?.lastCall && PRODUCTS[p].kind === 'tray' ? round2(base * (1 - ECON.service.lastCallDiscount)) : base;
 }
 
 export function expectedQuality(s: GameState, p: ProductId): number {
-  if (PRODUCTS[p].kind === 'tray') return s.display[p].qty > 0 ? s.display[p].quality : 75;
+  if (PRODUCTS[p].kind === 'tray') return s.display[p].qty > 0 ? s.display[p].quality : 72 + staffQualityBonus(s);
   return madeToOrderQuality(s, p, 85);
 }
 
-/** Share of shoppers who would buy at this price: the demand meter. */
+export function segmentMix(s: GameState, location = s.location): Record<SegmentId, number> {
+  const loc = LOCATIONS[location];
+  const f = festivalsOn(s.day);
+  const out = {} as Record<SegmentId, number>;
+  let total = 0;
+  for (const seg of SEGMENT_ORDER) {
+    let w = loc.segments[seg] ?? 0;
+    if ((f.includes('tet') || f.includes('preTet') || f.includes('trungThu')) && SEGMENTS[seg].heritage > 1) w *= 1.5;
+    if (seg === 'event' && (f.length || isWeekend(s.day))) w *= 2;
+    if (seg === 'tourists' && dateOf(s.day).season === 'hot') w *= 1.3;
+    if (seg === 'budget' && s.macro.regime === 'recession') w *= 1.4;
+    if (seg === 'premium' && s.macro.regime === 'recession') w *= 0.6;
+    out[seg] = w;
+    total += w;
+  }
+  for (const seg of SEGMENT_ORDER) out[seg] = total ? out[seg] / total : 0;
+  return out;
+}
+
+/** Share of shoppers who'd accept this price (ignoring rivals): the demand meter. */
 export function acceptance(s: GameState, p: ProductId, price = s.prices[p], quality = expectedQuality(s, p)): number {
+  const mix = segmentMix(s);
   let yes = 0;
-  for (const b of BUDGETS) if (willingToPay(s, p, b, quality, false) >= price - 1e-9) yes++;
-  return yes / BUDGETS.length;
+  for (const seg of SEGMENT_ORDER) {
+    if (!mix[seg]) continue;
+    const sigma = sigmaFor(s, p, seg);
+    let n = 0;
+    for (const z of PANEL) if (willingToPay(s, p, budgetFromZ(z, sigma), quality, false, seg) >= price - 1e-9) n++;
+    yes += mix[seg] * (n / PANEL.length);
+  }
+  return yes;
 }
 
 export function demandLabel(a: number): { text: string; tone: 'great' | 'good' | 'meh' | 'bad' } {
@@ -199,10 +357,12 @@ export function demandLabel(a: number): { text: string; tone: 'great' | 'good' |
   return { text: 'Most people will say "Đắt quá…"', tone: 'bad' };
 }
 
-export function priceBounds(p: ProductId): [number, number] {
-  const ref = PRODUCTS[p].ref;
-  return [Math.max(0.25, round2(ref * CONFIG.minPriceFactor)), round2(ref * CONFIG.maxPriceFactor)];
+export function priceBounds(s: GameState, p: ProductId): [number, number] {
+  const ref = PRODUCTS[p].ref * s.macro.priceIndex;
+  return [Math.max(0.25, round2(ref * ECON.service.minPriceFactor)), round2(ref * ECON.service.maxPriceFactor)];
 }
+
+// ---------------------------------------------------------------- quality
 
 export function ingredientQuality(s: Pick<GameState, 'pantry'>, recipe: Partial<Record<IngredientId, number>>): number {
   let q = 0;
@@ -217,7 +377,13 @@ export function ingredientQuality(s: Pick<GameState, 'pantry'>, recipe: Partial<
 
 export function masteryBonus(s: Pick<GameState, 'lifetime'>, p: ProductId): number {
   const sold = s.lifetime.sold[p] ?? 0;
-  return sold >= 150 ? 12 : sold >= 60 ? 8 : sold >= 20 ? 4 : 0;
+  return sold >= 300 ? 12 : sold >= 120 ? 8 : sold >= 40 ? 4 : 0;
+}
+
+export function staffQualityBonus(s: GameState): number {
+  let b = has(s, 'renovation') ? 5 : 0;
+  for (const e of flagshipStaff(s)) if (e.role === 'pastryChef') b += (ECON.production.pastryChefQuality * e.skill) / 3;
+  return Math.min(15, b);
 }
 
 export function blendQuality(process: number, ingredients: number, bonus: number): number {
@@ -227,10 +393,10 @@ export function blendQuality(process: number, ingredients: number, bonus: number
 export function madeToOrderQuality(s: GameState, p: ProductId, process: number): number {
   let ing = ingredientQuality(s, PRODUCTS[p].recipe);
   if (p === 'banhMi') ing = (ing * 2 + (s.baguettes.qty > 0 ? s.baguettes.quality : 70)) / 3;
-  return blendQuality(process, ing, masteryBonus(s, p) + (p !== 'banhMi' && has(s, 'coffeeBar') ? 4 : 0));
+  return blendQuality(process, ing, masteryBonus(s, p) + (p !== 'banhMi' && has(s, 'coffeeBar') ? 4 : 0) + (has(s, 'renovation') ? 5 : 0));
 }
 
-// ---------------------------------------------------------------- eco & community
+// ---------------------------------------------------------------- eco
 
 export function ecoScore(s: Pick<GameState, 'ecoHistory' | 'packaging' | 'upgrades' | 'decor'>): number {
   const recent = s.ecoHistory.slice(-7);
@@ -262,41 +428,136 @@ export function momentum(s: Pick<GameState, 'history'>): number {
   return clamp(0.85 + 0.3 * ratio, 0.88, 1.12);
 }
 
-export function expectedWalkIns(s: GameState): number {
-  if (s.day === 1) return 6;
+export function campaignBoost(s: GameState): number {
+  let extra = 0;
+  for (const c of s.campaigns) if (c.endDay >= s.day && c.startDay <= s.day) extra += (c.reach * c.conversion) / Math.max(1, c.endDay - c.startDay + 1);
+  for (const e of s.effects) if (e.id === 'marketing' && e.until >= s.day) extra += Number(e.data?.perDay ?? 0);
+  return extra;
+}
+
+/** Everyone who passes by and might come in today, before rivals take their share. */
+export function marketTraffic(s: GameState, location = s.location): number {
+  const loc = LOCATIONS[location];
+  const d = dateOf(s.day);
   const level = levelOf(s.xp);
-  let n = CONFIG.baseWalkIns + 4 * (level - 1) + Math.min(6, (s.day - 1) * 0.5);
+  let n = ECON.demand.baseWalkIns + ECON.demand.walkInsPerLevel * (level - 1);
+  n *= loc.traffic * loc.week[d.weekday] * (loc.seasonal[d.season] ?? 1);
   n *= WEATHER[s.market.weather].traffic;
-  n *= weekdayIndex(s.day) >= 5 ? 1.2 : weekdayIndex(s.day) === 4 ? 1.08 : 1;
-  n *= 0.72 + 0.56 * s.reputation / 100;
-  n *= momentum(s);
-  if (has(s, 'corner')) n *= 1.2;
-  if (has(s, 'loft')) n *= 1.25;
-  if (s.decor.includes('stools')) n *= 1.03;
-  if (s.decor.includes('sign')) n *= 1.04;
+  n *= trafficFactor(s.macro);
+  if (festivalsOn(s.day).length) n *= loc.festivalBoost;
   if (effectActive(s, 'festival')) n *= 1.6;
-  if (effectActive(s, 'stall')) n *= 1.35;
-  if (isTet(s.day)) n *= s.decor.includes('hoaMai') ? 1.47 : 1.4;
-  for (const e of s.effects) if (e.id === 'marketing' && e.until >= s.day) n += Number(e.data?.perDay ?? 0);
+  if (effectActive(s, 'construction')) n *= Number(s.effects.find((e) => e.id === 'construction')?.data?.mult ?? 0.75);
+  if (effectActive(s, 'viral')) n *= 1.4;
+  if (effectActive(s, 'tourism')) n *= 1.2;
   return n;
 }
 
+export function expectedWalkIns(s: GameState): number {
+  if (s.day === 1 && s.scenario === 'family') return 7;
+  let n = marketTraffic(s);
+  n *= 0.72 + (0.56 * s.reputation) / 100;
+  n *= momentum(s);
+  if (has(s, 'corner')) n *= 1.2;
+  if (has(s, 'loft')) n *= 1.25;
+  if (has(s, 'website')) n *= 1.08;
+  if (s.decor.includes('stools')) n *= 1.03;
+  if (s.decor.includes('sign')) n *= 1.04;
+  if (effectActive(s, 'stall')) n *= 1.35;
+  if (isTet(s.day) && s.decor.includes('hoaMai')) n *= 1.05;
+  return n + campaignBoost(s);
+}
+
+/** Loyal customers who come back on a typical day. */
+export function loyalVisits(s: GameState): number {
+  return Object.values(s.loyal).reduce((t, n) => t + (n ?? 0), 0) * 0.22;
+}
+
 export function patienceMult(s: GameState): number {
-  let m = 1;
+  let m = DIFFICULTY[s.difficulty].patience;
+  if (s.market.weather === 'hot') m *= has(s, 'fan') ? 1.05 : 0.8;
   if (effectActive(s, 'awning')) m *= 1.25;
   if (effectActive(s, 'cooler')) m *= 1.2;
-  if (s.market.weather === 'hot') m *= has(s, 'fan') ? 1.05 : 0.8;
   for (const d of s.decor) m += DECOR[d].patience ?? 0;
   return m;
 }
 
-export const COMPETITOR = { name: 'Bánh Mì Cô Tư', prices: { banhMi: 2.5, caPhe: 2.1 } as Partial<Record<ProductId, number>> };
+// ---------------------------------------------------------------- competition
 
-/** Chance a shopper who wants this item goes across the street instead. */
+export const activeRivals = (s: GameState, location = s.location): Competitor[] =>
+  s.competitors.filter((c) => c.location === location && c.closedDay === null && c.openedDay <= s.day);
+
+function utility(price: number, ref: number, quality: number, reputation: number, marketing: number): number {
+  const w = ECON.demand.choice;
+  return -w.price * Math.log(Math.max(0.05, price / ref)) + (w.quality * (quality - 60)) / 40 + (w.reputation * (reputation - 50)) / 50 + w.marketing * marketing;
+}
+
+/** Chance a shopper who wants this item picks you over the rivals nearby (logit choice). */
+export function playerShare(s: GameState, p: ProductId, opts: { price?: number; quality?: number; loyal?: boolean; walkIn?: boolean } = {}): number {
+  const rivals = activeRivals(s).filter((c) => c.prices[p] !== undefined);
+  if (!rivals.length) return 1;
+  const ref = PRODUCTS[p].ref * s.macro.priceIndex;
+  const w = ECON.demand.choice;
+  const mine =
+    utility(opts.price ?? s.prices[p], ref, opts.quality ?? expectedQuality(s, p), s.reputation, Math.min(1, campaignBoost(s) / 20)) +
+    (opts.walkIn === false ? 0 : w.homeAdvantage) +
+    (opts.loyal ? w.loyalty * 2 : 0);
+  const aggression = DIFFICULTY[s.difficulty].competitorAggression;
+  let denom = Math.exp(mine);
+  for (const c of rivals) denom += Math.exp(utility(c.prices[p]!, ref, c.quality, c.reputation, c.marketing) + 0.25 * (aggression - 1));
+  return Math.exp(mine) / denom;
+}
+
 export function divertChance(s: GameState, p: ProductId): number {
-  const theirs = COMPETITOR.prices[p];
-  if (!competitorOpen(s.day) || theirs === undefined) return 0;
-  const q = expectedQuality(s, p);
-  const gap = (s.prices[p] - theirs) / theirs;
-  return clamp(0.12 + 0.8 * gap - (q - 60) / 220, 0.03, 0.6);
+  return 1 - playerShare(s, p);
+}
+
+// ---------------------------------------------------------------- expected demand (forecasts, branches, demand curves)
+
+export function productAppeal(s: GameState, p: ProductId, mix: Record<SegmentId, number>): number {
+  const def = PRODUCTS[p];
+  let w = 0;
+  for (const seg of SEGMENT_ORDER) {
+    if (!mix[seg]) continue;
+    const t = SEGMENTS[seg].times;
+    const daypart = (def.times[0] * t[0] + def.times[1] * t[1] + def.times[2] * t[2] + def.times[3] * t[3]) / 4;
+    w += mix[seg] * (SEGMENTS[seg].prefs[p] ?? 1) * daypart;
+  }
+  w *= def.popularity * (def.weather[s.market.weather] ?? 1);
+  if (def.season) w *= 2.2;
+  if (p === 'banhKem' && (isWeekend(s.day) || festivalsOn(s.day).length)) w *= 1.8;
+  if (effectActive(s, 'fruitFest') && (p === 'banhChuoi' || p === 'banhKem')) w *= 1.4;
+  return w;
+}
+
+/** Expected units per day at a price, given today's traffic, menu, rivals and quality. */
+export function expectedUnits(s: GameState, p: ProductId, price = s.prices[p], menu = onMenu(s)): number {
+  if (!menu.includes(p)) return 0;
+  const mix = segmentMix(s);
+  const total = menu.reduce((t, q) => t + productAppeal(s, q, mix), 0);
+  if (!total) return 0;
+  const want = (expectedWalkIns(s) + loyalVisits(s)) * (productAppeal(s, p, mix) / total);
+  const avgQty = SEGMENT_ORDER.reduce((t, seg) => t + mix[seg] * (PRODUCTS[p].kind === 'tray' ? Math.min(2, SEGMENTS[seg].qty) : 1), 0);
+  return want * acceptance(s, p, price) * playerShare(s, p, { price }) * avgQty;
+}
+
+/** Demand curve for charts: price → units, revenue, contribution. */
+export function demandCurve(s: GameState, p: ProductId, points = 13) {
+  const [lo, hi] = priceBounds(s, p);
+  const cost = itemCost(s, p);
+  const out: { price: number; units: number; revenue: number; contribution: number }[] = [];
+  for (let i = 0; i < points; i++) {
+    const price = round2(lo + ((hi - lo) * i) / (points - 1));
+    const units = expectedUnits(s, p, price);
+    out.push({ price, units, revenue: units * price, contribution: units * (price - cost) });
+  }
+  return out;
+}
+
+/** Point elasticity at the current price: % change in units for a 1% change in price. */
+export function elasticityAt(s: GameState, p: ProductId, price = s.prices[p]): number {
+  const up = expectedUnits(s, p, price * 1.05);
+  const down = expectedUnits(s, p, price * 0.95);
+  const mid = (up + down) / 2;
+  if (mid < 1e-6) return 0;
+  return (up - down) / mid / 0.1;
 }

@@ -178,7 +178,7 @@ export function BakeryScene({ onCustomer, baking = false, caption }: Props) {
         )}
 
         {/* staff */}
-        {s.upgrades.includes('helper') && (
+        {s.staff.some((e) => e.branch === null && e.role === 'cashier') && (
           <div className="staff bob" style={{ left: LAYOUT.helper.x, top: LAYOUT.helper.feet - 19 }}>
             <Person look={{ skin: 1, hair: 1, hairColor: 6, shirt: 6, apron: 1, accessory: 5 }} scale={1} />
           </div>

@@ -74,3 +74,16 @@ Each step is one change, played for at least a day before the next.
 *Numbers to playtest*: pop scale 1.12 / 140 ms; pitch jitter ±5 %; shake 2 px / 400 ms; float 1.1 s.
 
 *Assets to replace*: none (all synth audio and code-drawn sprites).
+
+### 2. Every order gets graded
+
+*What changed*
+- `gradeOrder()` in the engine scores each served order 0–100: **accuracy** 45% (assembly steps for made-to-order items; the tray's bake for pastries), **speed** 35% (share of the customer's patience left), **quality** 20% (ingredients and skill). Stars at 90 / 75 / 60 / 40.
+- After the player serves someone, a card shows the stars popping in, a one-word verdict, the three bars and the tip, then fades after ~1.6 s. Five stars is gold and says PERFECT!; the sparkle burst from change 1 already marks it.
+- Tips now follow the grade instead of a flat $1 for loved regulars: 15% of the bill at five stars, 6% at four, capped at $1.50, plus $0.50 from regulars. Everyone can tip now, so tips rise a little overall.
+- The day report names the best order of the day (score, item, customer).
+- The grade is stored on the visit, so staff-served orders are graded too (for analytics later), but only the player's own serves show the card.
+
+*Numbers to playtest*: weights 45/35/20; star cuts 90/75/60/40; tip 15%/6% capped $1.50; card lifetime 1.6 s.
+
+*Also in this change*: audio starts muted (one-time default change for existing players too; Settings turns it back on).

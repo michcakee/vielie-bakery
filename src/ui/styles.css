@@ -4099,3 +4099,128 @@ h3,
   font-family: var(--cube);
   text-transform: uppercase;
 }
+
+/* ---------- order grade card ---------- */
+.orders {
+  position: relative;
+}
+.grade-card {
+  position: absolute;
+  right: 0;
+  top: -6px;
+  z-index: 5;
+  display: grid;
+  gap: 4px;
+  min-width: 190px;
+  padding: 8px 10px;
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  animation: grade-in 0.18s ease-out, grade-out 0.4s ease-in 1.6s forwards;
+  pointer-events: none;
+}
+.grade-card.stars-5 {
+  background: #fff8d6;
+  border-color: var(--gold);
+  box-shadow: 0 4px 0 var(--gold), 0 0 0 3px var(--paper);
+}
+.grade-stars {
+  display: flex;
+  gap: 2px;
+  line-height: 0;
+}
+.grade-stars span {
+  opacity: 0.25;
+  filter: grayscale(1);
+}
+.grade-stars span.lit {
+  opacity: 1;
+  filter: none;
+  animation: star-pop 0.25s ease-out backwards;
+}
+.grade-stars span.lit:nth-child(2) {
+  animation-delay: 0.05s;
+}
+.grade-stars span.lit:nth-child(3) {
+  animation-delay: 0.1s;
+}
+.grade-stars span.lit:nth-child(4) {
+  animation-delay: 0.15s;
+}
+.grade-stars span.lit:nth-child(5) {
+  animation-delay: 0.2s;
+}
+.grade-word {
+  font-family: var(--cube);
+  text-transform: uppercase;
+  font-size: 20px;
+  color: var(--forest);
+}
+.stars-5 .grade-word {
+  color: var(--crust);
+}
+.grade-who {
+  font-size: 13px;
+  color: var(--muted);
+}
+.grade-parts {
+  list-style: none;
+  margin: 2px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 3px;
+}
+.grade-parts li {
+  display: grid;
+  grid-template-columns: 62px 1fr;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+.grade-parts i {
+  display: block;
+  height: 8px;
+  border: 2px solid var(--ink);
+  border-radius: 3px;
+  background: var(--mint-dark);
+  transition: width 0.3s ease-out;
+}
+.grade-tip {
+  font-family: var(--cube);
+  font-size: 16px;
+  color: var(--good);
+  font-style: normal;
+}
+@keyframes grade-in {
+  from {
+    transform: translateY(8px) scale(0.9);
+    opacity: 0;
+  }
+}
+@keyframes grade-out {
+  to {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+}
+@keyframes star-pop {
+  0% {
+    transform: scale(0.4);
+  }
+  60% {
+    transform: scale(1.3);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@media (max-width: 560px) {
+  .grade-card {
+    left: 0;
+    right: auto;
+    min-width: 0;
+    width: 100%;
+    top: 40px;
+  }
+}

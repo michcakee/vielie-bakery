@@ -230,3 +230,29 @@ describe('content added after a save was written', () => {
     expect(s.applicants.slice(0, 5).map((a) => a.name)).toEqual(['Sang', 'Hieu', 'Yen Vy', 'Phuong Khanh', 'Vien']);
   });
 });
+
+describe('order grades', () => {
+  it('every served order gets a 0–100 score with stars; a fast, flawless order is five stars with a tip', async () => {
+    const { gradeOrder } = await import('../../src/engine/service');
+    const perfect = gradeOrder(100, 80, 0, 90, 6.5, false);
+    expect(perfect.score).toBeGreaterThanOrEqual(90);
+    expect(perfect.stars).toBe(5);
+    expect(perfect.tip).toBeGreaterThan(0);
+    const slowSloppy = gradeOrder(40, 60, 85, 90, 6.5, false);
+    expect(slowSloppy.stars).toBeLessThanOrEqual(2);
+    expect(slowSloppy.tip).toBe(0);
+    expect(gradeOrder(100, 80, 0, 90, 6.5, true).tip).toBeGreaterThan(perfect.tip);
+
+    let s = morning(createNewGame(5));
+    s = gameReducer(s, { type: 'open' });
+    for (let i = 0; i < 60 && !s.service!.visits.some((v) => v.status === 'waiting'); i++) s = gameReducer(s, { type: 'tick', minutes: 4 });
+    const v = s.service!.visits.find((x) => x.status === 'waiting')!;
+    s = gameReducer(s, { type: 'serve', visitId: v.id, process: 100 });
+    const done = s.service!.visits.find((x) => x.id === v.id)!;
+    expect(done.grade).toBeDefined();
+    expect(done.grade!.score).toBeGreaterThan(0);
+    expect(done.grade!.score).toBeLessThanOrEqual(100);
+    expect(s.today.bestOrder?.score).toBe(done.grade!.score);
+    expect(done.tip).toBe(done.grade!.tip);
+  });
+});

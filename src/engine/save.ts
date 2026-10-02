@@ -283,6 +283,8 @@ export interface Prefs {
   reducedMotion: boolean;
   sound: boolean;
   music: boolean;
+  /** Bumped when the audio defaults change, so existing players get the new default once. */
+  audioDefault?: number;
   relaxed: boolean;
   email: string;
   translations: boolean;
@@ -291,12 +293,19 @@ export interface Prefs {
   textScale: number;
 }
 
-export const DEFAULT_PREFS: Prefs = { reducedMotion: false, sound: true, music: true, relaxed: false, email: '', translations: true, view: 'casual', slot: 1, textScale: 1 };
+export const DEFAULT_PREFS: Prefs = { reducedMotion: false, sound: false, music: false, audioDefault: 1, relaxed: false, email: '', translations: true, view: 'casual', slot: 1, textScale: 1 };
 
 export function loadPrefs(): Prefs {
   try {
     const raw = storage()?.getItem(PREFS_KEY);
-    return raw ? { ...DEFAULT_PREFS, ...JSON.parse(raw) } : { ...DEFAULT_PREFS };
+    const p: Prefs = raw ? { ...DEFAULT_PREFS, ...JSON.parse(raw) } : { ...DEFAULT_PREFS };
+    if (!p.audioDefault) {
+      // Audio now starts muted; apply that once to prefs saved before the change.
+      p.sound = false;
+      p.music = false;
+      p.audioDefault = 1;
+    }
+    return p;
   } catch {
     return { ...DEFAULT_PREFS };
   }

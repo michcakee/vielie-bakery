@@ -23,7 +23,10 @@ export const ECON = {
     priceStep: 0.25,
     maxPriceFactor: 2.5,
     minPriceFactor: 0.4,
-    tipLove: 1,
+    /** Tips follow the order grade: a share of the bill, capped, plus a little extra from regulars. */
+    tips: { great: 0.15, good: 0.06, cap: 1.5, regularBonus: 0.5 },
+    /** Grade weights (accuracy, speed, quality) and star thresholds. */
+    grade: { accuracy: 0.45, speed: 0.35, quality: 0.2, stars: [90, 75, 60, 40] },
     /** Minutes a generalist (the owner on autopilot) needs per order. */
     ownerMinutes: { tray: 1.6, drink: 3, sandwich: 3.6 },
     /** Specialist minutes per order at skill 3, full morale. */

@@ -241,6 +241,11 @@ export function DayReport() {
         <span>
           <Sprite name="heart" scale={2} /> {t.love} loved it
         </span>
+          {t.bestOrder && (
+            <span>
+              <Sprite name="star" scale={2} /> best order {t.bestOrder.score}/100: {PRODUCTS[t.bestOrder.product].name} for {t.bestOrder.name}
+            </span>
+          )}
         <span>
           <Sprite name="people" scale={2} /> Community {r.communityDelta >= 0 ? '+' : '−'}
           {Math.abs(Math.round(r.communityDelta * 10) / 10)}

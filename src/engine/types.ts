@@ -138,6 +138,17 @@ export interface Visit {
   tip?: number;
   ecoMinded: boolean;
   servedBy?: string;
+  grade?: OrderGrade;
+}
+
+/** The visible score for one served order. */
+export interface OrderGrade {
+  score: number;
+  stars: 1 | 2 | 3 | 4 | 5;
+  accuracy: number;
+  speed: number;
+  quality: number;
+  tip: number;
 }
 
 export interface Fx {
@@ -220,6 +231,7 @@ export interface DayStats {
   customers: number;
   served: number;
   love: number;
+  bestOrder?: { score: number; stars: number; product: ProductId; name: string };
   lostSoldOut: number;
   lostPrice: number;
   lostSlow: number;

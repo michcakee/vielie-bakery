@@ -138,6 +138,40 @@ function Assembly({ visit, onDone, onCancel }: { visit: Visit; onDone: (process:
   );
 }
 
+/** Shown for a moment after the player serves someone: stars, the three parts of the score, the tip. */
+function GradeCard({ visit }: { visit: Visit }) {
+  const g = visit.grade!;
+  const word = g.stars === 5 ? 'PERFECT!' : g.stars === 4 ? 'Great' : g.stars === 3 ? 'Good' : g.stars === 2 ? 'Hmm' : 'Oh no';
+  return (
+    <div className={`grade-card stars-${g.stars}`} role="status" aria-label={`${visit.name}: ${g.score} out of 100, ${g.stars} stars${g.tip ? `, tip ${money2(g.tip)}` : ''}`}>
+      <div className="grade-stars" aria-hidden="true">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <span key={i} className={i <= g.stars ? 'lit' : ''}>
+            <Sprite name="star" scale={2} />
+          </span>
+        ))}
+      </div>
+      <b className="grade-word">{word}</b>
+      <span className="grade-who">
+        {visit.name} · {g.score}/100
+      </span>
+      <ul className="grade-parts" aria-hidden="true">
+        {[
+          ['Accuracy', g.accuracy],
+          ['Speed', g.speed],
+          ['Quality', g.quality],
+        ].map(([label, v]) => (
+          <li key={label as string}>
+            <span>{label}</span>
+            <i style={{ width: `${v}%` }} />
+          </li>
+        ))}
+      </ul>
+      {g.tip > 0 && <em className="grade-tip">+{money2(g.tip)} tip</em>}
+    </div>
+  );
+}
+
 export function ServicePanel({ paused, setPaused, speed, setSpeed, activeId, setActiveId }: { paused: boolean; setPaused: (p: boolean) => void; speed: number; setSpeed: (n: number) => void; activeId: number | null; setActiveId: (id: number | null) => void }) {
   const { state: s, dispatch, prefs } = useGame();
   const svc = s.service!;
@@ -147,6 +181,8 @@ export function ServicePanel({ paused, setPaused, speed, setSpeed, activeId, set
   const pct = svc.clock / CONFIG.dayMinutes;
   const canLastCall = svc.clock >= CONFIG.lastCallAt - 60;
   const menu = onMenu(s);
+  // The most recent order the player served, graded, for a couple of seconds.
+  const graded = svc.visits.filter((v) => v.status === 'done' && v.grade && v.servedBy === 'player' && svc.clock - (v.doneAt ?? 0) < 14).sort((a, b) => (b.doneAt ?? 0) - (a.doneAt ?? 0))[0];
 
   useEffect(() => {
     if (activeId !== null && !active) setActiveId(null);
@@ -221,6 +257,7 @@ export function ServicePanel({ paused, setPaused, speed, setSpeed, activeId, set
         />
       ) : (
         <div className="orders" aria-live="polite">
+          {graded && <GradeCard key={graded.id} visit={graded} />}
           <h3 className="orders-title">
             At the counter {coming > 0 && <span className="muted">· {coming} walking in</span>}
           </h3>

@@ -34,7 +34,7 @@ import { bump } from './helpers';
 import { randomLook } from './look';
 import { gaussian, rngFor } from './rng';
 import { pick, weightedPick } from './util';
-import type { Fx, GameState, IngredientId, Look, Mood, ProductId, SegmentId, ServerSlot, ServiceState, Visit } from './types';
+import type { Fx, GameState, IngredientId, Look, Mood, ProductId, SegmentId, ServerSlot, ServiceState, Visit, OrderGrade } from './types';
 
 export { randomLook };
 
@@ -295,6 +295,23 @@ function bookSale(s: GameState, p: ProductId, units: number, paid: number, tip: 
   };
 }
 
+/**
+ * Score one order 0–100: accuracy (assembly steps, or the tray's bake for pastries), speed (how much
+ * of the customer's patience was used) and quality (ingredients and skill). Stars and the tip follow.
+ */
+export function gradeOrder(process: number | undefined, quality: number, waited: number, patience: number, paid: number, regular: boolean): OrderGrade {
+  const g = ECON.service.grade;
+  const accuracy = clamp(process ?? quality, 0, 100);
+  const speed = 100 * clamp(1 - waited / Math.max(1, patience), 0, 1);
+  const q = clamp(quality, 0, 100);
+  const score = Math.round(g.accuracy * accuracy + g.speed * speed + g.quality * q);
+  const stars = (score >= g.stars[0] ? 5 : score >= g.stars[1] ? 4 : score >= g.stars[2] ? 3 : score >= g.stars[3] ? 2 : 1) as OrderGrade['stars'];
+  const t = ECON.service.tips;
+  const rate = stars === 5 ? t.great : stars === 4 ? t.good : 0;
+  const tip = rate ? round2(Math.min(t.cap, paid * rate) + (regular ? t.regularBonus : 0)) : 0;
+  return { score, stars, accuracy: Math.round(accuracy), speed: Math.round(speed), quality: Math.round(q), tip };
+}
+
 export function serve(s: GameState, visitId: number, process?: number, by: string = 'player'): GameState {
   const svc = s.service;
   if (!svc || s.phase !== 'service') return s;
@@ -319,13 +336,15 @@ export function serve(s: GameState, visitId: number, process?: number, by: strin
   const rand = rngFor(s.seed, s.day, 900 + visitId);
   const line = pick(rand, mood === 'love' ? LINES.love : mood === 'happy' ? LINES.happy : LINES.ok);
   const named = v.who !== 'walkin';
-  const tip = (named || v.loyal) && mood === 'love' ? ECON.service.tipLove : 0;
+  const grade = gradeOrder(process, c.quality, waited, v.patience, paid, named || v.loyal);
+  const tip = grade.tip;
 
   next = bookSale(next, p, qty, paid, tip, c.cogs, pack);
   const t = { ...next.today };
   t.served++;
   t.satisfaction += sat;
   if (mood === 'love') t.love++;
+  if (!t.bestOrder || grade.score > t.bestOrder.score) t.bestOrder = { score: grade.score, stars: grade.stars, product: p, name: v.name };
   if (named) t.regularsServed++;
   if (svc.clock < 300) t.servedBeforeNoon++;
   if (by === 'player' || by === 'owner') t.ownerServed++;
@@ -350,7 +369,7 @@ export function serve(s: GameState, visitId: number, process?: number, by: strin
     tetSold: next.lifetime.tetSold + (p === 'mutDua' ? qty : 0),
   };
 
-  let nsvc = setVisit(svc, visitId, { status: 'done', mood, line, paid, tip, qty, doneAt: svc.clock, servedBy: by });
+  let nsvc = setVisit(svc, visitId, { status: 'done', mood, line, paid, tip, qty, doneAt: svc.clock, servedBy: by, grade });
   nsvc = freeServerOf(nsvc, visitId);
   nsvc = addFx(nsvc, 'coin', paid + tip, visitId);
   if (mood === 'love') nsvc = addFx(nsvc, 'heart', undefined, visitId);

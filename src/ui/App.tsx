@@ -146,7 +146,19 @@ function Ending({ onQuit }: { onQuit: () => void }) {
 }
 
 function Game({ onQuit }: { onQuit: () => void }) {
-  const { state: s, dispatch, prefs } = useGame();
+  const { state: s, dispatch, prefs, reduced } = useGame();
+  // One screen shake per level-up. Nothing else shakes.
+  const [shake, setShake] = useState(false);
+  const shakenFor = useRef(0);
+  useEffect(() => {
+    const t = s.toasts.find((x) => x.kind === 'level' && x.id > shakenFor.current);
+    if (!t) return;
+    shakenFor.current = t.id;
+    if (reduced) return;
+    setShake(true);
+    const h = window.setTimeout(() => setShake(false), 450);
+    return () => window.clearTimeout(h);
+  }, [s.toasts, reduced]);
   const [tab, setTab] = useState<Tab>('today');
   const [paused, setPaused] = useState(false);
   const [speed, setSpeed] = useState(1);
@@ -206,7 +218,7 @@ function Game({ onQuit }: { onQuit: () => void }) {
   const current = TABS.find((t) => t.id === tab)!;
 
   return (
-    <div className={`app phase-${s.phase}${s.phase === 'morning' && !intro && tab !== 'today' ? ' has-fab' : ''}`}>
+    <div className={`app phase-${s.phase}${s.phase === 'morning' && !intro && tab !== 'today' ? ' has-fab' : ''}${shake ? ' shake' : ''}`}>
       <a className="skip-link" href="#panel">
         Skip to controls
       </a>

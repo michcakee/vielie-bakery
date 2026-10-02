@@ -25,14 +25,17 @@ export function Btn({
   'aria-label'?: string;
   'aria-pressed'?: boolean;
 }) {
+  const [popping, setPopping] = useState(false);
   return (
     <button
       type={type}
-      className={`btn btn-${kind} ${className}`}
+      className={`btn btn-${kind} ${className} ${popping ? 'popping' : ''}`}
       disabled={disabled}
       title={title}
+      onAnimationEnd={() => setPopping(false)}
       onClick={() => {
         if (sfx) play(sfx);
+        setPopping(true);
         onClick?.();
       }}
       {...rest}

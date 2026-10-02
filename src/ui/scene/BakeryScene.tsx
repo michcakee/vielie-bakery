@@ -249,6 +249,12 @@ export function BakeryScene({ onCustomer, baking = false, caption }: Props) {
               </>
             )}
             {f.kind === 'heart' && <Sprite name="heart" scale={1} />}
+            {f.kind === 'sparkle' &&
+              [0, 1, 2, 3].map((i) => (
+                <span key={i} className={`spark-fly s${i}`}>
+                  <Sprite name="spark" scale={1} />
+                </span>
+              ))}
           </div>
         ))}
 

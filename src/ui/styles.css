@@ -3974,3 +3974,89 @@ html.native textarea {
   -webkit-user-select: text;
   user-select: text;
 }
+
+/* ---------- juice: every tap answers ---------- */
+.btn.popping {
+  animation: btn-pop 0.14s ease-out;
+}
+@keyframes btn-pop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.app.shake {
+  animation: screen-shake 0.4s ease-in-out;
+}
+@keyframes screen-shake {
+  10%,
+  50%,
+  90% {
+    transform: translateX(-2px);
+  }
+  30%,
+  70% {
+    transform: translateX(2px);
+  }
+}
+.board-build.perfect .sparkles::before,
+.board-build.perfect .sparkles::after {
+  font-size: 32px;
+  animation-duration: 0.25s;
+}
+.spark-fly {
+  position: absolute;
+  left: 0;
+  top: 0;
+  animation: spark-fly 0.9s ease-out forwards;
+}
+.spark-fly.s0 {
+  --dx: -10px;
+  --dy: -12px;
+}
+.spark-fly.s1 {
+  --dx: 9px;
+  --dy: -14px;
+  animation-delay: 0.05s;
+}
+.spark-fly.s2 {
+  --dx: -5px;
+  --dy: -18px;
+  animation-delay: 0.1s;
+}
+.spark-fly.s3 {
+  --dx: 13px;
+  --dy: -7px;
+  animation-delay: 0.15s;
+}
+@keyframes spark-fly {
+  to {
+    transform: translate(var(--dx), var(--dy));
+    opacity: 0;
+  }
+}
+.hud-stat.cash {
+  position: relative;
+}
+.hud-float {
+  position: absolute;
+  left: 50%;
+  top: -4px;
+  transform: translateX(-50%);
+  font-family: var(--pixel);
+  font-size: 20px;
+  color: var(--forest);
+  text-shadow: 1px 1px 0 var(--paper);
+  pointer-events: none;
+  white-space: nowrap;
+  animation: float-up-big 1.1s ease-out forwards;
+}
+html[data-motion='reduced'] .btn.popping,
+html[data-motion='reduced'] .app.shake {
+  animation: none;
+}

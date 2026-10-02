@@ -6,6 +6,8 @@ let master: GainNode | null = null;
 let musicGain: GainNode | null = null;
 let musicTimer = 0;
 let enabled = { sound: true, music: true };
+/** Each play() picks a pitch within ±5% so a run of the same sound doesn't grate. */
+let jitter = 1;
 
 function ac(): AudioContext | null {
   if (typeof window === 'undefined') return null;
@@ -30,8 +32,9 @@ function tone(freq: number, start: number, dur: number, type: OscillatorType = '
   const o = c.createOscillator();
   const g = c.createGain();
   o.type = type;
+  freq *= jitter;
   o.frequency.setValueAtTime(freq, c.currentTime + start);
-  if (slide) o.frequency.linearRampToValueAtTime(freq + slide, c.currentTime + start + dur);
+  if (slide) o.frequency.linearRampToValueAtTime(freq + slide * jitter, c.currentTime + start + dur);
   g.gain.setValueAtTime(0.0001, c.currentTime + start);
   g.gain.exponentialRampToValueAtTime(vol, c.currentTime + start + 0.01);
   g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + start + dur);
@@ -60,6 +63,7 @@ function noise(start: number, dur: number, vol = 0.15, hp = 1200) {
 
 export function play(s: Sfx) {
   if (!enabled.sound) return;
+  jitter = 0.95 + Math.random() * 0.1;
   switch (s) {
     case 'coin':
       tone(988, 0, 0.08, 'square', 0.18);

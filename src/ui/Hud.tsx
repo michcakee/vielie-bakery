@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { LEVELS, WEATHER, WEEKDAYS } from '../data/catalog';
 import { ecoScore, isTet, levelProgress, weekdayIndex } from '../engine/economy';
 import { clockLabel } from '../engine/time';
@@ -11,6 +12,17 @@ const WEATHER_ICON = { sunny: 'sun', cloudy: 'cloud', rainy: 'rain', hot: 'hot',
 export function Hud({ onQuests, onSettings, questCount }: { onQuests: () => void; onSettings: () => void; questCount: number }) {
   const { state: s, reduced } = useGame();
   const cash = useTween(s.cash, 500, reduced);
+  // Money earned while the shop is open floats up from the cash figure.
+  const [floats, setFloats] = useState<{ id: number; amount: number }[]>([]);
+  const prevCash = useRef(s.cash);
+  useEffect(() => {
+    const delta = s.cash - prevCash.current;
+    prevCash.current = s.cash;
+    if (s.phase !== 'service' || delta <= 0) return;
+    const id = performance.now() + Math.random();
+    setFloats((f) => [...f.slice(-2), { id, amount: delta }]);
+    window.setTimeout(() => setFloats((f) => f.filter((x) => x.id !== id)), 1100);
+  }, [s.cash, s.phase]);
   const lp = levelProgress(s.xp);
   const wd = WEEKDAYS[weekdayIndex(s.day)];
   const eco = ecoScore(s);
@@ -37,6 +49,11 @@ export function Hud({ onQuests, onSettings, questCount }: { onQuests: () => void
         <span className="hud-stat cash" aria-label={`Cash ${money2(s.cash)}`}>
           <Sprite name="coin" scale={3} />
           <b className={s.cash < 0 ? 'neg' : ''}>{money(cash, 2)}</b>
+          {floats.map((f) => (
+            <span key={f.id} className="hud-float" aria-hidden="true">
+              +{money2(f.amount)}
+            </span>
+          ))}
         </span>
         <span className="hud-stat" title="Reputation: how the neighbourhood rates you">
           <Sprite name="star" scale={3} />

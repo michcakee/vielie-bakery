@@ -52,7 +52,7 @@ function Assembly({ visit, onDone, onCancel }: { visit: Visit; onDone: (process:
 
   useEffect(() => {
     if (!finished) return;
-    play('sparkle');
+    play(mistakes === 0 ? 'sparkle' : 'pop');
     const t = window.setTimeout(() => onDone(Math.max(40, 100 - mistakes * 15)), reduced ? 50 : 380);
     return () => window.clearTimeout(t);
   }, [finished]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -100,7 +100,7 @@ function Assembly({ visit, onDone, onCancel }: { visit: Visit; onDone: (process:
           ))}
         </ol>
       </div>
-      <div className={`board-build ${finished ? 'finished' : ''}`}>
+      <div className={`board-build ${finished ? 'finished' : ''} ${finished && mistakes === 0 ? 'perfect' : ''}`}>
         <div className="build-stack" aria-live="polite">
           {finished ? (
             <span className="build-final">

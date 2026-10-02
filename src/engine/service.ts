@@ -354,6 +354,8 @@ export function serve(s: GameState, visitId: number, process?: number, by: strin
   nsvc = freeServerOf(nsvc, visitId);
   nsvc = addFx(nsvc, 'coin', paid + tip, visitId);
   if (mood === 'love') nsvc = addFx(nsvc, 'heart', undefined, visitId);
+  // A perfect order: flawless assembly, or a golden tray, and a customer who loved it.
+  if (mood === 'love' && (process === 100 || (process === undefined && c.quality >= 95))) nsvc = addFx(nsvc, 'sparkle', undefined, visitId);
   const staff = by.startsWith('staff:') ? next.staff.map((e) => (`staff:${e.id}` === by ? { ...e, served: e.served + 1 } : e)) : next.staff;
   const campaigns = v.source ? next.campaigns.map((c) => (`c${c.id}` === v.source ? { ...c, newCustomers: c.newCustomers + 1, revenue: c.revenue + paid } : c)) : next.campaigns;
   return {

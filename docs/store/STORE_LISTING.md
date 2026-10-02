@@ -26,7 +26,7 @@ Bà is retiring and her little bakery is yours. Bake, price, hire, borrow and gr
 
 ## Full description
 
-Bà (grandma) is retiring, and her tiny Vietnamese bakery on Viet Lice Lane is yours now.
+Bà (grandma) is retiring, and her tiny Vietnamese bakery on Gress Island Lane is yours now.
 
 Bake baguettes and flan at dawn. Build bánh mì and pour cà phê sữa đá to order. Set your prices and watch who says "Đắt quá…". Ride out egg shortages, rainy seasons, Tết rushes and the new bánh mì stand across the street.
 

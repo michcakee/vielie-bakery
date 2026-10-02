@@ -404,7 +404,13 @@ kbd {
 }
 .panel-stack {
   display: grid;
+  /* minmax(0, …) lets wide tables scroll inside their card instead of widening the page */
+  grid-template-columns: minmax(0, 1fr);
   gap: 16px;
+}
+.panel-stack > *,
+.card {
+  min-width: 0;
 }
 .chip {
   display: inline-flex;

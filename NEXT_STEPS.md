@@ -1,55 +1,38 @@
 # Next steps
 
-## Current state (complete and working)
+## Current state
 
-- Full 30-day game loop: title → tutorial → morning paper → production plan → prices → ingredients → bake → receipt → weekly report (days 7/14/21/28) → final business profile → restart.
-- Economic engine (`src/game/`) is pure TypeScript, deterministic per seed, with all parameters in `src/config/balance.ts`.
-- Views: Today (planner), Market (newspaper), Finances (income statement, balance sheet, break-even, charts, bank), Equipment & green, Notebook, Settings.
-- Persistence in localStorage with validation; reduced-motion toggle; "unlock everything" sandbox mode.
-- Animated storefront (drifting clouds, sun arc driven by baking progress, chimney smoke, customers walking in, birds, stars).
-- Forward contracts (Market tab, day 8+): lock an ingredient price for 7 daily deliveries at a 4% premium.
-- 43 Vitest tests (demand model, accounting identities, guards against impossible actions, investments, insights, persistence, full-season progression).
-- GitHub Pages workflow (`.github/workflows/deploy.yml`), README, `docs/ECONOMIC_MODEL.md`, MIT license.
+Version 2 is a rebuild following the Vietnamese pixel-art PRD. It covers the PRD's MVP, nearly all of 1.1, and much of 1.2 and 2.0:
 
-## Verified in this session
+- Pixel-art bakery interior with day/night lighting, weather through the window, street life, animated oven, steam, fan, lanterns and customers who walk in, wait and leave.
+- Cute title screen (a pixel tube-house street front), loading animation, character and bakery-name setup, and the "Chào buổi sáng!" opening with Linh as the first customer.
+- 9 recipes, 14 ingredients, 3 suppliers with loyalty, an oven timing game and step-by-step bánh mì and drink assembly.
+- Real-time service with patience, substitution, price rejection, last call, the helper, catering pickups and wholesale deliveries.
+- Leftovers (keep, donate or bin), daily report with a story and tip, weekly review and goals.
+- 14 events with choices, Tết, a competitor, Green Week, a fridge breakdown and more.
+- Money: safety fund, loans, marketing risk, co-op shares, price locks, 7-day chart, notebook.
+- Eco score, packaging, compost, solar, garden, community and donations.
+- Levels, quests, achievements, upgrades, rooms and decorations that appear in the scene; regulars with hearts.
+- Autosave, save codes and an email restore link. Sound effects and music with toggles. Reduced motion, a relaxed pace option, keyboard play and a mobile layout.
+- 16 engine tests, including a 40-day bot run (59 tests in total with the old v1 suite).
 
-- `npm install`, `npm test` (39/39), `npm run build` (type-check + production build) all succeed.
-- Played through the built game in a browser: tutorial, buying, baking, receipts, weekly report, price change on day 8, loan plus oven purchase on day 15, all the way to the day-30 report, then restart.
-- Reload resumes from localStorage.
-- Phone width (375 px): no horizontal scrolling, layout reflows.
+## Verified
+
+- `npm test` (59/59) and `npm run build` pass.
+- Played in the browser: title, setup, intro, day 1 service (bánh mì assembly, quest toast), closing, report, autosave and resume after reload, day 2 oven game, a morning event, all six tabs, buying most of the shop (each item draws in the scene), and a busy morning rush with Cô Ba. Phone width (375px) has no horizontal scrolling.
 
 ## Not verified
 
-- The GitHub Actions workflow has not been run on GitHub; it was written but not executed.
-- `npm run dev` could not be checked in this session's sandbox (the app's sandboxed folder redirect confuses Vite's dev server). Production builds and `vite build --watch` work. On a normal checkout, `npm run dev` is expected to work.
-- No formal screen-reader or WCAG contrast audit was done.
+- A long manual playthrough to day 35 (Tết, weekly reviews, the competitor). The engine bot covers these, but the screens haven't been looked at by a person.
+- The email link on a real mail client (long links can be cut off by some clients; the save code is also included in the email body).
+- A screen-reader pass and a formal contrast check.
+- Balance for human players: the real-time pace may need tuning. Settings has a relaxed pace option.
 
-## Next 5 highest-value steps
+## Next highest-value steps
 
-1. **Balance pass for passive play.** Keeping the default plan all season still earns about $4.5k. Consider slightly higher fixed costs, or day-1 demand that differs more from the default plan, so planning matters from week 1.
-2. **Run the deploy:** push to GitHub, set Pages source to "GitHub Actions" and confirm the live URL works.
-3. **Product substitution:** customers who find an empty shelf buy a substitute some of the time. This makes stockouts more nuanced.
-4. **Accessibility audit:** keyboard-only playthrough, screen-reader labels on the product table, contrast check of the muted text on paper.
-5. **NPV view for investments:** add a discount-rate slider beside simple payback to teach time value of money.
-6. **Supplier stocks** (day 15): shares in a flour mill, dairy and berry farm whose prices move with events, paying weekly dividends. Pairs with forward contracts to teach diversification.
-7. **Contract results in the weekly report:** an insight on whether the week's hedges paid off.
-
-## Known issues / rough edges
-
-- The week-4 competitor uses a fixed rule (it doesn't react to the player).
-- The investment estimate for an owned oven only credits extra capacity once the oven is above 85% utilisation, so it can look small if the player doesn't bake more. The final report explains this.
-- Ticker and day-change banner are decorative; both are disabled under reduced motion.
-
-## Commands
-
-```bash
-npm install
-npm run dev
-npm test
-npm run build
-npm run preview
-```
-
-## For the next Claude session
-
-Read this file and `docs/ECONOMIC_MODEL.md`, run `npm test` and `npm run build`, then work through the five steps above in order. Keep all new economic numbers in `src/config/balance.ts`, and add a test for each new mechanic.
+1. **Playtest days 1–10 by hand** and tune patience, day length and starting cash.
+2. **Delete the v1 code** (`src/game`, `src/views`, `src/components`, `src/config`, `src/App.tsx`, `src/styles/global.css`, `tests/*.test.ts`). It's kept in the `v1-economics-sim` tag.
+3. **Seated customers** in the coffee corner, and a visible upstairs for the loft.
+4. **More seasonal events:** Trung Thu with mooncakes, a rainy-season flood day, a school-holiday rush.
+5. **A payback / NPV view** for equipment, to teach the time value of money.
+6. **Cloud save** (optional), if a backend is ever added.

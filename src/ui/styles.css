@@ -2384,6 +2384,10 @@ textarea {
   color: var(--bad);
   font-style: normal;
 }
+.choice em.reward {
+  color: var(--forest);
+  font-weight: 600;
+}
 .choice:disabled {
   opacity: 0.5;
   cursor: not-allowed;

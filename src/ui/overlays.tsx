@@ -295,7 +295,7 @@ export function WeeklyReview() {
             <button key={id} type="button" className="choice" onClick={() => (play('pop'), dispatch({ type: 'pickGoal', id }))}>
               <b>{g.title}</b>
               <span>{g.text(g.target(s))}</span>
-              <em>Reward: $40 and bonus XP</em>
+              <em className="reward">Reward: $40 and bonus XP</em>
             </button>
           );
         })}

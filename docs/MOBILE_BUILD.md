@@ -1,6 +1,6 @@
 # Building the mobile apps
 
-Vielie Bakery ships to phones with **Capacitor 7**: the same Vite build that runs on GitHub Pages is copied into a native Android project (`android/`) and a native iOS project (`ios/`). The game runs fully offline inside the app, with no backend and no network permissions beyond Android's default `INTERNET` (unused by the game).
+Vielie Bakery ships to phones with **Capacitor 7**: the same Vite build that runs on GitHub Pages is copied into a native Android project (`android/`) and a native iOS project (`ios/`). The game runs fully offline inside the app, with no backend and **no network permissions at all** (Capacitor's default `INTERNET` permission was removed from the manifest; add it back only for a live-reload dev build).
 
 > **Status:** the native projects are generated, configured and committed, but they have **not been compiled** yet. This repository was set up on a Windows machine without a JDK or Android SDK, and iOS builds need a Mac with Xcode. Nothing has been submitted to any store.
 

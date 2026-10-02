@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { clearSave, exportCode, importCode, restoreLink } from '../engine/save';
+import { clearAllData, clearSave, exportCode, importCode, restoreLink } from '../engine/save';
 import { useGame } from './GameContext';
 import { Btn } from './kit';
+import { CreditsPage, LegalPage } from './Legal';
 import { Modal } from './overlays';
 
 function Toggle({ label, hint, on, set }: { label: string; hint?: string; on: boolean; set: (v: boolean) => void }) {
@@ -23,8 +24,11 @@ export function Settings({ onClose, onQuit }: { onClose: () => void; onQuit: () 
   const { state, dispatch, prefs, setPrefs, slot } = useGame();
   const [code, setCode] = useState('');
   const [msg, setMsg] = useState<string | null>(null);
-  const [email, setEmail] = useState(prefs.email);
+  // Typed for one email only; never saved anywhere.
+  const [email, setEmail] = useState('');
   const [confirmReset, setConfirmReset] = useState('');
+  const [confirmWipe, setConfirmWipe] = useState('');
+  const [page, setPage] = useState<'privacy' | 'terms' | 'credits' | null>(null);
 
   const copy = async () => {
     const c = await exportCode(state);
@@ -52,7 +56,6 @@ export function Settings({ onClose, onQuit }: { onClose: () => void; onQuit: () 
       setMsg('That email doesn\'t look quite right.');
       return;
     }
-    setPrefs({ email: email.trim() });
     const c = await exportCode(state);
     const link = restoreLink(c);
     const subject = encodeURIComponent(`${state.bakeryName}: day ${state.day} save`);
@@ -99,7 +102,7 @@ export function Settings({ onClose, onQuit }: { onClose: () => void; onQuit: () 
             Email me a restore link
           </Btn>
         </form>
-        <p className="small muted">This opens your own email app with the link filled in. The game has no server: your email stays on this device and is never sent anywhere by us.</p>
+        <p className="small muted">This opens your own email app with the link filled in. The game has no server and doesn't keep the address: it's used once to open that email, and that's it.</p>
         <div className="btn-row">
           <Btn onClick={() => void copy()}>Copy save code</Btn>
         </div>
@@ -123,6 +126,16 @@ export function Settings({ onClose, onQuit }: { onClose: () => void; onQuit: () 
         </Btn>
       </div>
 
+      <h3>About</h3>
+      <div className="btn-row">
+        <Btn onClick={() => setPage('privacy')}>Privacy policy</Btn>
+        <Btn onClick={() => setPage('terms')}>Terms of use</Btn>
+        <Btn onClick={() => setPage('credits')}>Credits</Btn>
+      </div>
+      <p className="small muted">No accounts, no ads, no tracking. Everything is saved on this device only.</p>
+      {page === 'credits' && <CreditsPage onClose={() => setPage(null)} />}
+      {(page === 'privacy' || page === 'terms') && <LegalPage page={page} onClose={() => setPage(null)} />}
+
       <h3 className="danger-title">Reset bakery</h3>
       <div className="danger-zone">
         <p className="small">
@@ -144,6 +157,27 @@ export function Settings({ onClose, onQuit }: { onClose: () => void; onQuit: () 
           }}
         >
           Delete and start over
+        </Btn>
+      </div>
+
+      <h3 className="danger-title">Delete all my data</h3>
+      <div className="danger-zone">
+        <p className="small">
+          <b>Erases everything this game has stored on this device</b>: all three save slots, their backups and your settings. The page reloads to a clean start. It can't be undone.
+        </p>
+        <label htmlFor="wipe-confirm" className="small">
+          Type <b>DELETE</b> to confirm
+        </label>
+        <input id="wipe-confirm" value={confirmWipe} onChange={(e) => setConfirmWipe(e.target.value)} autoComplete="off" />
+        <Btn
+          kind="danger"
+          disabled={confirmWipe.trim().toUpperCase() !== 'DELETE'}
+          onClick={() => {
+            clearAllData();
+            window.location.reload();
+          }}
+        >
+          Delete all my data
         </Btn>
       </div>
     </Modal>

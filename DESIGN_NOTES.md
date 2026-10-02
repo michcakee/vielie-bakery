@@ -168,3 +168,35 @@ Grepped for common brands and characters (Oreo, Nutella, Starbucks, Coca-Cola, P
 ## Assets to replace
 
 None required: all art and audio are original code. Optional: a licensed display font in place of Cute Cubes if its terms can't be confirmed (L6).
+
+
+### Phase 2: legal cleanup
+
+*What changed*
+- **L1** The restore-link address is no longer stored: it's typed, used once to open the player's mail app, and dropped. An address left in older prefs is deleted on load.
+- **L2** "Gress oreos" is now "Gress sandwich cookies" (id unchanged, so saves and tests are untouched).
+- **L3** `public/privacy.html` and `public/terms.html` drafted with `[OWNER: fill in]` placeholders for legal name, contact email, governing state and dates. Settings → About links to Privacy policy, Terms of use and Credits; the two legal pages open in-app (an iframe of the same static file, so web and app show one text) with an "open in a new tab" link. The Credits screen renders `CREDITS.md` directly, so the file stays the single source.
+- **L4** Settings → "Delete all my data" (type DELETE): clears all three slots, their backups, the old v2 save and preferences, then reloads to a clean start. The per-slot "Reset bakery" stays.
+- **L5** Flash rate: the assembly sparkle now blinks 1.25×/s (was 2.5), the five-star variant 1.4×/s (was 4). Under reduced motion they don't animate at all.
+- **L7** Android `INTERNET` permission removed; the app runs from bundled files and makes no requests. Noted in MOBILE_BUILD for live-reload dev builds.
+- **L10** Contrast: muted text, the green heading colour and the green "good" figures were all under 4.5:1 on cream; darkened to pass. The five-star verdict uses ink instead of a light brown.
+- `.gitignore` now excludes keystores, signing keys, provisioning profiles and Firebase config files.
+- Title street: passers-by now stand on the pavement (feet at the kerb) instead of floating over the shop fronts.
+
+*Decisions left to you*: L6 (Cute Cubes licence) stays UNKNOWN in CREDITS until the author's terms are found; L9 (friends' first names) kept on your say-so.
+
+### Phase 3, item 8: light story beats
+
+*What changed*
+- `src/data/story.ts`: five milestone beats at days 45, 90, 180, 365 and 730 (the lane notices you, a letter from Bà, the sidewalk party at half a year, Bà's recipe notebook at one year, two years). Two to four lines each, one "Carry on" button, and a small gift (community, reputation or XP). They fire for every scenario, on the morning of the day, through the normal event card, so they never interrupt service.
+
+*Numbers to playtest*: the milestone days; whether the gifts feel like a nod or a bribe (they're small on purpose).
+
+### Playtest checklist (after Phase 2 and 3)
+- New player understands the first order: yes, Linh's bánh mì with glowing steps on days 1–3.
+- Feedback within 100 ms on every tap: button pop 140 ms starts immediately; sounds are synchronous.
+- Perfect vs okay without reading: gold card, five popping stars, PERFECT!, sparkle sound and spark burst vs a cream card with fewer stars.
+- Next unlock visible with a bar: Today's Next up card and the report tease.
+- Day in 3–8 minutes: 3–5 minutes hand-played.
+- Save survives reload: yes (autosave after every action; checked by reloading the pane).
+- Slower, noisier, more confusing: audio now starts muted; the grade card is the only new overlay and fades in 2 s.

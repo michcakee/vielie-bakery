@@ -221,6 +221,21 @@ export function hasOldSave(store: StorageLike | null = storage()): boolean {
   }
 }
 
+/** Settings → Delete all my data: every save, backup, legacy save and preference this game ever wrote. */
+export function clearAllData(store: StorageLike | null = storage()): void {
+  try {
+    if (!store) return;
+    for (let slot = 1; slot <= 3; slot++) {
+      store.removeItem(`${SLOT_PREFIX}${slot}`);
+      store.removeItem(`${SLOT_PREFIX}${slot}${BACKUP_SUFFIX}`);
+    }
+    store.removeItem(LEGACY_V2_KEY);
+    store.removeItem(PREFS_KEY);
+  } catch {
+    /* storage unavailable */
+  }
+}
+
 export function clearSave(slot = 1, store: StorageLike | null = storage()): void {
   try {
     store?.removeItem(`${SLOT_PREFIX}${slot}`);
@@ -286,19 +301,20 @@ export interface Prefs {
   /** Bumped when the audio defaults change, so existing players get the new default once. */
   audioDefault?: number;
   relaxed: boolean;
-  email: string;
   translations: boolean;
   view: 'casual' | 'business';
   slot: number;
   textScale: number;
 }
 
-export const DEFAULT_PREFS: Prefs = { reducedMotion: false, sound: false, music: false, audioDefault: 1, relaxed: false, email: '', translations: true, view: 'casual', slot: 1, textScale: 1 };
+export const DEFAULT_PREFS: Prefs = { reducedMotion: false, sound: false, music: false, audioDefault: 1, relaxed: false, translations: true, view: 'casual', slot: 1, textScale: 1 };
 
 export function loadPrefs(): Prefs {
   try {
     const raw = storage()?.getItem(PREFS_KEY);
     const p: Prefs = raw ? { ...DEFAULT_PREFS, ...JSON.parse(raw) } : { ...DEFAULT_PREFS };
+    // An address typed for the restore link was once kept in prefs; it isn't any more, and an old one is dropped.
+    delete (p as unknown as Record<string, unknown>).email;
     if (!p.audioDefault) {
       // Audio now starts muted; apply that once to prefs saved before the change.
       p.sound = false;

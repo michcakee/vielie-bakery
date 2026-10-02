@@ -1,4 +1,5 @@
 import { INGREDIENTS, PRODUCTS, UPGRADES } from '../data/catalog';
+import { STORY_BEATS } from '../data/story';
 import { DIFFICULTY, ECON } from '../data/config';
 import { move } from './accounting';
 import { dateOf, festivalsOn } from './calendar';
@@ -613,8 +614,29 @@ const avgRevenue = (s: GameState, p?: ProductId) => avgOf(s, (h) => (p ? h.reven
 const avgProfit = (s: GameState) => avgOf(s, (h) => h.profit);
 
 /** Which event (if any) greets the player on a given morning. */
+// Milestone story beats: one tap, a few lines, a small gift.
+for (const b of STORY_BEATS) {
+  EVENTS[b.id] = {
+    id: b.id,
+    icon: 'house',
+    title: b.title,
+    vi: b.vi,
+    text: () => b.text,
+    choices: () => [
+      {
+        id: 'on',
+        label: 'Carry on',
+        detail: b.giftText,
+        apply: (x) => ({ ...x, community: bump(x.community, b.gift.community ?? 0), reputation: bump(x.reputation, b.gift.reputation ?? 0), xp: x.xp + (b.gift.xp ?? 0) }),
+      },
+    ],
+  };
+}
+
 export function eventFor(s: GameState, day: number): { id: string; data?: Record<string, number | string> } | null {
   const level = levelOf(s.xp);
+  const beat = STORY_BEATS.find((b) => b.day === day);
+  if (beat) return { id: beat.id };
   const d = dateOf(day);
   const story = s.scenario === 'family' || s.scenario === 'community' || s.scenario === 'recession';
   if (day <= 35 && story) {

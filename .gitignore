@@ -8,3 +8,14 @@ coverage
 .env
 .env.*
 .claude/
+
+# keys and signing material: never commit
+*.keystore
+*.jks
+*.pem
+*.p8
+*.p12
+*.mobileprovision
+key.properties
+google-services.json
+GoogleService-Info.plist

@@ -356,3 +356,36 @@ describe('daily special and special orders', () => {
     check(g);
   });
 });
+
+describe('legal cleanup and story beats', () => {
+  it('delete-all wipes every key this game writes, and prefs no longer carry an email', async () => {
+    const { clearAllData, saveGame, loadGame, DEFAULT_PREFS, PREFS_KEY } = await import('../../src/engine/save');
+    const m = new Map<string, string>();
+    const store = { getItem: (k: string) => m.get(k) ?? null, setItem: (k: string, v: string) => void m.set(k, v), removeItem: (k: string) => void m.delete(k) };
+    saveGame(createNewGame(1), 1, store);
+    saveGame(createNewGame(2), 3, store);
+    store.setItem(PREFS_KEY, JSON.stringify({ sound: true, email: 'someone@example.com' }));
+    store.setItem('vielie-bakery-save-v2', '{}');
+    expect(m.size).toBeGreaterThanOrEqual(4);
+    clearAllData(store);
+    expect([...m.keys()].filter((k) => k.startsWith('vielie'))).toEqual([]);
+    expect(loadGame(1, store)).toBeNull();
+    expect('email' in DEFAULT_PREFS).toBe(false);
+  });
+
+  it('a story beat fires on its milestone morning, once, with its small gift', async () => {
+    const { STORY_BEATS } = await import('../../src/data/story');
+    const { EVENTS, eventFor } = await import('../../src/engine/events');
+    for (const b of STORY_BEATS) expect(EVENTS[b.id]).toBeDefined();
+    let s = createNewGame(44);
+    for (let d = 0; d < 43; d++) s = autoDay(s);
+    expect(s.day).toBe(44);
+    // The morning of day 45 queues the first beat.
+    const next = eventFor(s, 45);
+    expect(next?.id).toBe('storyLane');
+    const before = s.community;
+    const applied = EVENTS.storyLane.choices(s)[0].apply(s);
+    expect(applied.community).toBeGreaterThan(before);
+    expect(eventFor(s, 46)?.id).not.toBe('storyLane');
+  });
+});

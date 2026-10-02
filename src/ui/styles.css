@@ -2,7 +2,7 @@
 :root {
   --ink: #3b2a25;
   --ink-soft: #5a4038;
-  --muted: #7d6558;
+  --muted: #6b5447;
   /* Two main colours: cream and mint (from the owner's swatch). */
   --cream: #f7f5ea;
   --paper: #fbfaf3;
@@ -16,14 +16,14 @@
   --coffee: #6b3f2a;
   --pandan: #74b885;
   --pandan-dark: #559a68;
-  --forest: #3b6b4c;
+  --forest: #2f5a3f;
   --leaf: #a8d672;
   --pink: #ee8a9e;
   --peach: #f7c5a0;
   --red: #c2453d;
   --teal: #4f9c94;
   --sky: #bfe3ef;
-  --good: #3f8a2e;
+  --good: #2d7524;
   --bad: #b23a32;
   --shadow: 0 4px 0 var(--ink);
   --shadow-sm: 0 2px 0 var(--ink);
@@ -1382,7 +1382,8 @@ kbd {
   color: #fff6b0;
   font-size: 20px;
   text-shadow: 0 0 4px #fff;
-  animation: twinkle 0.4s steps(2) infinite;
+  /* 0.8 s per on/off cycle = 1.25 flashes a second, under the 3/s seizure-safety limit */
+  animation: twinkle 0.8s steps(2) infinite;
 }
 .sparkles::before {
   left: -6px;
@@ -2886,7 +2887,8 @@ textarea {
   transform: scale(var(--k, 1));
 }
 .ext-walker {
-  bottom: 14%;
+  /* feet on the pavement (y ≈ 123 of 135), below the shop fronts, not floating over them */
+  bottom: 9%;
   width: 5%;
   animation: walk-street 26s linear infinite;
 }
@@ -4014,7 +4016,7 @@ html.native textarea {
 .board-build.perfect .sparkles::before,
 .board-build.perfect .sparkles::after {
   font-size: 32px;
-  animation-duration: 0.25s;
+  animation-duration: 0.7s;
 }
 .spark-fly {
   position: absolute;
@@ -4158,7 +4160,7 @@ h3,
   color: var(--forest);
 }
 .stars-5 .grade-word {
-  color: var(--crust);
+  color: var(--ink);
 }
 .grade-who {
   font-size: 13px;
@@ -4290,4 +4292,41 @@ h3,
 .special-tag.critic {
   color: var(--paper);
   background: var(--ink);
+}
+
+/* ---------- legal pages and credits ---------- */
+.legal-frame {
+  width: 100%;
+  height: min(70vh, 640px);
+  border: 3px solid var(--ink);
+  border-radius: var(--r);
+  background: var(--bg);
+}
+.credits h2 {
+  margin-top: 0;
+}
+.credits h3 {
+  margin-top: 18px;
+}
+.credits-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin: 6px 0 10px;
+}
+.credits-table th,
+.credits-table td {
+  text-align: left;
+  vertical-align: top;
+  padding: 4px 6px;
+  border-bottom: 1px solid rgba(59, 42, 37, 0.25);
+}
+.credits-table th {
+  font-weight: 600;
+}
+.credits code {
+  font-size: 12px;
+  background: var(--paper-2);
+  padding: 0 3px;
+  border-radius: 3px;
 }

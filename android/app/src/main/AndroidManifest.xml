@@ -37,5 +37,6 @@
 
     <!-- Permissions -->
 
-    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- No INTERNET permission: the game runs from bundled files and makes no network requests.
+         If a Capacitor dev build with live reload is needed, add it back temporarily. -->
 </manifest>

@@ -424,7 +424,7 @@ export const PRODUCTS: Record<ProductId, ProductDef> = {
   },
   gressOreo: {
     id: 'gressOreo',
-    name: 'Gress oreos',
+    name: 'Gress sandwich cookies',
     en: 'Green sandwich cookies with Gress cream',
     kind: 'tray',
     recipe: { flour: 2, butter: 1, sugar: 1, gress: 1 },
@@ -752,7 +752,7 @@ export const UNLOCK_SCHEDULE: { day: number; kind: 'recipe' | 'regular' | 'decor
   { day: 6, kind: 'recipe', id: 'gressTeaLight', tease: 'New recipe: Light gress tea' },
   { day: 8, kind: 'regular', id: 'hung', tease: 'A new face: Chú Hùng' },
   { day: 10, kind: 'recipe', id: 'pateChaud', tease: 'New recipe: Bánh patê sô' },
-  { day: 13, kind: 'recipe', id: 'gressOreo', tease: 'New recipe: Gress oreos' },
+  { day: 13, kind: 'recipe', id: 'gressOreo', tease: 'New recipe: Gress sandwich cookies' },
 ];
 
 export const LEVELS = [

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Vielie Bakery</string>
+    <string name="title_activity_main">Vielie Bakery</string>
+    <string name="package_name">com.michcakee.vieliebakery</string>
+    <string name="custom_url_scheme">com.michcakee.vieliebakery</string>
+</resources>

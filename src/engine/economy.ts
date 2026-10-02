@@ -299,7 +299,7 @@ export function festivalWTP(s: GameState, p: ProductId, seg: SegmentId): number 
 export function willingToPay(s: GameState, p: ProductId, budget: number, quality: number, ecoMinded: boolean, seg: SegmentId = 'vnFamilies', loyal = false): number {
   const def = PRODUCTS[p];
   const sd = SEGMENTS[seg];
-  let w = def.ref * habitFactor(p) * s.macro.priceIndex * budget * sd.income * LOCATIONS[s.location].income * spendingFactor(s.macro) * qualityFactor(quality) * reputationFactor(s.reputation);
+  let w = def.ref * habitFactor(p) * s.macro.priceIndex * budget * sd.income * Math.sqrt(LOCATIONS[s.location].income) * spendingFactor(s.macro) * qualityFactor(quality) * reputationFactor(s.reputation);
   if (sd.heritage > 1 && def.heritage > 0.8) w *= 1 + (0.1 * (quality - 70)) / 30;
   if (def.kind === 'tray' && has(s, 'display')) w *= 1.08;
   if (ecoMinded) w *= 0.85 + (0.35 * ecoScore(s)) / 100;

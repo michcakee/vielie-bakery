@@ -3928,3 +3928,21 @@ html {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+/* ---------- phones with notches / the native app shell ---------- */
+body {
+  padding-top: env(safe-area-inset-top);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  overscroll-behavior-y: none;
+  -webkit-tap-highlight-color: transparent;
+}
+html.native body {
+  -webkit-user-select: none;
+  user-select: none;
+}
+html.native input,
+html.native textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}

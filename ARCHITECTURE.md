@@ -36,7 +36,7 @@
 7. **Accounting through cash flows.** Every cash movement is tagged (operating / investing / financing) and every P&L item is recorded per day. The income statement, balance sheet and cash-flow statement are derived from those records, and tests check that they reconcile.
 8. **Saves are versioned and migrated.** v2 saves are upgraded, not wiped, and the old save is kept as a backup.
 
-## Target layout
+## Layout
 
 ```
 src/
@@ -64,7 +64,37 @@ src/
     progression.ts quests, achievements, goals
     save.ts        slots, versioning, migration, codes
   ui/            React (web and Capacitor)
-mobile/          Capacitor config notes; android/ and ios/ native projects at the root
+    native.ts      platform glue: service worker on the web; back button, status bar, splash in the app
+    backButton.ts  one back stack for Escape, on-screen back and the Android back button
+android/ ios/    Capacitor native projects (capacitor.config.ts at the root)
+scripts/         make-icons.mjs: every icon and splash from the pixel sprite
+public/          fonts (self-hosted, OFL), manifest, service worker, icons
 ```
 
 Rules: the UI only calls the reducer and engine selectors. Formulas never live in components. Every tunable number lives in `src/data/config.ts` or `catalog.ts`.
+
+## Data flow
+
+```
+UI event ──► dispatch(Action) ──► gameReducer(state, action) ──► new GameState ──► React re-render
+                                     │
+                                     ├─ input guard: non-finite numbers are dropped, amounts clamped
+                                     ├─ engine modules (pure functions of state + seed + day)
+                                     └─ accounting: move() tags cash, accrue() books P&L
+GameState ──► save.ts (slot + rolling backup, versioned) ──► localStorage
+```
+
+- **Determinism:** randomness comes only from `rngFor(seed, day, salt)`, so a day replays identically from the same state. Tests rely on this.
+- **Validation:** the engine never trusts the UI. Every action is checked against phase, cash, limits (for example the borrowing limit) and ranges; the stress suite fuzzes this.
+- **Performance:** a delegated day takes about 50–80 ms on a laptop; branches use an aggregated model so a chain stays fast.
+
+## Platforms
+
+One build serves everything. `vite build` → `dist/`, which GitHub Pages serves directly and `cap sync` copies into the Android and iOS projects. `src/ui/native.ts` is the only platform-specific code, and it lazy-loads the Capacitor plugins so the web bundle doesn't carry them. See [docs/MOBILE_BUILD.md](docs/MOBILE_BUILD.md).
+
+## Known technical debt (v3)
+
+- The v1 simulator (`src/game`, `src/views`, `src/components`, `src/config`, `tests/*.test.ts`) is unused but still compiled and tested. It's tagged `v1-economics-sim` and can be deleted.
+- `BakeryPanel.tsx` and `MoneyPanel.tsx` are superseded by the Home and Finances panels and are no longer rendered.
+- `state.ts` is large (the reducer plus the day lifecycle). Splitting the day lifecycle into its own module would make it easier to read.
+- The test suite takes about two minutes because of the long playthroughs; they could move to a nightly job if CI time matters.

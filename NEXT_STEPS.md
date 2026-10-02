@@ -1,38 +1,39 @@
 # Next steps
 
-## Current state
+## Current state: v3.0.0, the sandbox
 
-Version 2 is a rebuild following the Vietnamese pixel-art PRD. It covers the PRD's MVP, nearly all of 1.1, and much of 1.2 and 2.0:
+Version 3 expands the v2 pixel-art bakery into a business sandbox, following the Vietnamese Bakery Sandbox PRD. Everything from v2 (the real-time shop day, scene, assembly, oven game, regulars, recipes, events, Tết) is preserved, and v2 saves migrate automatically.
 
-- Pixel-art bakery interior with day/night lighting, weather through the window, street life, animated oven, steam, fan, lanterns and customers who walk in, wait and leave.
-- Cute title screen (a pixel tube-house street front), loading animation, character and bakery-name setup, and the "Chào buổi sáng!" opening with Linh as the first customer.
-- 9 recipes, 14 ingredients, 3 suppliers with loyalty, an oven timing game and step-by-step bánh mì and drink assembly.
-- Real-time service with patience, substitution, price rejection, last call, the helper, catering pickups and wholesale deliveries.
-- Leftovers (keep, donate or bin), daily report with a story and tip, weekly review and goals.
-- 14 events with choices, Tết, a competitor, Green Week, a fridge breakdown and more.
-- Money: safety fund, loans, marketing risk, co-op shares, price locks, 7-day chart, notebook.
-- Eco score, packaging, compost, solar, garden, community and donations.
-- Levels, quests, achievements, upgrades, rooms and decorations that appear in the scene; regulars with hearts.
-- Autosave, save codes and an email restore link. Sound effects and music with toggles. Reduced motion, a relaxed pace option, keyboard play and a mobile layout.
-- 16 engine tests, including a 40-day bot run (59 tests in total with the old v1 suite).
+**Built (PRD phases 0–8):**
+
+- **Phase 0:** audit and architecture ([ARCHITECTURE.md](ARCHITECTURE.md)); a central `ECON` config.
+- **Phases 1–2:** accounting core (tagged cash flows, three statements, ratios, break-even, depreciation, prepaid rent); real calendar; segment-based demand with elasticity, logit competition and loyal pools; staff, capacity and the labour market.
+- **Phases 3–4:** macroeconomy with regimes; reacting rivals with entry and exit; supply contracts, bulk tiers, lead times, reorder rules and storage; loans, credit line, investors, community bonds and valuation.
+- **Phases 5–6:** six neighbourhoods and branches; scenarios, difficulty, goals and endings; three save slots with backups; analytics ("Why did this happen?", product table, decision journal, forecasts); casual and business views; a phone layout with a More sheet.
+- **Phase 7:** Capacitor Android and iOS projects, generated icons and splashes, PWA offline support, self-hosted fonts, Android back button, safe areas.
+- **Phase 8:** stress, exploit and fuzz tests; input validation; a balance pass (see [docs/BALANCING.md](docs/BALANCING.md)); mobile layout fixes.
+
+**Tests:** 141 passing (`npm test`), plus the opt-in balance survey (`npm run balance`).
 
 ## Verified
 
-- `npm test` (59/59) and `npm run build` pass.
-- Played in the browser: title, setup, intro, day 1 service (bánh mì assembly, quest toast), closing, report, autosave and resume after reload, day 2 oven game, a morning event, all six tabs, buying most of the shop (each item draws in the scene), and a busy morning rush with Cô Ba. Phone width (375px) has no horizontal scrolling.
+- `npm test`, `npm run typecheck` and `npm run build` pass.
+- Browser: v2 save migration; a Startup game in University Hill through day 13; every tab at desktop width and at 375 px with no horizontal page scroll; no console errors.
+- Engine: six months of every scenario and 400 days on Hard keep the books balanced and every number finite.
 
 ## Not verified
 
-- A long manual playthrough to day 35 (Tết, weekly reviews, the competitor). The engine bot covers these, but the screens haven't been looked at by a person.
-- The email link on a real mail client (long links can be cut off by some clients; the save code is also included in the email body).
-- A screen-reader pass and a formal contrast check.
-- Balance for human players: the real-time pace may need tuning. Settings has a relaxed pace option.
+- **Native builds.** The Android and iOS projects have never been compiled: this machine has no JDK / Android SDK, and iOS needs a Mac. The back button, status bar and splash code paths only run inside the app.
+- **Long play by a human.** The bots play months; no person has played past the second week of v3.
+- **Balance for skilled players.** The survey measures a passive autopilot. A player who hires, prices and expands well should do much better; how much better hasn't been measured.
+- A screen-reader pass and a formal contrast audit.
 
 ## Next highest-value steps
 
-1. **Playtest days 1–10 by hand** and tune patience, day length and starting cash.
-2. **Delete the v1 code** (`src/game`, `src/views`, `src/components`, `src/config`, `src/App.tsx`, `src/styles/global.css`, `tests/*.test.ts`). It's kept in the `v1-economics-sim` tag.
-3. **Seated customers** in the coffee corner, and a visible upstairs for the loft.
-4. **More seasonal events:** Trung Thu with mooncakes, a rainy-season flood day, a school-holiday rush.
-5. **A payback / NPV view** for equipment, to teach the time value of money.
-6. **Cloud save** (optional), if a backend is ever added.
+1. **Build on a real phone.** Follow [docs/MOBILE_BUILD.md](docs/MOBILE_BUILD.md) on a machine with Android Studio, fix anything that comes up, and test the back button and safe areas.
+2. **Playtest a full first year by hand** and tune the first month: is it clear what to do after the story events end?
+3. **An "active player" balance bot** that hires, raises prices when sold out and buys a second oven, to measure the skill ceiling (and to catch any dominant strategy).
+4. **Owner's pay.** Show "profit after paying yourself a market wage" so solo-owner profits read realistically.
+5. **Delete dead code:** the v1 simulator (tagged `v1-economics-sim`), `BakeryPanel.tsx` and `MoneyPanel.tsx`.
+6. **Store assets:** screenshots from real builds, final listing copy, and the privacy policy published at a URL (drafts in [docs/store/](docs/store/)).
+7. **Cloud save** (optional), only if a backend is ever added, and only with consent.

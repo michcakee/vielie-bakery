@@ -6,12 +6,25 @@ import { keepsOvernight } from '../engine/service';
 import type { LeftoverChoice, ProductId } from '../engine/types';
 import { money, money2, pct, signedMoney } from '../lib/format';
 import { play } from './audio';
+import { onBack } from './backButton';
 import { useGame } from './GameContext';
 import { Btn, Meter, useTween } from './kit';
 import { Sprite } from './pixel/Sprite';
 
 export function Modal({ children, label, onClose, className = '' }: { children: ReactNode; label: string; onClose?: () => void; className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
+  // The Android back button (and any other back source) closes the newest modal first.
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
+  useEffect(
+    () =>
+      onBack(() => {
+        if (!closeRef.current) return true; // a decision is required: swallow back instead of leaving the screen
+        closeRef.current();
+        return true;
+      }),
+    [],
+  );
   useEffect(() => {
     const prev = document.activeElement as HTMLElement | null;
     const first = ref.current?.querySelector<HTMLElement>('button, [href], input, select, textarea');

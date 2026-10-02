@@ -1,36 +1,54 @@
 # How to play Vielie Bakery
 
-Welcome to the lane! Bà (grandma) is retiring, and her tiny Vietnamese bakery is yours now. This guide gets you baking in five minutes, then explains everything else as you need it.
+Welcome to the lane! Bà (grandma) is retiring, and her little Vietnamese bakery is yours now. This guide gets you baking in five minutes, then explains the rest as you need it.
 
-**Play:** https://michcakee.github.io/vielie-bakery/ · no account needed · works on phones
-
----
-
-## Quick start (your first 5 minutes)
-
-1. **Make it yours.** Pick your look and name your bakery, then tap **That's me!**
-2. **Open the doors.** Bà left you 12 baguettes, a tray of flan and enough for coffee. Tap through the greeting and open up.
-3. **Serve Linh.** She'll walk in asking *"Cho mình một bánh mì!"* (One bánh mì, please!). Tap her order, then tap the steps in order: **Cắt bánh → Chả lụa → Đồ chua → Rau thơm → Tương ớt.** On your first days the next step glows.
-4. **Keep serving.** Pastries (flan) are one tap: **Hand over**. Bánh mì and drinks are **Make it**.
-5. **Close up.** At 7pm (or tap **Close up**), decide what happens to leftovers, then read your day's report.
-6. **Tomorrow:** stock up in the **Market**, bake in the **Kitchen**, then open again.
-
-That's the whole loop. Everything below makes you better at it.
+**Play:** https://michcakee.github.io/vielie-bakery/ · no account needed · works on phones and offline
 
 ---
 
-## The daily loop
+## Quick start (your first five minutes)
 
-| Phase | What you do |
+1. **New game.** Pick a save slot, a scenario (start with **Family Business**) and a difficulty (**Normal** is realistic; **Easy** is forgiving). Then pick your look and name your bakery.
+2. **Open the doors.** Bà left you baguettes, a tray of flan and enough for coffee. Tap **Mở cửa! Open**.
+3. **Serve Linh.** She asks *"Cho mình một bánh mì!"* (One bánh mì, please!). Tap her order, then the steps in order: **Cắt bánh → Chả lụa → Đồ chua → Rau thơm → Tương ớt.** On your first days the next step glows.
+4. **Keep serving.** Pastries are one tap (**Hand over**); bánh mì and drinks are **Make it**.
+5. **Close up.** At 7pm (or **Close up**), keep, donate or bin what's left, then read the day's report.
+6. **Tomorrow:** stock up in **Market**, bake in **Kitchen**, and open again.
+
+That's the core loop. Everything below is about turning one shop into a business.
+
+---
+
+## Two ways to run a day
+
+| | **Play the day** (Mở cửa!) | **Let the team run today** |
+| --- | --- | --- |
+| How | Real time, 7am–7pm, about 2 minutes | Instant |
+| You | Serve customers, assemble orders, call last call | Make the decisions; your team (or the autopilot) serves |
+| Quality | Your skill: perfect assembly beats the autopilot | Depends on your staff's skill and morale |
+| Good for | Early days, busy festival days, fun | Long-term play, testing a strategy |
+
+You can switch mid-day: **Hand over the counter** lets the team take over while you keep watching, and **Skip to closing** finishes the day instantly.
+
+---
+
+## The tabs
+
+On a phone, the first four are in the bottom bar and the rest are under **More**.
+
+| Tab | What it's for |
 | --- | --- |
-| **Morning** | Read the market news. Answer any event. Stock up, bake trays, set prices. |
-| **Open (7am–7pm)** | Customers arrive in real time. Serve them before they lose patience. |
-| **Late afternoon** | Start **Last call**: pastries 40% off, and bargain hunters show up. |
-| **Closing** | Keep, donate or bin what's left. |
-| **Report** | See what you sold, what you spent, what the bakery made, plus one tip. |
-| **Every 7 days** | A weekly review and a new goal to chase. |
+| **Today** | Dashboard: cash, sales, profit, customers, the economy, a coach with the next thing to do, and the day buttons |
+| **Kitchen** | The oven, your menu and prices (with a live demand meter), the production plan for team days, storage |
+| **Market** | Ingredient prices and news, four suppliers, bulk buying, supply contracts, reorder rules, price locks |
+| **Staff** | Applicants, hiring (with what each person would add vs. cost), wages, training, morale |
+| **Customers** | Who comes in (segments), regulars, rival bakeries, marketing campaigns and their results |
+| **Growth** | Equipment, rooms, decor, new locations, your long-term goal, and selling up |
+| **Finances** | Income statement, balance sheet, cash flow, loans, credit line, investors, bonds, safety fund |
+| **Analytics** | "Why did this happen?", trends, break-even, which products earn the most, forecasts, decision journal |
+| **Eco** | Eco score, waste, packaging, sourcing, community |
 
-A shop day lasts about 2 minutes in real time (about 3 on **Relaxed pace**). You can **Pause** or switch to **Fast** any time.
+**Settings** (gear): business view (more numbers) or casual view, text size, sound, music, reduced motion, translations, save slots and save codes.
 
 ---
 
@@ -38,134 +56,126 @@ A shop day lasts about 2 minutes in real time (about 3 on **Relaxed pace**). You
 
 | Item | How it's made | Unlocks |
 | --- | --- | --- |
-| **Bánh mì** | Made to order from a baguette, chả lụa and pickles & herbs | Start |
-| **Cà phê sữa đá** (iced coffee) | Made to order: condensed milk, phin, ice, stir | Start |
-| **Bánh flan** (caramel custard) | Baked in trays of 8 | Start |
+| **Bánh mì** | To order from a baguette, chả lụa, pickles and herbs | Start |
+| **Cà phê sữa đá** (iced coffee) | To order | Start |
+| **Bánh flan** | Tray of 8 | Start |
 | **Bánh patê sô** (pâté puff) | Tray of 8 | Level 2 |
-| **Trà tắc** (kumquat tea) | Made to order | Level 2 |
+| **Trà tắc** (kumquat tea) | To order | Level 2 |
+| **Bánh bao** (steamed bun) | Tray of 8; needs a steamer | Level 2 |
 | **Bánh chuối nướng** (banana cake) | Tray of 8 | Level 3 |
-| **Bánh bò nướng** (pandan honeycomb cake) | Tray of 10; hardest to bake, and the neighbours notice a good one | Level 3 |
+| **Bánh bò nướng** (pandan honeycomb cake) | Tray of 10 | Level 3 |
+| **Chè ba màu** (three-colour dessert) | To order | Level 3 |
 | **Bánh kem** (celebration cake) | Tray of 2; few buyers, big sales | Level 4 |
-| **Hộp mứt dừa** (Tết gift box) | Tray of 6; only during Tết | Tết |
+| **Hộp mứt dừa** (Tết gift box) | Tray of 6 | Tết season |
+| **Bánh trung thu** (mooncake) | Tray of 6 | Mid-Autumn season |
 
-**Baguettes** are baked in trays of 10 and become bánh mì when someone orders. No baguettes means no bánh mì!
+No baguettes means no bánh mì: bake them every morning.
 
 ---
 
-## Core mechanics
+## How the business works
 
-### The oven (Kitchen tab)
-Your oven fits **4 trays each morning** (6 or 9 with upgrades). Tap **Bake**, then **Lấy ra! Take it out** while the needle is in the green golden zone (Space or Enter works too). Pale or burnt trays still sell, just at lower quality. **Quick bake** skips the mini-game for fair quality.
+### Prices and demand
+Every item has a price and a **demand meter** showing how many of today's shoppers would pay it. It uses the same maths as the real customers, so it tells the truth.
+- Coffee and bánh mì are **habits**: people keep buying when you raise the price a little. Cakes and treats are **luxuries**: raise them and buyers vanish.
+- Quality, reputation, the neighbourhood's income, the economy and festivals all move what people will pay.
+- If a rival sells the same item cheaper, some shoppers go there instead.
 
-### Prices and the demand meter
-Every item has a price stepper and a **demand meter** showing how many shoppers think the price is fair. The meter tells the truth: it uses the same maths as the real customers.
-- Higher price means more per sale but fewer buyers.
-- Too high, and people leave saying *"Đắt quá…"* (too expensive).
-- Better quality lets you charge more.
-- Prices lock once the doors open.
+### Capacity
+You can only sell what you can make. **Trays per day = the smaller of oven space and baking hands.** You bake 4 trays yourself; bakers and a mixer add more if your ovens have room. Made-to-order items need counter time: with a queue and no barista or sandwich maker, people give up. Analytics names your bottleneck.
 
-### Customers
-- Each has a **patience bar**. Let it run out and they leave (*"Lâu quá…"*).
-- If their favourite is sold out, some pick something else; others leave sad (*"Hết rồi à…"*).
-- **Regulars** have names and personalities: Linh is always in a hurry, Minh loves his coffee, Bà Tư notices quality, Nam hunts discounts, Mai pays more at a green bakery. Serve them well to earn **hearts**; they come more often and tip.
-- Happy customers raise your **reputation**, and a good streak brings more people next day.
+### Regulars
+Happy customers may become **regulars** who come back, pay a little more and ignore rivals. But regulars drift away over time, faster after a bad day (slow service, sold out, too pricey), and a street only has so many people. Keep them happy.
 
-### Market and suppliers
-| Supplier | Price | Quality | Eco | Note |
+### Costs, profit and cash
+- **Profit** = sales − ingredients used − packaging − wages − rent − utilities − maintenance − depreciation − spoilage − interest − marketing.
+- **Cash isn't profit.** Rent is paid a month ahead, stock is bought before it's used, an oven is paid for today but counted as a cost slowly over its life (depreciation), and loan repayments use cash without being a cost. A profitable bakery can still run out of cash. Finances → **Cash flow** shows exactly where it went.
+
+### Suppliers and stock
+| Supplier | Price | Quality | Arrives | Note |
 | --- | --- | --- | --- | --- |
-| **Wet market** (Chợ sỉ) | Cheapest | Low | Low | Always in stock |
-| **Đà Lạt farm co-op** | Fair | High | Best | Sometimes sold out |
-| **Saigon Fine Foods** | Priciest | Best | Good | Always in stock |
+| **Wet market** (Chợ sỉ) | Cheap | Low | Today | Always in stock |
+| **Đà Lạt farm co-op** | Fair | High | Tomorrow | Best for eco; sometimes sold out |
+| **Saigon Fine Foods** | Dear | Best | Tomorrow | Always in stock |
+| **Mekong Food Distributors** | Cheapest | Fair | In 2 days | Minimum 5 packs |
 
-- Prices change daily, and news sometimes warns you first.
-- Every 10 packs from one supplier earns 1% off (up to 8%).
-- Fresh ingredients (milk, veg, bananas, cream…) spoil a little each night; a fridge halves that.
-- **Lock price** (level 2): pay $5 to freeze today's price for 7 days. Handy before a shortage.
+Buying in bulk is cheaper (5 / 10 / 20 packs), but stock spoils and storage is limited; overflow spoils fast. **Contracts** lock a price for weeks; **price locks** freeze today's price for 7 days; **reorder rules** restock automatically on team days.
 
-### Money words, in plain language
-- **Today's sales**: all the money customers paid.
-- **What we spent**: ingredients used, cups and bags, rent ($18/day), wages, power, spoiled food.
-- **What the bakery made**: sales minus spending (your profit).
-- Buying stock or equipment uses **cash** but isn't counted as today's cost; it's something the bakery still owns.
+### Staff
+Eight roles: baker, cashier, barista, sandwich maker, pastry chef, delivery rider, manager, marketer. New applicants every Monday; more of them when unemployment is high. Pay below the going rate and morale falls; low morale means slower work and people quitting. Training makes someone better for as long as they stay.
 
-### Leftovers and waste
-At closing, each leftover item can be:
-- **Kept**: flan and cake with a fridge; Tết gift boxes always.
-- **Donated**: raises community and reputation.
-- **Binned**: counts as waste and lowers your eco score.
+### The economy
+The city moves through **steady times, booms, recessions and high inflation**. Booms bring spenders and pricier workers. Recessions bring careful shoppers, cheaper loans and more job seekers. Inflation makes everything dearer, so keep your prices in step. The Today tab tells you what the current economy means for you.
 
-Either way, the money spent making it is gone, so bake close to what you'll sell.
+### Rivals
+Nearby bakeries have personalities: a **discounter** undercuts you, a **matcher** copies your prices, a **premium** shop improves its quality, a **copycat** starts selling your best-seller, a **chain** out-advertises everyone. Rivals that keep losing money close. If your street gets very profitable, **new ones open**.
 
-### Eco score and community
-Your **eco score** comes from where you buy (40%), how much you waste (30%) and your packaging (30%), plus green upgrades. **Community** grows with donations, good service and being a kind neighbour.
+### Money
+- **Bank loans:** the rate depends on your credit risk and the central bank. Monthly payments; miss three and the bank calls it in.
+- **Credit line:** draws automatically when cash runs short. Convenient, but expensive.
+- **Investors:** cash with no repayments, in exchange for a share of every future profit.
+- **Community bonds:** a well-loved bakery can borrow from its neighbours cheaply.
+- **Safety fund:** savings that cover a bad day automatically.
 
----
-
-## Events
-
-Some mornings bring news with a choice, for example:
-- **Coffee rumours**: lock the price, stock up, or gamble.
-- **Rainy season**: fewer walk-ins; hot food sells.
-- **Egg shortage**: raise flan's price, use the farm, or absorb the cost.
-- **Catering order**: 20 bánh mì by noon tomorrow. Bake enough baguettes!
-- **Green Week**, **Heatwave**, **Street festival**, **Fridge broke**, **Food vlogger**…
-- **Day 15**: Bánh Mì Cô Tư opens across the street with cheaper bánh mì.
-- **Tết** (days 24–28): bigger spending, gift boxes, lanterns and *"Chúc mừng năm mới!"*
-
-You must answer the morning's event before opening.
+### Growing
+Equipment (ovens, mixer, steamer, fridges, display case, coffee station, POS, bike, van…), rooms (storage, coffee corner, garden, loft), renovation, marketing campaigns (results are measured: new customers, cost per customer, return), and **new shops** in five more neighbourhoods, each with its own rent, customers and rivals.
 
 ---
 
-## Growing your bakery
+## Scenarios and goals
 
-**Levels:** Tiny Tiệm Bánh → Neighborhood Bakery → Popular Bakery → Community Favorite → **Vielie Bakery**. You earn XP by serving customers, delighting them, making profit and finishing quests.
+| Scenario | Start | Goal |
+| --- | --- | --- |
+| **Family Business** | Bà's shop, her regulars, $2,500 | Bà's legacy: level 5 and community 75 |
+| **Startup** | $10,000, an empty shop, choose the neighbourhood | Build value: a $1,000,000 business |
+| **Survive the Recession** | Tight money, careful customers, a loan to repay | Survive two years |
+| **Rapid Expansion** | $15,000 and impatient investors | Three shops within two years |
+| **Community Bakery** | Bà's lane, a mission | Community 90, eco 80, 10,000 served |
+| **Competitive Market** | Little Saigon Plaza beside three bakeries | Hold 40% of the street's shoppers for a month |
 
-**Build tab:**
-- **Equipment**: fridge, ceiling fan, display case, bigger ovens, coffee station, and Cô Ba (a helper who hands out pastries for $20/day).
-- **Rooms**: coffee corner, herb garden, upstairs loft. These bring more customers but raise rent.
-- **Decorations**: plants, lanterns, string lights, a songbird cage, a radio, a lacquer painting and more. They appear in your shop, and many give small bonuses.
+Reaching your goal is celebrated, and you can keep playing. The game ends if you **sell** to a buyer, **retire** (Growth → Sell up, from day 60), or **go bankrupt** (three days without cash or credit; Bà may rescue you once on Normal, twice on Easy, never on Hard or Expert).
 
-**Money tab:**
-- **Safety fund**: savings for surprises, with optional auto-save from good days.
-- **Marketing** (level 2): flyers (safe) or a video ad (risky).
-- **Bank loan** (level 3): borrow now, repay in 10 daily payments with an 8% fee.
-- **Co-op shares** (level 3): own part of a coffee, dairy or fruit co-op, earning weekly dividends.
-- **Bakery notebook**: every money idea you've discovered, in one line each.
+---
 
-**Quests and achievements:** tap the book icon at the top.
+## Events and the calendar
+
+A year is 12 months of 30 days. Your first month is a guided story: coffee rumours, rainy season, an egg shortage, a catering order, Green Week, a heatwave, a new bánh mì stand across the street (day 15), a broken fridge, a street festival, a wholesale deal, a food vlogger, and **Tết** (days 24–28, big spending and gift boxes). After that, events are random but fair: price spikes, supply disruptions, rent renewals, inspections, viral posts, road works, broken equipment, raise requests, price wars, buyout offers, and **Trung Thu** (mooncake season in month 8).
+
+Answer the morning's event before you open.
 
 ---
 
 ## Controls
 
-| Action | Mouse / touch | Keyboard |
+| Action | Touch / mouse | Keyboard |
 | --- | --- | --- |
 | Serve the nth customer in line | Tap their order | `1`–`4` |
 | Assembly step | Tap the step | `1`–`5` |
 | Put an order down | Put it down | `Esc` |
 | Take a tray out of the oven | Lấy ra! | `Space` / `Enter` |
 | Pause the shop | Pause | `Space` |
+| Close a window | × | `Esc` |
 
-**Settings** (gear icon): sound, music, relaxed pace, English translations, reduce motion, saving, and reset.
+On Android, the back button closes windows and sheets, then returns to Today.
 
 ---
 
 ## Saving
 
-- The game **saves automatically** in your browser after every change.
-- **Copy save code**: paste it into **Load a save** on any device.
-- **Email me a restore link**: opens your own email app with a link that reloads your bakery. Your email stays on your device.
-- **Reset bakery**: type RESET to confirm. This can't be undone, so save a code first.
+- The game **saves automatically** to the current slot, with a backup. Three slots let you run different bakeries.
+- **Copy save code** in Settings and paste it into **Load a save** on any device. Uninstalling the app deletes its saves, so keep a code.
+- v2 saves are upgraded automatically.
 
 ---
 
-## Tips for a great first week
+## Tips for a great first month
 
-1. **Bake baguettes every morning.** Bánh mì is your best seller.
-2. **Watch the forecast.** Hot days want cà phê and trà tắc; rainy and cool days want bánh mì and patê sô.
-3. **Read the tip in each report.** It's based on what actually happened today.
-4. **Don't over-bake.** Leftovers cost money; use Last call or donate.
-5. **Save a little.** A broken fridge is easier to fix with a safety fund.
-6. **If you run out of everything,** Bà sends a $40 envelope (once a week). *Mua chút đồ đi con!*
+1. **Bake baguettes every morning.** Bánh mì is the best seller.
+2. **Watch what's lost.** The report shows people who left because something was sold out, too pricey or too slow. Each one is a different fix.
+3. **Raise prices on what sells out.** If coffee is always gone by noon, it's too cheap (or you need a barista).
+4. **Check "Why did this happen?"** after a surprising week.
+5. **Keep a cash cushion.** Rent is due on the 1st of each month.
+6. **Hire for the bottleneck.** Analytics tells you whether ovens or people are limiting you.
+7. **Don't overbake.** Leftovers cost money: use last call, donate or bake less.
 
 *Chúc một ngày tốt lành!* Have a lovely day at the bakery.

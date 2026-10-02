@@ -653,7 +653,10 @@ kbd {
   bottom: 9px;
   left: -24px;
   line-height: 0;
-  /* people on the street are across the road, so they're smaller than people in the shop */
+}
+/* People on the street are across the road, so they're smaller than people in the shop.
+   The scale sits on the sprite, not the mover, because the mover's walk animation owns `transform`. */
+.mover.walker .person-sprite {
   transform: scale(0.65);
   transform-origin: bottom center;
 }
@@ -2895,6 +2898,8 @@ textarea {
   aspect-ratio: 12 / 19;
   height: auto !important;
   background-size: 200% 100% !important;
+  /* The sprite is sized in %, so the walk frame must step by a frame width in %, not the inline px. */
+  --step: 100% !important;
 }
 .ext-walker.w1 {
   animation-duration: 34s;

@@ -4224,3 +4224,23 @@ h3,
     top: 40px;
   }
 }
+
+/* ---------- loyalty badges ---------- */
+.badge-medal {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 6px;
+  line-height: 0;
+}
+.critic-tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 6px;
+  font-family: var(--cube);
+  font-size: 12px;
+  text-transform: uppercase;
+  color: var(--paper);
+  background: var(--ink);
+  border-radius: 3px;
+  vertical-align: middle;
+}

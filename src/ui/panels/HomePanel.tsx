@@ -247,17 +247,26 @@ function Neighbours() {
       <ul className="neighbours">
         {met.map((r) => {
           const hearts = s.hearts[r.id] ?? 0;
+          const badge = s.badges?.[r.id] ?? 0;
           return (
             <li key={r.id}>
               <Person look={r.look} scale={2} />
               <div>
-                <b>{r.name}</b>
+                <b>
+                  {r.name}
+                  {badge > 0 && (
+                    <span className={`badge-medal b${badge}`} title={`${['Bronze', 'Silver', 'Gold'][badge - 1]} regular`}>
+                      <Sprite name={['medalBronze', 'medalSilver', 'medalGold'][badge - 1]} scale={2} />
+                    </span>
+                  )}
+                  {r.critic && <span className="critic-tag">critic</span>}
+                </b>
                 <span className="small muted">
                   {r.role} · loves {r.favorite.map((p) => PRODUCTS[p].name).join(', ')}
                 </span>
                 <span className="small">{r.behavior}</span>
               </div>
-              <span className="hearts" role="img" aria-label={`${Math.floor(hearts)} of 5 hearts`}>
+              <span className="hearts" role="img" aria-label={`${Math.floor(hearts)} of 5 hearts${badge ? `, ${['bronze', 'silver', 'gold'][badge - 1]} badge` : ''}`}>
                 {Array.from({ length: 5 }).map((_, i) => (
                   <span key={i} className={i < Math.floor(hearts) ? 'on' : 'off'}>
                     <Sprite name="heart" scale={1} />

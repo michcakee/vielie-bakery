@@ -17,6 +17,10 @@ export interface RegularDef {
   level: number;
   hello: string;
   helloEn: string;
+  /** What they say after a great / okay / bad order (Vietnamese; translations in TRANSLATIONS). */
+  reactions?: { great: string[]; ok: string[]; bad: string[] };
+  /** Grades harder, pays more, and tells the neighbourhood. */
+  critic?: boolean;
 }
 
 export const REGULARS: RegularDef[] = [
@@ -36,6 +40,7 @@ export const REGULARS: RegularDef[] = [
     level: 1,
     hello: 'Nhanh nhé, mình trễ rồi!',
     helloEn: "Quick please, I'm late!",
+    reactions: { great: ['Nhanh ghê! Cảm ơn nha!', 'Đúng người đúng việc!'], ok: ['Ok, mình chạy đây.'], bad: ['Mình trễ họp rồi…'] },
   },
   {
     id: 'minh',
@@ -155,6 +160,26 @@ export const REGULARS: RegularDef[] = [
     level: 4,
     hello: 'Hôm nay sinh nhật bạn mình!',
     helloEn: "It's my friend's birthday today!",
+    reactions: { great: ['Bạn mình sẽ mê cho xem!', 'Đẹp như trong hình!'], ok: ['Cũng được, để mình xem.'], bad: ['Tiệc tối nay rồi mà…'] },
+  },
+  {
+    id: 'ngoc',
+    name: 'Cô Ngọc',
+    role: 'Food critic',
+    favorite: ['banhBo', 'gressCrepe', 'banhKem', 'flan', 'caPhe'],
+    personality: 'Exacting',
+    behavior: 'Comes late, orders the hardest thing on the menu, and writes it up. Grades harder; pays more.',
+    budget: 1.5,
+    patience: 0.75,
+    frequency: 0.3,
+    eco: false,
+    time: 2,
+    look: { skin: 1, hair: 1, hairColor: 6, shirt: 5, apron: -1, accessory: 1 },
+    level: 2,
+    hello: 'Cho tôi món khó nhất của tiệm.',
+    helloEn: 'Give me the hardest thing you make.',
+    critic: true,
+    reactions: { great: ['Tôi sẽ viết về tiệm này.', 'Hiếm khi tôi nói vậy: hoàn hảo.'], ok: ['Được. Chưa đáng để viết.'], bad: ['Tôi sẽ không nhắc đến chuyện này. Lần này.', 'Quá chậm cho mức giá này.'] },
   },
 ];
 
@@ -176,6 +201,19 @@ export const LINES = {
 };
 
 export const TRANSLATIONS: Record<string, string> = {
+  'Nhanh ghê! Cảm ơn nha!': 'So fast! Thanks!',
+  'Đúng người đúng việc!': 'Right person, right job!',
+  'Ok, mình chạy đây.': "Ok, I'm off.",
+  'Mình trễ họp rồi…': "I'm late for my meeting…",
+  'Bạn mình sẽ mê cho xem!': 'My friend is going to love this!',
+  'Đẹp như trong hình!': 'Pretty as the picture!',
+  'Cũng được, để mình xem.': "It'll do, let me see.",
+  'Tiệc tối nay rồi mà…': 'The party is tonight…',
+  'Tôi sẽ viết về tiệm này.': 'I will write about this place.',
+  'Hiếm khi tôi nói vậy: hoàn hảo.': 'I rarely say this: perfect.',
+  'Được. Chưa đáng để viết.': 'Fine. Not worth writing up.',
+  'Tôi sẽ không nhắc đến chuyện này. Lần này.': "I won't mention this. This time.",
+  'Quá chậm cho mức giá này.': 'Too slow for this price.',
   'Ngon quá!': 'So delicious!',
   'Tuyệt vời!': 'Wonderful!',
   'Cho mình thêm một cái!': "I'll take another one!",

@@ -139,6 +139,8 @@ export interface Visit {
   ecoMinded: boolean;
   servedBy?: string;
   grade?: OrderGrade;
+  /** A critic grades harder and pays more. */
+  critic?: boolean;
 }
 
 /** The visible score for one served order. */
@@ -562,6 +564,8 @@ export interface GameState {
   shareCost: Record<CoopId, number>;
   supplierLoyalty: Record<SupplierId, number>;
   hearts: Record<string, number>;
+  /** Loyalty badges per regular: 1 bronze, 2 silver, 3 gold. Never lost. Optional so older saves load. */
+  badges?: Record<string, number>;
   visitsByRegular: Record<string, number>;
   quests: string[];
   questProgress: Record<string, number>;

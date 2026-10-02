@@ -314,6 +314,9 @@ export const SPRITES: Record<string, string[]> = {
     '.....oiiiio.....',
     '......oooo......',
   ],
+  medalBronze: ['..oo..', '.okKo.', 'okkkKo', 'okwkKo', 'okkkKo', '.oKKo.', '..oo..'],
+  medalSilver: ['..oo..', '.oeEo.', 'oeeeEo', 'oewEEo', 'oeeeEo', '.oEEo.', '..oo..'],
+  medalGold: ['..oo..', '.oyYo.', 'oyyyYo', 'oywyYo', 'oyyyYo', '.oYYo.', '..oo..'],
   baguette: [
     '................',
     '................',

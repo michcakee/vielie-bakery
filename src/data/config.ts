@@ -25,6 +25,8 @@ export const ECON = {
     minPriceFactor: 0.4,
     /** Tips follow the order grade: a share of the bill, capped, plus a little extra from regulars. */
     tips: { great: 0.15, good: 0.06, cap: 1.5, regularBonus: 0.5 },
+    /** Hearts needed per loyalty badge; how much each badge raises a regular's visits; critic strictness and pay. */
+    badges: { heartsPer: 5, max: 3, visitBoost: 0.12, criticStrict: 6, criticTipMult: 2, criticRep: { great: 1.5, bad: -1 } },
     /** Grade weights (accuracy, speed, quality) and star thresholds. */
     grade: { accuracy: 0.45, speed: 0.35, quality: 0.2, stars: [90, 75, 60, 40] },
     /** Minutes a generalist (the owner on autopilot) needs per order. */

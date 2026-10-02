@@ -256,3 +256,44 @@ describe('order grades', () => {
     expect(done.tip).toBe(done.grade!.tip);
   });
 });
+
+describe('regulars: badges and the critic', () => {
+  it('five hearts become a badge that is never lost; the critic grades harder and pays more', async () => {
+    const { gradeOrder } = await import('../../src/engine/service');
+    const { REGULARS } = await import('../../src/data/people');
+    // Critic: same order, fewer stars, bigger tip when she is impressed.
+    const plain = gradeOrder(100, 80, 0, 90, 6.5, true);
+    const critic = gradeOrder(100, 80, 0, 90, 6.5, true, true);
+    expect(critic.score).toBe(plain.score);
+    expect(critic.stars).toBeLessThanOrEqual(plain.stars);
+    expect(gradeOrder(100, 100, 0, 90, 6.5, true, true).tip).toBeGreaterThan(gradeOrder(100, 100, 0, 90, 6.5, true).tip);
+    expect(REGULARS.find((r) => r.critic)?.id).toBe('ngoc');
+
+    // Badge: a regular at 4.75 hearts who loves one more order crosses five.
+    let s = morning(createNewGame(5));
+    s = { ...s, hearts: { ...s.hearts, minh: 4.75 }, visitsByRegular: { ...s.visitsByRegular, minh: 3 } };
+    s = gameReducer(s, { type: 'open' });
+    let minh = s.service!.visits.find((v) => v.who === 'minh');
+    if (!minh) {
+      // Minh didn't come today; put him in the queue by hand.
+      const any = s.service!.visits.find((v) => v.status === 'coming' || v.status === 'walking' || v.status === 'waiting')!;
+      s = { ...s, service: { ...s.service!, visits: s.service!.visits.map((v) => (v.id === any.id ? { ...v, who: 'minh', name: 'Minh', wants: 'caPhe' as const, loyal: true } : v)) } };
+      minh = s.service!.visits.find((v) => v.who === 'minh');
+    }
+    for (let i = 0; i < 80 && s.service!.visits.find((v) => v.who === 'minh')!.status !== 'waiting'; i++) s = gameReducer(s, { type: 'tick', minutes: 4 });
+    s = gameReducer(s, { type: 'serve', visitId: minh!.id, process: 100 });
+    const served = s.service!.visits.find((v) => v.who === 'minh')!;
+    expect(served.status).toBe('done');
+    if (served.grade && served.grade.stars >= 4) {
+      expect(s.badges?.minh).toBe(1);
+      expect(s.hearts.minh).toBe(0);
+      expect(served.line ?? '').not.toBe('');
+    }
+    // Badges survive bad days: force a bad order and a slow leave.
+    const withBadge = { ...s, badges: { minh: 2 }, hearts: { minh: 3 } };
+    let later = autoDay(withBadge);
+    for (let d = 0; d < 20; d++) later = autoDay(later);
+    expect(later.badges?.minh).toBe(2);
+    check(later);
+  });
+});

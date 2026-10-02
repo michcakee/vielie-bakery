@@ -224,6 +224,7 @@ export function createNewGame(seedOrOpts: number | NewGameOptions = {}): GameSta
     shareCost: { coffee: 0, dairy: 0, fruit: 0 },
     supplierLoyalty: { cho: 0, farm: 0, premium: 0, distributor: 0 },
     hearts: {},
+    badges: {},
     visitsByRegular: {},
     quests: [],
     questProgress: {},

@@ -87,3 +87,13 @@ Each step is one change, played for at least a day before the next.
 *Numbers to playtest*: weights 45/35/20; star cuts 90/75/60/40; tip 15%/6% capped $1.50; card lifetime 2 s.
 
 *Also in this change*: audio starts muted (one-time default change for existing players too; Settings turns it back on).
+
+### 3. Customers are people: loyalty badges and a critic
+
+*What changed*
+- A regular's heart meter (0–5) now **turns into a badge** when it fills: bronze, then silver, then gold. The meter starts over; the badge never goes away. Badges make the regular visit more often (+12% per badge) and are shown as a medal beside their name on Today.
+- Every regular now has **2–3 reactions** of their own for a great / okay / bad order (by stars), with translations, instead of the generic lines.
+- **Cô Ngọc, food critic** (level 2+, afternoons, about every three days): orders the hardest thing on the menu, has less patience, needs six more points for each star, tips double, and moves reputation (+1.5 for five stars, −1 for two or fewer). Tagged "critic" on Today.
+- New achievement: Golden regular.
+
+*Numbers to playtest*: hearts per badge 5; visit boost 0.12/badge; critic strictness +6, tip ×2, reputation +1.5 / −1; critic frequency 0.3.

@@ -30,7 +30,7 @@ import {
   loyalCap,
   loyalTotal,
 } from './economy';
-import { bump } from './helpers';
+import { bump, toast } from './helpers';
 import { randomLook } from './look';
 import { gaussian, rngFor } from './rng';
 import { pick, weightedPick } from './util';
@@ -93,6 +93,7 @@ export function buildSchedule(s: GameState): Visit[] {
     segment?: SegmentId;
     loyal?: boolean;
     source?: string;
+    critic?: boolean;
   }) => {
     const part = opts.part;
     const [start, len] = DAYPARTS[part];
@@ -121,6 +122,7 @@ export function buildSchedule(s: GameState): Visit[] {
       arrive: Math.round(opts.arrive ?? start + rand() * len),
       lastCallOnly: !!opts.lastCallOnly,
       source: opts.source,
+      critic: opts.critic,
       status: 'coming',
       ecoMinded: opts.eco ?? rand() < ecoShare * (sd.eco / 0.2),
     };
@@ -161,10 +163,11 @@ export function buildSchedule(s: GameState): Visit[] {
     if (s.day === 1 && r.id === 'linh') continue;
     if (!inherited && (s.visitsByRegular[r.id] ?? 0) === 0 && s.history.length < 5) continue;
     const hearts = s.hearts[r.id] ?? 0;
-    const chance = r.frequency * (0.75 + 0.08 * hearts) * (s.market.weather === 'rainy' ? 0.8 : 1);
+    const badge = s.badges?.[r.id] ?? 0;
+    const chance = r.frequency * (0.75 + 0.08 * hearts + ECON.service.badges.visitBoost * badge) * (s.market.weather === 'rainy' ? 0.8 : 1);
     if (rand() > chance) continue;
     const wants = r.favorite.find((p) => offered.includes(p));
-    make({ part: r.time, who: r.id, name: r.name, look: r.look, budget: r.budget, patience: r.patience, wants: wants ?? undefined, eco: r.eco, segment: regularSegment(r.id), loyal: true });
+    make({ part: r.time, who: r.id, name: r.name, look: r.look, budget: r.budget, patience: r.patience, wants: wants ?? undefined, eco: r.eco, segment: regularSegment(r.id), loyal: true, critic: r.critic });
   }
 
   if (trays.length) {
@@ -299,16 +302,21 @@ function bookSale(s: GameState, p: ProductId, units: number, paid: number, tip: 
  * Score one order 0–100: accuracy (assembly steps, or the tray's bake for pastries), speed (how much
  * of the customer's patience was used) and quality (ingredients and skill). Stars and the tip follow.
  */
-export function gradeOrder(process: number | undefined, quality: number, waited: number, patience: number, paid: number, regular: boolean): OrderGrade {
+export const BADGE_NAMES = ['bronze', 'silver', 'gold'];
+
+export function gradeOrder(process: number | undefined, quality: number, waited: number, patience: number, paid: number, regular: boolean, critic = false): OrderGrade {
   const g = ECON.service.grade;
+  const b = ECON.service.badges;
   const accuracy = clamp(process ?? quality, 0, 100);
   const speed = 100 * clamp(1 - waited / Math.max(1, patience), 0, 1);
   const q = clamp(quality, 0, 100);
   const score = Math.round(g.accuracy * accuracy + g.speed * speed + g.quality * q);
-  const stars = (score >= g.stars[0] ? 5 : score >= g.stars[1] ? 4 : score >= g.stars[2] ? 3 : score >= g.stars[3] ? 2 : 1) as OrderGrade['stars'];
+  // A critic's star thresholds sit a few points higher; the score itself is honest.
+  const strict = critic ? b.criticStrict : 0;
+  const stars = (score >= g.stars[0] + strict ? 5 : score >= g.stars[1] + strict ? 4 : score >= g.stars[2] + strict ? 3 : score >= g.stars[3] + strict ? 2 : 1) as OrderGrade['stars'];
   const t = ECON.service.tips;
-  const rate = stars === 5 ? t.great : stars === 4 ? t.good : 0;
-  const tip = rate ? round2(Math.min(t.cap, paid * rate) + (regular ? t.regularBonus : 0)) : 0;
+  const rate = (stars === 5 ? t.great : stars === 4 ? t.good : 0) * (critic ? b.criticTipMult : 1);
+  const tip = rate ? round2(Math.min(t.cap * (critic ? b.criticTipMult : 1), paid * rate) + (regular ? t.regularBonus : 0)) : 0;
   return { score, stars, accuracy: Math.round(accuracy), speed: Math.round(speed), quality: Math.round(q), tip };
 }
 
@@ -334,10 +342,12 @@ export function serve(s: GameState, visitId: number, process?: number, by: strin
   const sat = 0.45 * (c.quality / 100) + 0.35 * clamp(1 - waited / Math.max(1, v.patience), 0, 1) + 0.2 * clamp(((wtp - price) / wtp) * 2 + 0.5, 0, 1);
   const mood: Mood = sat >= 0.72 ? 'love' : sat >= 0.5 ? 'happy' : 'ok';
   const rand = rngFor(s.seed, s.day, 900 + visitId);
-  const line = pick(rand, mood === 'love' ? LINES.love : mood === 'happy' ? LINES.happy : LINES.ok);
   const named = v.who !== 'walkin';
-  const grade = gradeOrder(process, c.quality, waited, v.patience, paid, named || v.loyal);
+  const grade = gradeOrder(process, c.quality, waited, v.patience, paid, named || v.loyal, !!v.critic);
   const tip = grade.tip;
+  const reg = named ? REGULARS.find((r) => r.id === v.who) : undefined;
+  const reaction = reg?.reactions ? (grade.stars >= 4 ? reg.reactions.great : grade.stars === 3 ? reg.reactions.ok : reg.reactions.bad) : null;
+  const line = reaction ? pick(rand, reaction) : pick(rand, mood === 'love' ? LINES.love : mood === 'happy' ? LINES.happy : LINES.ok);
 
   next = bookSale(next, p, qty, paid, tip, c.cogs, pack);
   const t = { ...next.today };
@@ -355,8 +365,19 @@ export function serve(s: GameState, visitId: number, process?: number, by: strin
 
   let rep = next.reputation;
   if (p === 'banhBo' && c.quality >= 80) rep += 0.03;
+  if (v.critic) rep += grade.stars === 5 ? ECON.service.badges.criticRep.great : grade.stars <= 2 ? ECON.service.badges.criticRep.bad : 0;
   const hearts = { ...next.hearts };
-  if (named) hearts[v.who] = Math.min(5, (hearts[v.who] ?? 0) + (mood === 'love' ? 0.5 : mood === 'happy' ? 0.25 : 0));
+  const badges = { ...(next.badges ?? {}) };
+  let badgeWon: number | null = null;
+  if (named) {
+    hearts[v.who] = Math.min(ECON.service.badges.heartsPer, (hearts[v.who] ?? 0) + (mood === 'love' ? 0.5 : mood === 'happy' ? 0.25 : 0));
+    // A full heart meter becomes a badge (bronze, silver, gold) that is never taken away; the meter starts over.
+    if (hearts[v.who] >= ECON.service.badges.heartsPer && (badges[v.who] ?? 0) < ECON.service.badges.max) {
+      badges[v.who] = (badges[v.who] ?? 0) + 1;
+      badgeWon = badges[v.who];
+      hearts[v.who] = 0;
+    }
+  }
   const loyal = { ...next.loyal };
   if (!v.loyal && !named && sat >= 0.5 && rand() < SEGMENTS[v.segment].loyalty * (sat - 0.4) * 0.6 * Math.max(0, 1 - loyalTotal(next) / loyalCap(next))) loyal[v.segment] = (loyal[v.segment] ?? 0) + 1;
   const visitsByRegular = named ? { ...next.visitsByRegular, [v.who]: (next.visitsByRegular[v.who] ?? 0) + 1 } : next.visitsByRegular;
@@ -375,6 +396,11 @@ export function serve(s: GameState, visitId: number, process?: number, by: strin
   if (mood === 'love') nsvc = addFx(nsvc, 'heart', undefined, visitId);
   // A perfect order: flawless assembly, or a golden tray, and a customer who loved it.
   if (mood === 'love' && (process === 100 || (process === undefined && c.quality >= 95))) nsvc = addFx(nsvc, 'sparkle', undefined, visitId);
+  if (badgeWon !== null) {
+    next = toast(next, 'achievement', `${v.name} is a ${BADGE_NAMES[badgeWon - 1]} regular!`, badgeWon === 3 ? 'Gold: the highest. They’ll visit more and always tip.' : 'They’ll visit more often, and the badge is yours for good.');
+    next = { ...next, questProgress: { ...next.questProgress, goldRegulars: Object.values(badges).filter((b) => b >= 3).length } };
+  }
+  if (v.critic && grade.stars === 5) next = toast(next, 'achievement', 'Cô Ngọc is impressed', 'A glowing write-up. Reputation up.');
   const staff = by.startsWith('staff:') ? next.staff.map((e) => (`staff:${e.id}` === by ? { ...e, served: e.served + 1 } : e)) : next.staff;
   const campaigns = v.source ? next.campaigns.map((c) => (`c${c.id}` === v.source ? { ...c, newCustomers: c.newCustomers + 1, revenue: c.revenue + paid } : c)) : next.campaigns;
   return {
@@ -382,6 +408,7 @@ export function serve(s: GameState, visitId: number, process?: number, by: strin
     today: t,
     reputation: clamp(rep, 0, 100),
     hearts,
+    badges,
     loyal,
     visitsByRegular,
     lifetime,

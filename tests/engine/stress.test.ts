@@ -5,7 +5,7 @@ import { rngFor } from '../../src/engine/rng';
 import { SCENARIOS } from '../../src/data/world';
 import { INGREDIENTS, PRODUCTS, UPGRADES } from '../../src/data/catalog';
 import type { GameState, IngredientId, ProductId, UpgradeId } from '../../src/engine/types';
-import { autoDay, morning, playDay } from './bot';
+import { autoDay, finish, morning, playDay } from './bot';
 import { sane } from './game.test';
 
 /** Walks the whole state and fails on any NaN or ±Infinity number. */
@@ -320,5 +320,39 @@ describe('first-week unlock schedule and the next goal', () => {
     const late = nextUnlock(s);
     expect(late.text).toMatch(/Level|everything/);
     check(s);
+  });
+});
+
+describe('daily special and special orders', () => {
+  it('from day 3 one menu item pays x1.5 and sells as readily; big orders show up now and then with a bonus tip', async () => {
+    const { effectivePrice, willingToPay } = await import('../../src/engine/economy');
+    let s = createNewGame(31);
+    expect(s.special ?? null).toBeNull();
+    for (let d = 0; d < 3; d++) s = autoDay(s);
+    expect(s.special).toBeTruthy();
+    const p = s.special!;
+    expect(effectivePrice(morning(s), p)).toBeCloseTo(s.prices[p] * 1.5, 2);
+    const plain = { ...s, special: null };
+    expect(willingToPay(s, p, 1, 75, false)).toBeCloseTo(willingToPay(plain, p, 1, 75, false) * 1.5, 6);
+
+    let big = 0;
+    let bonusSeen = false;
+    let g = { ...createNewGame(32), xp: 200 };
+    for (let d = 0; d < 25; d++) {
+      g = morning(g);
+      if (g.phase !== 'morning') break;
+      g = gameReducer(g, { type: 'open' });
+      const specials = g.service!.visits.filter((v) => v.specialOrder);
+      big += specials.length;
+      for (let i = 0; i < 400 && g.phase === 'service'; i++) {
+        g = gameReducer(g, { type: 'tick', minutes: 4 });
+        for (const v of g.service?.visits.filter((x) => x.status === 'waiting' && !x.servedBy) ?? []) g = gameReducer(g, { type: 'serve', visitId: v.id, process: 95 });
+      }
+      for (const v of g.service?.visits ?? []) if (v.specialOrder && v.status === 'done' && (v.tip ?? 0) > (v.grade?.tip ?? 0)) bonusSeen = true;
+      g = finish(g);
+    }
+    expect(big).toBeGreaterThan(0);
+    expect(bonusSeen).toBe(true);
+    check(g);
   });
 });

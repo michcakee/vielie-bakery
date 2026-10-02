@@ -141,6 +141,8 @@ export interface Visit {
   grade?: OrderGrade;
   /** A critic grades harder and pays more. */
   critic?: boolean;
+  /** A big order with a generous tip on top of the grade's. */
+  specialOrder?: boolean;
 }
 
 /** The visible score for one served order. */
@@ -568,6 +570,8 @@ export interface GameState {
   badges?: Record<string, number>;
   /** Regulars unlocked by the first-week schedule ahead of their level. */
   unlockedRegulars?: string[];
+  /** Today's special: this item sells for more today. */
+  special?: ProductId | null;
   visitsByRegular: Record<string, number>;
   quests: string[];
   questProgress: Record<string, number>;

@@ -4263,3 +4263,31 @@ h3,
   border: 2px dashed var(--ink);
   border-radius: var(--r);
 }
+
+/* ---------- daily special and special orders ---------- */
+.special-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.special-row > div {
+  display: grid;
+  gap: 2px;
+}
+.special-tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 6px;
+  font-family: var(--cube);
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: var(--mango);
+  border: 2px solid var(--ink);
+  border-radius: 3px;
+  vertical-align: middle;
+}
+.special-tag.critic {
+  color: var(--paper);
+  background: var(--ink);
+}

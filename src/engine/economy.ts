@@ -304,12 +304,15 @@ export function willingToPay(s: GameState, p: ProductId, budget: number, quality
   if (def.kind === 'tray' && has(s, 'display')) w *= 1.08;
   if (ecoMinded) w *= 0.85 + (0.35 * ecoScore(s)) / 100;
   if (loyal) w *= ECON.demand.loyalWTP;
-  return w * festivalWTP(s, p, seg);
+  // The daily special is a treat people came for: they pay its higher price as readily as the usual one.
+  return w * festivalWTP(s, p, seg) * specialMult(s, p);
 }
 
+export const specialMult = (s: Pick<GameState, 'special'>, p: ProductId) => (s.special === p ? ECON.service.dailySpecial.mult : 1);
+
 export function effectivePrice(s: GameState, p: ProductId): number {
-  const base = s.prices[p];
-  return s.service?.lastCall && PRODUCTS[p].kind === 'tray' ? round2(base * (1 - ECON.service.lastCallDiscount)) : base;
+  const base = s.prices[p] * specialMult(s, p);
+  return s.service?.lastCall && PRODUCTS[p].kind === 'tray' ? round2(base * (1 - ECON.service.lastCallDiscount)) : round2(base);
 }
 
 export function expectedQuality(s: GameState, p: ProductId): number {

@@ -825,6 +825,11 @@ function startDay(s: GameState): GameState {
   next.today = { ...emptyDay(day, next.market.weather), community: next.community, reputation: next.reputation };
 
   next = applySchedule(next);
+  // Today's special: one everyday item from the menu pays more.
+  if (day >= ECON.service.dailySpecial.fromDay) {
+    const pool = onMenu(next).filter((p) => !PRODUCTS[p].season);
+    next.special = pool.length ? pool[Math.floor(rngFor(next.seed, day, 931)() * pool.length)] : null;
+  }
   if (isMonthStart(day)) next = startOfMonth(next);
   // Repairs that were waiting.
   for (const e of next.effects.filter((x) => x.id === 'repairDue' && x.until < day)) {

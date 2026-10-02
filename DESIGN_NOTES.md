@@ -107,3 +107,11 @@ Each step is one change, played for at least a day before the next.
 - The day report ends with the tease: "Tomorrow: New recipe: Trà tắc", or "Next up: … (in 3 days)" with the bar.
 
 *Numbers to playtest*: the schedule days; whether day-gating Gress cupcake to day 2 feels like a reward or a wait.
+
+### 5. Variety inside the loop: daily special and special orders
+
+*What changed*
+- From day 3, each morning one everyday menu item is **today's special** and sells for ×1.5. Customers accept the higher price as readily as the usual one (their willingness to pay rises with it), so the special is pure upside if you bake enough. Shown as a card on Today with the price.
+- From level 2, about one day in three someone walks in with a **big order** (three trays' worth, two drinks, or a whole cake), has extra patience and budget, and leaves a bonus tip of 40% of the bill on top of the graded tip. Tagged "big order · big tip" in the queue, with their own order lines.
+
+*Numbers to playtest*: special ×1.5 from day 3; big-order chance 0.35/day, qty 3, budget ×1.5, patience ×1.4, bonus tip 40%.

@@ -94,6 +94,7 @@ export function buildSchedule(s: GameState): Visit[] {
     loyal?: boolean;
     source?: string;
     critic?: boolean;
+    specialOrder?: boolean;
   }) => {
     const part = opts.part;
     const [start, len] = DAYPARTS[part];
@@ -105,9 +106,12 @@ export function buildSchedule(s: GameState): Visit[] {
     const altPool = offered.filter((p) => p !== wants);
     const alt = altPool.length && rand() < ECON.service.substitutionChance ? weightedPick(rand, altPool, (p) => (sd.prefs[p] ?? 1) * PRODUCTS[p].times[part]) : null;
     const isTray = PRODUCTS[wants].kind === 'tray';
-    const qty = isTray && wants !== 'banhKem' ? Math.max(1, Math.min(4, Math.round(sd.qty + (rand() - 0.5)))) : 1;
+    const so = ECON.service.specialOrder;
+    let qty = isTray && wants !== 'banhKem' ? Math.max(1, Math.min(4, Math.round(sd.qty + (rand() - 0.5)))) : 1;
+    if (opts.specialOrder) qty = wants === 'banhKem' || wants === 'gressCake' ? 1 : isTray ? so.qty : 2;
     let budget = opts.budget ?? budgetFromZ(gaussian(rand), sigmaFor(s, wants, segment));
     if (opts.lastCallOnly) budget *= 0.75;
+    if (opts.specialOrder) budget *= so.budget;
     const v: Omit<Visit, 'id'> = {
       who: opts.who ?? 'walkin',
       name: opts.name ?? names[nameIdx++ % names.length],
@@ -118,11 +122,12 @@ export function buildSchedule(s: GameState): Visit[] {
       alt,
       qty,
       budget,
-      patience: Math.round(ECON.service.basePatience * (opts.patience ?? (0.8 + 0.4 * rand()) * sd.patience) * pm * (opts.loyal ? 1.2 : 1)),
+      patience: Math.round(ECON.service.basePatience * (opts.patience ?? (0.8 + 0.4 * rand()) * sd.patience) * pm * (opts.loyal ? 1.2 : 1) * (opts.specialOrder ? so.patience : 1)),
       arrive: Math.round(opts.arrive ?? start + rand() * len),
       lastCallOnly: !!opts.lastCallOnly,
       source: opts.source,
       critic: opts.critic,
+      specialOrder: opts.specialOrder,
       status: 'coming',
       ecoMinded: opts.eco ?? rand() < ecoShare * (sd.eco / 0.2),
     };
@@ -168,6 +173,11 @@ export function buildSchedule(s: GameState): Visit[] {
     if (rand() > chance) continue;
     const wants = r.favorite.find((p) => offered.includes(p));
     make({ part: r.time, who: r.id, name: r.name, look: r.look, budget: r.budget, patience: r.patience, wants: wants ?? undefined, eco: r.eco, segment: regularSegment(r.id), loyal: true, critic: r.critic });
+  }
+
+  // Now and then, someone comes in with a big order and a generous tip.
+  if (level >= ECON.service.specialOrder.fromLevel && rand() < ECON.service.specialOrder.chance) {
+    make({ part: rand() < 0.5 ? 1 : 2, segment: 'event', specialOrder: true });
   }
 
   if (trays.length) {
@@ -249,6 +259,7 @@ function arriveAtCounter(s: GameState, v: Visit, rand: () => number): GameState 
   const price = effectivePrice(s, wants);
   const quality = PRODUCTS[wants].kind === 'tray' ? s.display[wants].quality : madeToOrderQuality(s, wants, 80);
   if (price > willingToPay(s, wants, v.budget, quality, v.ecoMinded, v.segment, v.loyal) + 1e-9) return leave(s, { ...v, wants }, 'pricey', pick(rand, LINES.pricey));
+  if (!line && v.specialOrder) line = pick(rand, LINES.specialOrder);
   if (!line) line = isTet(s.day) && rand() < 0.3 ? pick(rand, LINES.tet) : orderLine(rand, wants);
   return { ...s, service: setVisit(s.service!, v.id, { status: 'waiting', waitStart: s.service!.clock, wants, qty, line, mood: undefined }) };
 }
@@ -344,7 +355,7 @@ export function serve(s: GameState, visitId: number, process?: number, by: strin
   const rand = rngFor(s.seed, s.day, 900 + visitId);
   const named = v.who !== 'walkin';
   const grade = gradeOrder(process, c.quality, waited, v.patience, paid, named || v.loyal, !!v.critic);
-  const tip = grade.tip;
+  const tip = round2(grade.tip + (v.specialOrder ? paid * ECON.service.specialOrder.tipShare : 0));
   const reg = named ? REGULARS.find((r) => r.id === v.who) : undefined;
   const reaction = reg?.reactions ? (grade.stars >= 4 ? reg.reactions.great : grade.stars === 3 ? reg.reactions.ok : reg.reactions.bad) : null;
   const line = reaction ? pick(rand, reaction) : pick(rand, mood === 'love' ? LINES.love : mood === 'happy' ? LINES.happy : LINES.ok);

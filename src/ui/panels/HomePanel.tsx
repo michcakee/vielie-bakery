@@ -1,9 +1,10 @@
 import { BAGUETTE, INGREDIENTS, PRODUCTS, STAGES } from '../../data/catalog';
+import { ECON } from '../../data/config';
 import { REGULARS } from '../../data/people';
 import { GOALS, LOCATIONS } from '../../data/world';
 import { incomeStatement, inventoryValue } from '../../engine/accounting';
 import { dateLabel, festivalsOn, FESTIVALS } from '../../engine/calendar';
-import { activeRivals, businessStage, canBakeTray, effectActive, makeable, onMenu, rent, trayCapacity } from '../../engine/economy';
+import { activeRivals, businessStage, canBakeTray, effectActive, makeable, onMenu, rent, trayCapacity, effectivePrice } from '../../engine/economy';
 import { REGIMES } from '../../engine/macro';
 import { activeQuests, WEEKLY_GOALS, nextUnlock } from '../../engine/progression';
 import type { GameState } from '../../engine/types';
@@ -141,6 +142,17 @@ export function HomePanel({ goTo, onOpen, onRunDay }: { goTo: (t: Tab) => void; 
       </Card>
 
       <Coach goTo={goTo} />
+      {s.special && (
+        <Card className="special-card" title="Today’s special" icon="star" aside={<span className="small muted">pays ×{ECON.service.dailySpecial.mult}</span>}>
+          <div className="special-row">
+            <Sprite name={s.special} scale={3} />
+            <div>
+              <b>{PRODUCTS[s.special].name}</b>
+              <span className="small">Sells for {money2(effectivePrice(s, s.special))} today instead of {money2(s.prices[s.special])}, and customers are happy to pay it. Bake extra.</span>
+            </div>
+          </div>
+        </Card>
+      )}
       <NextUp />
 
       {firstDay ? (

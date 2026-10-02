@@ -194,6 +194,7 @@ export const LINES = {
   happy: ['Cảm ơn!', 'Ngon!', 'Chúc một ngày tốt lành!'],
   ok: ['Cũng được.', 'Ừm, ổn.'],
   pricey: ['Đắt quá…', 'Hơi mắc…'],
+  specialOrder: ['Mình đặt nhiều một chút nhé!', 'Cho cả văn phòng mình!'],
   soldOut: ['Hết rồi à…', 'Tiếc quá…'],
   slow: ['Lâu quá…', 'Thôi, mình đi đây.'],
   substitute: (dish: string) => `Vậy cho mình ${dish} nhé.`,
@@ -201,6 +202,8 @@ export const LINES = {
 };
 
 export const TRANSLATIONS: Record<string, string> = {
+  'Mình đặt nhiều một chút nhé!': "A big order, please!",
+  'Cho cả văn phòng mình!': 'For my whole office!',
   'Nhanh ghê! Cảm ơn nha!': 'So fast! Thanks!',
   'Đúng người đúng việc!': 'Right person, right job!',
   'Ok, mình chạy đây.': "Ok, I'm off.",

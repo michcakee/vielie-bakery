@@ -276,7 +276,11 @@ export function ServicePanel({ paused, setPaused, speed, setSpeed, activeId, set
                       <kbd>{i + 1}</kbd>
                       <Person look={v.look} scale={2} />
                       <span className="order-who">
-                        <b>{v.name}</b>
+                        <b>
+                          {v.name}
+                          {v.specialOrder && <span className="special-tag">big order · big tip</span>}
+                          {v.critic && <span className="special-tag critic">critic</span>}
+                        </b>
                         <span lang="vi">{v.line}</span>
                         {prefs.translations && translate(v.line) && <em>{translate(v.line)}</em>}
                       </span>

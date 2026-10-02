@@ -27,6 +27,10 @@ export const ECON = {
     tips: { great: 0.15, good: 0.06, cap: 1.5, regularBonus: 0.5 },
     /** Hearts needed per loyalty badge; how much each badge raises a regular's visits; critic strictness and pay. */
     badges: { heartsPer: 5, max: 3, visitBoost: 0.12, criticStrict: 6, criticTipMult: 2, criticRep: { great: 1.5, bad: -1 } },
+    /** One menu item pays more each day, from day 3. Customers accept the higher price: it's their special too. */
+    dailySpecial: { mult: 1.5, fromDay: 3 },
+    /** Occasional big orders with a generous tip, from level 2. */
+    specialOrder: { chance: 0.35, qty: 3, budget: 1.5, patience: 1.4, tipShare: 0.4, fromLevel: 2 },
     /** Grade weights (accuracy, speed, quality) and star thresholds. */
     grade: { accuracy: 0.45, speed: 0.35, quality: 0.2, stars: [90, 75, 60, 40] },
     /** Minutes a generalist (the owner on autopilot) needs per order. */

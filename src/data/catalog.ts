@@ -396,10 +396,10 @@ export const DECOR_ORDER: DecorId[] = ['plant', 'stools', 'stringLights', 'sign'
 
 export const LEVELS = [
   { level: 1, xp: 0, name: 'Tiny Tiệm Bánh', en: 'A tiny bakery' },
-  { level: 2, xp: 160, name: 'Neighborhood Bakery', en: 'The street knows you' },
+  { level: 2, xp: 120, name: 'Neighborhood Bakery', en: 'The street knows you' },
   { level: 3, xp: 480, name: 'Popular Bakery', en: 'People cross town for you' },
-  { level: 4, xp: 1050, name: 'Community Favorite', en: 'Part of the neighborhood' },
-  { level: 5, xp: 1900, name: 'Vielie Bakery', en: 'A local legend' },
+  { level: 4, xp: 1250, name: 'Community Favorite', en: 'Part of the neighborhood' },
+  { level: 5, xp: 2600, name: 'Vielie Bakery', en: 'A local legend' },
 ];
 
 export const WEEKDAYS = [

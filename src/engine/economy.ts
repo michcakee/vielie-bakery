@@ -62,8 +62,11 @@ export function marketMult(s: Pick<GameState, 'market' | 'locks' | 'day'>, id: I
   return lock ? Math.min(lock.price, s.market.prices[id]) : s.market.prices[id];
 }
 
-export function packPrice(s: Pick<GameState, 'market' | 'locks' | 'day' | 'supplierLoyalty'>, id: IngredientId, supplier: SupplierId): number {
-  const base = INGREDIENTS[id].price * marketMult(s, id) * SUPPLIERS[supplier].priceMult;
+export function packPrice(s: Pick<GameState, 'market' | 'locks' | 'day' | 'supplierLoyalty' | 'effects'>, id: IngredientId, supplier: SupplierId): number {
+  let mult = marketMult(s, id);
+  if (supplier === 'farm' && id === 'eggs' && effectActive(s, 'farmEggs')) mult = Math.min(mult, s.market.walk.eggs);
+  let base = INGREDIENTS[id].price * mult * SUPPLIERS[supplier].priceMult;
+  if (supplier === 'premium' && effectActive(s, 'premiumSale')) base *= 0.7;
   return round2(base * (1 - loyaltyDiscount(s, supplier)));
 }
 
@@ -280,6 +283,8 @@ export function expectedWalkIns(s: GameState): number {
 
 export function patienceMult(s: GameState): number {
   let m = 1;
+  if (effectActive(s, 'awning')) m *= 1.25;
+  if (effectActive(s, 'cooler')) m *= 1.2;
   if (s.market.weather === 'hot') m *= has(s, 'fan') ? 1.05 : 0.8;
   for (const d of s.decor) m += DECOR[d].patience ?? 0;
   return m;

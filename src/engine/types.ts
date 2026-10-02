@@ -142,6 +142,9 @@ export interface DayStats {
   reputation: number;
   xp: number;
   savedOnSupplies: number;
+  purchasedUnits: number;
+  purchasedEco: number;
+  trays: number;
   notes: string[];
 }
 

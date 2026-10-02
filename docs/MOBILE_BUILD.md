@@ -1,13 +1,13 @@
 # Building the mobile apps
 
-Vielie Bakery ships to phones with **Capacitor 7**: the same Vite build that runs on GitHub Pages is copied into a native Android project (`android/`) and a native iOS project (`ios/`). The game runs fully offline inside the app, with no backend and **no network permissions at all** (Capacitor's default `INTERNET` permission was removed from the manifest; add it back only for a live-reload dev build).
+Viet Bake Shop ships to phones with **Capacitor 7**: the same Vite build that runs on GitHub Pages is copied into a native Android project (`android/`) and a native iOS project (`ios/`). The game runs fully offline inside the app, with no backend and **no network permissions at all** (Capacitor's default `INTERNET` permission was removed from the manifest; add it back only for a live-reload dev build).
 
 > **Status:** the native projects are generated, configured and committed, but they have **not been compiled** yet. This repository was set up on a Windows machine without a JDK or Android SDK, and iOS builds need a Mac with Xcode. Nothing has been submitted to any store.
 
 | | |
 | --- | --- |
 | App ID / bundle ID | `com.michcakee.vieliebakery` |
-| App name | Vielie Bakery |
+| App name | Viet Bake Shop |
 | Version | 3.0.0 (`package.json`, Android `versionName`, iOS `MARKETING_VERSION`) |
 | Build number | Android `versionCode` 1, iOS `CURRENT_PROJECT_VERSION` 1 |
 | Web assets | `dist/` → `android/app/src/main/assets/public`, `ios/App/App/public` (generated, git-ignored) |

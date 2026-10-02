@@ -760,7 +760,7 @@ export const LEVELS = [
   { level: 2, xp: 150, name: 'Neighborhood Bakery', en: 'The street knows you' },
   { level: 3, xp: 900, name: 'Popular Bakery', en: 'People cross town for you' },
   { level: 4, xp: 3000, name: 'Community Favorite', en: 'Part of the neighbourhood' },
-  { level: 5, xp: 8000, name: 'Vielie Bakery', en: 'A local legend' },
+  { level: 5, xp: 8000, name: 'Viet Bake Shop', en: 'A local legend' },
 ];
 
 export const STAGES = [

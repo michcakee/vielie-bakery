@@ -1,6 +1,6 @@
 # Credits
 
-Everything in Vielie Bakery, with where it came from and its licence. "UNKNOWN" means the licence could not be confirmed from a licence file.
+Everything in Viet Bake Shop, with where it came from and its licence. "UNKNOWN" means the licence could not be confirmed from a licence file.
 
 ## Game content
 

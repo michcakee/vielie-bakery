@@ -174,7 +174,7 @@ export function createNewGame(seedOrOpts: number | NewGameOptions = {}): GameSta
     difficulty,
     goal: sc.goal,
     location,
-    bakeryName: opts.name ?? 'Vielie Bakery',
+    bakeryName: opts.name ?? 'Viet Bake Shop',
     look: opts.look ?? { ...DEFAULT_LOOK },
     day: 1,
     phase: 'setup',
@@ -968,7 +968,7 @@ export function gameReducer(s: GameState, a: Action): GameState {
   switch (a.type) {
     case 'setup': {
       if (s.phase !== 'setup') return s;
-      let next: GameState = { ...s, bakeryName: a.name.trim().slice(0, 28) || 'Vielie Bakery', look: a.look, phase: 'morning' };
+      let next: GameState = { ...s, bakeryName: a.name.trim().slice(0, 28) || 'Viet Bake Shop', look: a.look, phase: 'morning' };
       if (a.location && a.location !== s.location && !SCENARIOS[s.scenario].location) {
         next = { ...next, location: a.location, competitors: seedCompetitors(a.location, SCENARIOS[s.scenario].extraRivals) };
         const left = ECON.calendar.daysPerMonth - dateOf(1).dom + 1;

@@ -282,7 +282,7 @@ export function BuildPanel() {
         </form>
         <LookEditor look={s.look} onChange={(look) => dispatch({ type: 'setLook', look })} big={6} />
         <p className="muted small">
-          Level {level}: {LEVELS[level - 1].name}. {LEVELS[level] ? `Next: ${LEVELS[level].name} at ${LEVELS[level].xp.toLocaleString('en-US')} XP.` : 'You made it. Vielie Bakery is a local legend.'}
+          Level {level}: {LEVELS[level - 1].name}. {LEVELS[level] ? `Next: ${LEVELS[level].name} at ${LEVELS[level].xp.toLocaleString('en-US')} XP.` : 'You made it. Viet Bake Shop is a local legend.'}
         </p>
       </Card>
     </div>

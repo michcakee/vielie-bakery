@@ -182,7 +182,7 @@ export function Exterior({ still = false }: { still?: boolean }) {
     <div className="exterior" aria-hidden="true">
       <div className="ext-stage">
         <canvas ref={ref} width={W} height={H} />
-        <div className="ext-sign">Vielie Bakery</div>
+        <div className="ext-sign">Viet Bake Shop</div>
         {!still && (
           <>
             <div className="ext-cloud c1" />

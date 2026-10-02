@@ -56,8 +56,8 @@ export function Title({ onContinue, onNew }: { onContinue: () => void; onNew: ()
           Chào buổi sáng!
         </p>
         <h1 className="title-logo">
-          <span>Vielie</span>
-          <span>Bakery</span>
+          <span>Viet Bake</span>
+          <span>Shop</span>
         </h1>
         <p className="title-sub">
           A cozy Vietnamese bakery sandbox. Bake bánh mì and mooncakes, hire a team, outsmart rival bakeries, ride out recessions, and grow a little tiệm bánh into a citywide brand.

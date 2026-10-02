@@ -73,7 +73,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: 'secondLocation', title: 'Second location', text: 'Open another shop.', icon: 'house', check: (s) => s.branches.length > 0 },
   { id: 'million', title: 'Million-dollar bakery', text: '$1,000,000 in lifetime sales.', icon: 'coin', check: (s) => s.lifetime.revenue >= 1_000_000 },
   { id: 'fiveYears', title: 'Five-year survivor', text: 'Keep the bakery open for five years.', icon: 'crown', check: (s) => s.day >= 1800 },
-  { id: 'owner', title: 'Business owner', text: 'Reach level 5: Vielie Bakery.', icon: 'crown', check: (s) => levelOf(s.xp) >= 5 },
+  { id: 'owner', title: 'Business owner', text: 'Reach level 5: Viet Bake Shop.', icon: 'crown', check: (s) => levelOf(s.xp) >= 5 },
   { id: 'investor', title: 'Investor', text: 'Own co-op shares.', icon: 'chart', check: (s) => Object.values(s.shares).some((n) => n > 0) },
 ];
 

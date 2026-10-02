@@ -1,6 +1,6 @@
 {
-  "name": "Vielie Bakery",
-  "short_name": "Vielie",
+  "name": "Viet Bake Shop",
+  "short_name": "Viet Bake",
   "description": "A cozy Vietnamese pixel-art bakery sandbox about running a small business.",
   "start_url": "./",
   "scope": "./",

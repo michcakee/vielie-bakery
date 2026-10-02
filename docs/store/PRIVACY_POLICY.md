@@ -1,8 +1,8 @@
-# Privacy policy: Vielie Bakery
+# Privacy policy: Viet Bake Shop
 
 *Draft. Last updated: **TODO** (date of publication). Contact: **TODO** (email).*
 
-Vielie Bakery is a single-player game. It is designed to collect nothing about you.
+Viet Bake Shop is a single-player game. It is designed to collect nothing about you.
 
 ## What we collect
 

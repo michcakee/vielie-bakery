@@ -1,4 +1,4 @@
-# How to play Vielie Bakery
+# How to play Viet Bake Shop
 
 Welcome to the lane! Bà (grandma) is retiring, and her little Vietnamese bakery is yours now. This guide gets you baking in five minutes, then explains the rest as you need it.
 

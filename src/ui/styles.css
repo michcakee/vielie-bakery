@@ -650,6 +650,18 @@ kbd {
 .street {
   overflow: hidden;
 }
+/* The window's centre bar sits over the street so passers-by walk behind the glass, not in front of it. */
+.street::after {
+  content: '';
+  position: absolute;
+  left: calc(50% - 1px);
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #2f5d3a;
+  z-index: 5;
+  pointer-events: none;
+}
 .mover {
   position: absolute;
   bottom: 9px;
@@ -659,7 +671,7 @@ kbd {
 /* People on the street are across the road, so they're smaller than people in the shop.
    The scale sits on the sprite, not the mover, because the mover's walk animation owns `transform`. */
 .mover.walker .person-sprite {
-  transform: scale(0.65);
+  transform: scale(0.5);
   transform-origin: bottom center;
 }
 .mover.moto {
@@ -678,7 +690,8 @@ kbd {
   transform: scaleX(-1);
 }
 .mover.walker {
-  bottom: 12px;
+  /* feet on the far pavement (window row 43 of 50), small because they're across the road */
+  bottom: 6px;
   animation: drive 22s linear infinite;
   animation-delay: -8s;
 }

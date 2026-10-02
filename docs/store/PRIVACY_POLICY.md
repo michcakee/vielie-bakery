@@ -1,6 +1,6 @@
 # Privacy policy: Viet Bake Shop
 
-*Draft. Last updated: **TODO** (date of publication). Contact: **TODO** (email).*
+*Draft. Last updated: 10/02/2026. Contact: myvientrannguyen@gmail.com.*
 
 Viet Bake Shop is a single-player game. It is designed to collect nothing about you.
 

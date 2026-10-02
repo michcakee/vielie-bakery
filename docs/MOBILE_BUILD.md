@@ -2,7 +2,7 @@
 
 Viet Bake Shop ships to phones with **Capacitor 7**: the same Vite build that runs on GitHub Pages is copied into a native Android project (`android/`) and a native iOS project (`ios/`). The game runs fully offline inside the app, with no backend and **no network permissions at all** (Capacitor's default `INTERNET` permission was removed from the manifest; add it back only for a live-reload dev build).
 
-> **Status:** the native projects are generated, configured and committed, but they have **not been compiled** yet. This repository was set up on a Windows machine without a JDK or Android SDK, and iOS builds need a Mac with Xcode. Nothing has been submitted to any store.
+> **Status:** the Android project builds on the owner's Windows PC (debug APK and signed release bundle built on 2 October 2026). iOS needs a Mac with Xcode and has not been compiled. Nothing has been submitted to any store.
 
 | | |
 | --- | --- |
@@ -53,11 +53,21 @@ Re-run it if you change the sprite or palette, then `npm run mobile:sync`.
 
 ## Android
 
-**You need:** Android Studio (Koala or newer) with JDK 17+, Android SDK 35 (Capacitor 7 targets API 35, minimum API 23).
+**You need:** Android Studio with the Android SDK, plus **JDK 21 exactly**: Capacitor 7's Android library is compiled for Java 21, and this project's Gradle (8.11) can't run on Java 24+. Android Studio's bundled JDK may be newer (it was 25 here), so point Gradle at a JDK 21:
+- command line: `JAVA_HOME` set to a JDK 21 (this PC keeps one at `C:\Users\michl\.jdks\jdk-21`, pinned for Gradle in `~/.gradle/gradle.properties` as `org.gradle.java.home`), or
+- Android Studio: Settings → Build Tools → Gradle → Gradle JDK → 21.
+
+`android/local.properties` holds `sdk.dir=C:/Users/michl/AppData/Local/Android/Sdk` (forward slashes; backslashes are escape characters in that file). Both files are git-ignored.
 
 1. `npm install`, then `npm run mobile:android`. Android Studio opens the `android/` project and syncs Gradle.
 2. **Run** on an emulator or a USB-connected phone to test.
-3. **Release build:** *Build → Generate Signed App Bundle / APK → Android App Bundle*. Create an upload keystore the first time and **back it up**. Losing it means you can't update the app. Never commit it.
+3. **Release build:** the upload keystore already exists at `C:\Users\michl\viet-bake-shop-keys\upload-keystore.jks` with its password in `key.properties` beside it (a copy of `key.properties` sits in `android/`, git-ignored, and `app/build.gradle` reads it). **Back that folder up**; losing it means you can't update the app. Then:
+
+```bash
+cd android && ./gradlew bundleRelease
+```
+
+The signed bundle lands in `android/app/build/outputs/bundle/release/app-release.aab`. Or in Android Studio: *Build → Generate Signed App Bundle*, pointing at the same keystore.
 4. Before each new upload, increase `versionCode` (and `versionName` if it's a new version) in `android/app/build.gradle`.
 
 From a terminal instead of Android Studio (after the SDK is installed):

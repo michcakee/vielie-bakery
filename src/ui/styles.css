@@ -4117,7 +4117,7 @@ h3,
   border: 3px solid var(--ink);
   border-radius: var(--r);
   box-shadow: var(--shadow);
-  animation: grade-in 0.18s ease-out, grade-out 0.4s ease-in 1.6s forwards;
+  animation: grade-in 0.18s ease-out, grade-out 0.4s ease-in 2s forwards;
   pointer-events: none;
 }
 .grade-card.stars-5 {

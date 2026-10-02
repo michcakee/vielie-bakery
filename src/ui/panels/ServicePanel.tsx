@@ -181,8 +181,10 @@ export function ServicePanel({ paused, setPaused, speed, setSpeed, activeId, set
   const pct = svc.clock / CONFIG.dayMinutes;
   const canLastCall = svc.clock >= CONFIG.lastCallAt - 60;
   const menu = onMenu(s);
-  // The most recent order the player served, graded, for a couple of seconds.
-  const graded = svc.visits.filter((v) => v.status === 'done' && v.grade && v.servedBy === 'player' && svc.clock - (v.doneAt ?? 0) < 14).sort((a, b) => (b.doneAt ?? 0) - (a.doneAt ?? 0))[0];
+  // The most recent order the player served, graded, for a couple of seconds. Effects are numbered in
+  // serve order, so the newest coin effect names the newest serve (the clock can't: it stands still while paused).
+  const lastCoin = [...svc.fx].reverse().find((f) => f.kind === 'coin' && f.visitId !== undefined && svc.clock - f.at < 14);
+  const graded = lastCoin ? svc.visits.find((v) => v.id === lastCoin.visitId && v.status === 'done' && v.grade && v.servedBy === 'player') : undefined;
 
   useEffect(() => {
     if (activeId !== null && !active) setActiveId(null);

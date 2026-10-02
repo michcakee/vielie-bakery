@@ -487,11 +487,11 @@ export const SCENARIO_ORDER: ScenarioId[] = ['family', 'startup', 'recession', '
 
 export const GOALS: Record<string, { name: string; blurb: string }> = {
   legacy: { name: 'Bà\'s legacy', blurb: 'Reach level 5 and keep the regulars happy (community 75).' },
-  value: { name: 'Build value', blurb: 'Grow the business to an estimated value of $250,000.' },
+  value: { name: 'Build value', blurb: 'Grow the business to an estimated value of $1,000,000.' },
   survive: { name: 'Survive', blurb: 'Stay open for two full years without going bankrupt.' },
   chain: { name: 'Bakery chain', blurb: 'Run three shops at once within two years.' },
   community: { name: 'Heart of the street', blurb: 'Community 90, eco score 80 and 10,000 customers served.' },
-  leader: { name: 'Market leader', blurb: 'Win the biggest share of Little Saigon Plaza for a whole month.' },
+  leader: { name: 'Market leader', blurb: 'Hold at least 40% of your neighbourhood’s bakery shoppers, on average, for a whole month.' },
   debtFree: { name: 'Debt-free and steady', blurb: 'Three profitable years in a row with no debt.' },
   twentyYears: { name: 'Twenty years', blurb: 'Keep the bakery open for 20 years.' },
 };

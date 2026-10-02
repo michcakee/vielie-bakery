@@ -1,6 +1,8 @@
 import { DECOR, LEVELS, PRODUCTS, PRODUCT_ORDER, UPGRADES } from '../data/catalog';
 import { move } from './accounting';
+import { GOALS } from '../data/world';
 import { ecoScore, levelOf } from './economy';
+import { valuation } from './finance';
 import { toast } from './helpers';
 import type { DecorId, GameState, ProductId } from './types';
 
@@ -119,8 +121,56 @@ export function goalMet(s: GameState): boolean {
 }
 
 /** Grant quest rewards (a bonus counts as other income) and achievements, and announce unlocks. */
+const clamp01 = (n: number) => Math.max(0, Math.min(1, n));
+const YEAR = 360;
+
+/** Progress toward the scenario's long-term goal: 0–1 plus a short status line. */
+export function goalProgress(s: GameState): { pct: number; text: string } {
+  const shops = 1 + s.branches.filter((b) => !b.closed).length;
+  const debt = s.loans.reduce((t, l) => t + l.balance, 0) + s.creditLine.balance;
+  switch (s.goal) {
+    case 'legacy': {
+      const lv = levelOf(s.xp);
+      return { pct: Math.min(clamp01((lv - 1) / 4), clamp01(s.community / 75)), text: `Level ${lv}/5 · community ${Math.round(s.community)}/75` };
+    }
+    case 'value': {
+      const v = valuation(s).ownerValue;
+      return { pct: clamp01(v / 1_000_000), text: `Worth about $${Math.round(v).toLocaleString('en-US')} of $1,000,000` };
+    }
+    case 'survive':
+      return { pct: clamp01(s.day / (2 * YEAR)), text: `Day ${s.day} of ${2 * YEAR}` };
+    case 'chain':
+      return { pct: s.day > 2 * YEAR && shops < 3 ? 0 : clamp01(shops / 3), text: `${shops}/3 shops${s.day > 2 * YEAR ? ' (time’s up for the 2-year target)' : `, ${2 * YEAR - s.day + 1} days left`}` };
+    case 'community': {
+      const eco = ecoScore(s);
+      return { pct: Math.min(clamp01(s.community / 90), clamp01(eco / 80), clamp01(s.lifetime.served / 10000)), text: `Community ${Math.round(s.community)}/90 · eco ${Math.round(eco)}/80 · ${s.lifetime.served.toLocaleString('en-US')}/10,000 served` };
+    }
+    case 'leader': {
+      const last = s.history.slice(-30);
+      const share = last.reduce((t, h) => t + (h.share ?? 0), 0) / Math.max(1, last.length);
+      return { pct: last.length < 30 ? Math.min(0.99, clamp01(share / 0.4)) : clamp01(share / 0.4), text: `${Math.round(share * 100)}% average share over the last ${last.length} days (goal 40% for 30)` };
+    }
+    case 'debtFree': {
+      // Count back through whole years (12 months each) until one wasn't profitable.
+      let years = 0;
+      for (let end = s.months.length; end >= 12; end -= 12) {
+        if (s.months.slice(end - 12, end).reduce((t, m) => t + m.profit, 0) > 0) years++;
+        else break;
+      }
+      return { pct: debt > 0 ? Math.min(0.99, years / 3) : clamp01(years / 3), text: `${years}/3 profitable years in a row${debt > 0 ? ` · $${Math.round(debt).toLocaleString('en-US')} still owed` : ' · no debt'}` };
+    }
+    case 'twentyYears':
+      return { pct: clamp01(s.day / (20 * YEAR)), text: `Year ${Math.floor((s.day - 1) / YEAR) + 1} of 20` };
+    default:
+      return { pct: 0, text: '' };
+  }
+}
+
 export function checkProgress(s: GameState): GameState {
   let next = s;
+  if (next.phase !== 'service' && next.goalReached === undefined && GOALS[next.goal] && goalProgress(next).pct >= 1) {
+    next = toast({ ...next, goalReached: next.day }, 'achievement', `Goal reached: ${GOALS[next.goal].name}!`, 'Keep playing in sandbox mode, or sell the bakery from the Growth tab.');
+  }
   for (const q of QUESTS) {
     if (next.quests.includes(q.id)) continue;
     if (q.progress(next) < q.target) continue;

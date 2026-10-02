@@ -157,3 +157,34 @@ describe('exploits and bad input', () => {
     }
   });
 });
+
+describe('long-term goals and endings', () => {
+  it('goal progress is always between 0 and 1 and a reached goal is recorded once', async () => {
+    const { goalProgress } = await import('../../src/engine/progression');
+    const { GOALS } = await import('../../src/data/world');
+    let s = createNewGame({ seed: 4, scenario: 'family' });
+    for (let d = 0; d < 60; d++) s = autoDay(s);
+    for (const goal of Object.keys(GOALS)) {
+      const g = goalProgress({ ...s, goal });
+      expect(g.pct).toBeGreaterThanOrEqual(0);
+      expect(g.pct).toBeLessThanOrEqual(1);
+      expect(g.text.length).toBeGreaterThan(0);
+    }
+    // 'survive' needs two years; jump the clock to check it's detected.
+    s = autoDay({ ...s, goal: 'survive', day: 721 });
+    expect(s.goalReached).toBeGreaterThan(720);
+    const reached = s.goalReached;
+    s = autoDay(s);
+    expect(s.goalReached).toBe(reached);
+  });
+
+  it('retiring sells the owner’s share and ends the game', () => {
+    let s = createNewGame({ seed: 4 });
+    for (let d = 0; d < 61; d++) s = autoDay(s);
+    s = morning(s);
+    s = gameReducer(s, { type: 'retire' });
+    expect(s.phase).toBe('ended');
+    expect(s.ending?.kind).toBe('retired');
+    expect(s.ending!.value).toBeGreaterThan(0);
+  });
+});

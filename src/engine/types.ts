@@ -561,6 +561,8 @@ export interface GameState {
   decisions: Decision[];
   nextId: number;
   offer: { amount: number; buyer: string; day: number } | null;
+  /** Day the scenario's long-term goal was reached (optional so older saves load unchanged). */
+  goalReached?: number;
   ending: { kind: 'sold' | 'bankrupt' | 'retired'; day: number; text: string; value: number } | null;
   bailoutsUsed: number;
   daysInDistress: number;

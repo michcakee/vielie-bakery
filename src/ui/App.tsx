@@ -130,9 +130,9 @@ function Ending({ onQuit }: { onQuit: () => void }) {
           <span>Lifetime sales</span>
           <b>{money(s.lifetime.revenue)}</b>
         </div>
-        <div className={`num big ${e.kind === 'sold' ? 'pos' : ''}`}>
-          <span>{e.kind === 'sold' ? 'Sale price' : 'What was left'}</span>
-          <b>{money(e.kind === 'sold' ? e.value : Math.max(0, v.equityValue))}</b>
+        <div className={`num big ${e.kind !== 'bankrupt' ? 'pos' : ''}`}>
+          <span>{e.kind !== 'bankrupt' ? 'Sale price' : 'What was left'}</span>
+          <b>{money(e.kind !== 'bankrupt' ? e.value : Math.max(0, v.equityValue))}</b>
         </div>
       </div>
       <p className="small">

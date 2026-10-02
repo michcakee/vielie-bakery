@@ -3,6 +3,7 @@ import { DECOR, DECOR_ORDER, LEVELS, STAGES, UPGRADES, UPGRADE_ORDER } from '../
 import { GOALS, LOCATIONS, LOCATION_ORDER, SEGMENTS } from '../../data/world';
 import { activeRivals, businessStage, countOf, depreciationPerDay, levelOf, marketTraffic } from '../../engine/economy';
 import { valuation } from '../../engine/finance';
+import { goalProgress } from '../../engine/progression';
 import { canShop } from '../../engine/state';
 import type { DecorId, LocationId, SegmentId, UpgradeId } from '../../engine/types';
 import { money, money2, pct } from '../../lib/format';
@@ -48,29 +49,6 @@ const DECOR_ICON: Record<DecorId, string> = {
   bike: 'moto',
   hoaMai: 'hoaMai',
 };
-
-function goalProgress(s: ReturnType<typeof useGame>['state']): { pct: number; text: string } {
-  const v = valuation(s);
-  switch (s.goal) {
-    case 'legacy':
-      return { pct: Math.min(1, (levelOf(s.xp) / 5) * 0.6 + (s.community / 75) * 0.4), text: `Level ${levelOf(s.xp)}/5, community ${Math.round(s.community)}/75` };
-    case 'value':
-      return { pct: Math.min(1, v.ownerValue / 250000), text: `${money(v.ownerValue)} of $250,000` };
-    case 'survive':
-      return { pct: Math.min(1, s.day / 720), text: `Day ${s.day} of 720` };
-    case 'chain':
-      return { pct: Math.min(1, (1 + s.branches.filter((b) => !b.closed).length) / 3), text: `${1 + s.branches.filter((b) => !b.closed).length} of 3 shops` };
-    case 'community':
-      return { pct: Math.min(1, (s.community / 90 + s.lifetime.served / 10000) / 2), text: `Community ${Math.round(s.community)}/90, ${s.lifetime.served.toLocaleString('en-US')}/10,000 served` };
-    case 'leader': {
-      const recent = s.history.slice(-30);
-      const share = recent.length ? recent.reduce((t, h) => t + h.share, 0) / recent.length : 0;
-      return { pct: Math.min(1, share / 0.5), text: `${pct(share)} of shoppers (need over 50% for a month)` };
-    }
-    default:
-      return { pct: 0, text: '' };
-  }
-}
 
 export function BuildPanel() {
   const { state: s, dispatch, business } = useGame();
@@ -161,7 +139,19 @@ export function BuildPanel() {
             <span className="meter-fill" style={{ width: `${gp.pct * 100}%` }} />
           </span>
           <span className="small muted">{gp.text}</span>
+          {s.goalReached !== undefined && <span className="small">Reached on day {s.goalReached}. The bakery is yours to keep growing.</span>}
         </div>
+        {s.day >= 60 && s.phase === 'morning' && (
+          <details className="retire">
+            <summary className="small">Sell up and retire…</summary>
+            <p className="small">
+              A buyer would pay about <b>{money(v.ownerValue)}</b> for your share today (the business’s value minus debt, times what you own). This ends the game.
+            </p>
+            <Btn kind="ghost" onClick={() => window.confirm(`Sell ${s.bakeryName} for about ${money(v.ownerValue)} and end this game?`) && dispatch({ type: 'retire' })}>
+              Sell and retire
+            </Btn>
+          </details>
+        )}
       </Card>
 
       <Card title="Kitchen & equipment" icon="hot">

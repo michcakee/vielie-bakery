@@ -310,6 +310,7 @@ export type Action =
   | { type: 'trade'; coop: CoopId; delta: number }
   | { type: 'openBranch'; location: LocationId; name: string }
   | { type: 'closeBranch'; id: number }
+  | { type: 'retire' }
   | { type: 'dismissToast'; id: number }
   | { type: 'hint'; id: string }
   | { type: 'newGame'; seed?: number; options?: NewGameOptions }
@@ -1240,6 +1241,11 @@ export function gameReducer(s: GameState, a: Action): GameState {
       let next = move({ ...s, branches: [...s.branches, b], nextId: s.nextId + 1 }, 'cashCapex', -(fit + dep));
       next = decide(next, { kind: 'branch', text: `Opened ${b.name} in ${loc.name} ($${(fit + dep).toLocaleString('en-US')} fit-out and deposit).`, metric: 'profit', before: avgProfit(s) });
       return checkProgress(learn(toast(next, 'unlock', 'New shop!', `${b.name} is open. Hire a manager, a baker and counter staff for it in the Staff tab.`), 'expansion', 'capex'));
+    }
+    case 'retire': {
+      if (s.phase !== 'morning' || s.day < 60) return s;
+      const value = Math.max(0, Math.round(valuation(s).ownerValue));
+      return { ...s, phase: 'ended', events: [], ending: { kind: 'retired', day: s.day, value, text: `You sold ${s.bakeryName} for $${value.toLocaleString('en-US')} after ${s.day} days and retired.` } };
     }
     case 'closeBranch': {
       const b = s.branches.find((x) => x.id === a.id && !x.closed);

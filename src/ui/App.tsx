@@ -206,7 +206,7 @@ function Game({ onQuit }: { onQuit: () => void }) {
   const current = TABS.find((t) => t.id === tab)!;
 
   return (
-    <div className={`app phase-${s.phase}`}>
+    <div className={`app phase-${s.phase}${s.phase === 'morning' && !intro && tab !== 'today' ? ' has-fab' : ''}`}>
       <a className="skip-link" href="#panel">
         Skip to controls
       </a>

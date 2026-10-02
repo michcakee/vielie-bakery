@@ -85,7 +85,7 @@ export function drawStreet(ctx: CanvasRenderingContext2D, o: SceneOpts) {
   // building across the street
   const bx = ix + 4;
   const by = iy + 14;
-  rect(ctx, bx, by, 34, 26, o.light === 4 ? '#6a5560' : '#f2b6b6');
+  rect(ctx, bx, by, 34, 26, o.light === 4 ? '#55665a' : '#cfe9d7');
   rect(ctx, bx, by, 34, 2, PAL.ink);
   for (let i = 0; i < 3; i++) box(ctx, bx + 3 + i * 10, by + 4, 7, 6, o.light >= 3 ? '#ffd98a' : '#cfe8f0');
   // shop awning: flowers, or Cô Tư's bánh mì stand later in the year
@@ -96,7 +96,7 @@ export function drawStreet(ctx: CanvasRenderingContext2D, o: SceneOpts) {
   if (o.competitor) box(ctx, bx + 19, by + 18, 12, 7, '#f6c343');
   else for (let i = 0; i < 4; i++) rect(ctx, bx + 19 + i * 3, by + 20, 2, 2, ['#ee8a9e', '#f6c343', '#fff4de', '#c2453d'][i]);
   // second building and a tree
-  rect(ctx, ix + 41, iy + 8, 18, 32, o.light === 4 ? '#4f5a66' : '#f6d38c');
+  rect(ctx, ix + 41, iy + 8, 18, 32, o.light === 4 ? '#4f5a66' : '#dff3e2');
   rect(ctx, ix + 41, iy + 8, 18, 2, PAL.ink);
   for (let r = 0; r < 3; r++) for (let c = 0; c < 2; c++) box(ctx, ix + 43 + c * 8, iy + 12 + r * 9, 6, 6, o.light >= 3 ? '#ffd98a' : '#bfe3ef');
   rect(ctx, ix + 37, iy + 24, 3, 18, PAL.coffee);
@@ -120,29 +120,29 @@ export function drawStreet(ctx: CanvasRenderingContext2D, o: SceneOpts) {
 
 /** The room's palette: off-white, light green and pink, with a warm wooden floor. */
 const ROOM = {
-  cornice: '#f2c4cf',
-  wall: '#fcf8f1',
-  wallStripe: '#f8e4e8',
-  trim: '#f2b8c6',
+  cornice: '#bfe0c4',
+  wall: '#fff8df',
+  wallStripe: '#fbefc4',
+  trim: '#a8d6b0',
   dado: '#d9ecdc',
   dadoPanel: '#e6f3e8',
   dadoLine: '#b7d6bf',
-  lamp: '#f6c9d3',
+  lamp: '#f7e49c',
   plank: '#d9a877',
   plankLine: '#b98556',
   plankHi: '#e8bf91',
-  table: '#f6c6d0',
-  tableRim: '#fff5f7',
+  table: '#f7e7a8',
+  tableRim: '#fffbe6',
   tableLeg: '#8c5a3c',
   chair: '#bfe0c4',
   chairLeg: '#7fa98a',
-  counter: '#fbf7f0',
-  counterTop: '#f2b8c6',
+  counter: '#fff8df',
+  counterTop: '#8fc79c',
   counterPanel: '#e3f0e6',
-  caseBase: '#f6c6d0',
+  caseBase: '#f7e7a8',
   register: '#8fc79c',
   frame: '#8fc79c',
-  sill: '#fff5f7',
+  sill: '#fffbe6',
   door: '#a8d6b0',
 };
 

@@ -47,54 +47,54 @@ function pot(ctx: CanvasRenderingContext2D, x: number, y: number, flower?: strin
 /** The bakery's street front: a narrow Vietnamese tube house between two neighbours. */
 export function drawExterior(ctx: CanvasRenderingContext2D) {
   const sky = ctx.createLinearGradient(0, 0, 0, 110);
-  sky.addColorStop(0, '#ffd9b0');
-  sky.addColorStop(1, '#fff1d6');
+  sky.addColorStop(0, '#d8eedb');
+  sky.addColorStop(1, '#eef7ec');
   ctx.fillStyle = sky;
   ctx.fillRect(0, 0, W, H);
   // far skyline
-  for (const [x, w, h] of [[0, 18, 40], [16, 14, 52], [176, 20, 46], [200, 16, 60], [222, 18, 42]]) r(ctx, x, 110 - h, w, h, '#f5c9a6');
+  for (const [x, w, h] of [[0, 18, 40], [16, 14, 52], [176, 20, 46], [200, 16, 60], [222, 18, 42]]) r(ctx, x, 110 - h, w, h, '#c3e2c8');
 
   // left neighbour: flower shop
-  b(ctx, 6, 38, 62, 74, '#a7d3e8');
+  b(ctx, 6, 38, 62, 74, '#cde9d2');
   r(ctx, 6, 36, 62, 3, PAL.ink);
-  shutters(ctx, 22, 46, 30, 18, PAL.teal);
+  shutters(ctx, 22, 46, 30, 18, '#8fc79c');
   railing(ctx, 10, 66, 54);
   pot(ctx, 14, 62, PAL.pink);
   pot(ctx, 52, 62, PAL.mango);
-  for (let i = 0; i < 62; i++) r(ctx, 6 + i, 78, 1, 6, i % 8 < 4 ? PAL.pink : PAL.coconut);
-  b(ctx, 12, 86, 50, 26, '#fbe9ef');
+  for (let i = 0; i < 62; i++) r(ctx, 6 + i, 78, 1, 6, i % 8 < 4 ? '#8fc79c' : PAL.coconut);
+  b(ctx, 12, 86, 50, 26, '#eef7ec');
   for (let i = 0; i < 6; i++) {
     b(ctx, 14 + i * 8, 100, 6, 8, PAL.orangeDark);
     for (let j = 0; j < 3; j++) r(ctx, 14 + i * 8 + j * 2, 96 - (j % 2), 2, 2, [PAL.pink, PAL.mango, PAL.red, PAL.coconut][(i + j) % 4]);
   }
 
   // right neighbour: grocery
-  b(ctx, 172, 30, 62, 82, '#bfe0b4');
+  b(ctx, 172, 30, 62, 82, '#dcefd9');
   r(ctx, 172, 28, 62, 3, PAL.ink);
-  shutters(ctx, 188, 38, 30, 18, PAL.forest);
-  shutters(ctx, 188, 60, 30, 14, PAL.forest);
+  shutters(ctx, 188, 38, 30, 18, '#7fb58d');
+  shutters(ctx, 188, 60, 30, 14, '#7fb58d');
   b(ctx, 214, 40, 12, 8, PAL.stone);
-  for (let i = 0; i < 62; i++) r(ctx, 172 + i, 80, 1, 5, i % 8 < 4 ? PAL.teal : PAL.coconut);
-  b(ctx, 178, 88, 50, 24, '#f6efe0');
+  for (let i = 0; i < 62; i++) r(ctx, 172 + i, 80, 1, 5, i % 8 < 4 ? '#a8d6b0' : PAL.coconut);
+  b(ctx, 178, 88, 50, 24, '#eef7ec');
   for (let i = 0; i < 5; i++) for (let j = 0; j < 2; j++) b(ctx, 181 + i * 9, 92 + j * 9, 7, 7, [PAL.mango, PAL.red, PAL.pandan, PAL.orange, PAL.pink][(i + j) % 5]);
 
   // the bakery: three narrow floors
   const x0 = 70;
   const bw = 100;
-  b(ctx, x0, 8, bw, 104, '#fbe3a6');
-  for (let y = 10; y < 110; y += 4) r(ctx, x0 + 1, y, bw - 2, 1, 'rgba(224,160,74,0.18)');
+  b(ctx, x0, 8, bw, 104, '#e6f3df');
+  for (let y = 10; y < 110; y += 4) r(ctx, x0 + 1, y, bw - 2, 1, 'rgba(143,199,156,0.22)');
   // roof
-  r(ctx, x0 - 4, 4, bw + 8, 6, PAL.red);
-  for (let i = x0 - 4; i < x0 + bw + 4; i += 4) r(ctx, i, 4, 1, 6, PAL.redDark);
+  r(ctx, x0 - 4, 4, bw + 8, 6, '#7fb58d');
+  for (let i = x0 - 4; i < x0 + bw + 4; i += 4) r(ctx, i, 4, 1, 6, '#5f9a6e');
   r(ctx, x0 - 4, 3, bw + 8, 1, PAL.ink);
   r(ctx, x0 - 4, 10, bw + 8, 1, PAL.ink);
   // top floor: arched window + AC unit
-  b(ctx, x0 + 34, 14, 32, 22, '#ffe9b8');
+  b(ctx, x0 + 34, 14, 32, 22, '#f3fbf1');
   ctx.fillStyle = PAL.ink;
   ctx.beginPath();
   ctx.arc(x0 + 50, 16, 16, Math.PI, 0);
   ctx.fill();
-  ctx.fillStyle = '#ffe9b8';
+  ctx.fillStyle = '#f3fbf1';
   ctx.beginPath();
   ctx.arc(x0 + 50, 16, 15, Math.PI, 0);
   ctx.fill();
@@ -102,8 +102,8 @@ export function drawExterior(ctx: CanvasRenderingContext2D) {
   b(ctx, x0 + 72, 22, 16, 10, PAL.stone);
   for (let i = 0; i < 4; i++) r(ctx, x0 + 74, 24 + i * 2, 12, 1, PAL.stoneDark);
   // middle floor: balcony with plants
-  shutters(ctx, x0 + 30, 40, 40, 20, PAL.pandan);
-  r(ctx, x0 + 8, 60, bw - 16, 3, PAL.crust);
+  shutters(ctx, x0 + 30, 40, 40, 20, '#8fc79c');
+  r(ctx, x0 + 8, 60, bw - 16, 3, '#a8d6b0');
   railing(ctx, x0 + 8, 52, bw - 16);
   pot(ctx, x0 + 12, 48, PAL.pink);
   pot(ctx, x0 + 24, 48);
@@ -113,21 +113,21 @@ export function drawExterior(ctx: CanvasRenderingContext2D) {
   b(ctx, x0 + 10, 64, bw - 20, 12, PAL.forest);
   r(ctx, x0 + 12, 66, bw - 24, 8, '#2a4a33');
   // awning with scallops
-  for (let i = 0; i < bw + 8; i++) r(ctx, x0 - 4 + i, 78, 1, 7, Math.floor(i / 6) % 2 ? PAL.coconut : PAL.red);
+  for (let i = 0; i < bw + 8; i++) r(ctx, x0 - 4 + i, 78, 1, 7, Math.floor(i / 6) % 2 ? PAL.coconut : '#8fc79c');
   r(ctx, x0 - 4, 77, bw + 8, 1, PAL.ink);
   for (let i = 0; i < bw + 8; i += 6) {
-    ctx.fillStyle = Math.floor(i / 6) % 2 ? PAL.coconut : PAL.red;
+    ctx.fillStyle = Math.floor(i / 6) % 2 ? PAL.coconut : '#8fc79c';
     ctx.beginPath();
     ctx.arc(x0 - 1 + i, 85, 3, 0, Math.PI);
     ctx.fill();
   }
   // shop window with pastries and door
-  b(ctx, x0 + 6, 90, 56, 22, '#fff6dd');
+  b(ctx, x0 + 6, 90, 56, 22, '#f3fbf1');
   r(ctx, x0 + 7, 101, 54, 1, PAL.crust);
   for (const [i, n] of ['banhMi', 'flan', 'pateChaud'].entries()) paint(ctx, [SPRITES[n]], SPRITE_COLORS, x0 + 8 + i * 17, 86);
   r(ctx, x0 + 10, 92, 3, 6, 'rgba(255,255,255,0.7)');
-  b(ctx, x0 + 68, 88, 24, 24, PAL.forest);
-  b(ctx, x0 + 71, 91, 18, 10, '#ffe9b8');
+  b(ctx, x0 + 68, 88, 24, 24, '#7fb58d');
+  b(ctx, x0 + 71, 91, 18, 10, '#f3fbf1');
   r(ctx, x0 + 85, 103, 2, 2, PAL.mango);
   b(ctx, x0 + 73, 93, 14, 6, PAL.cream);
 
@@ -151,8 +151,8 @@ export function drawExterior(ctx: CanvasRenderingContext2D) {
 
   // sidewalk and street
   r(ctx, 0, 112, W, 1, PAL.ink);
-  for (let y = 113; y < 124; y += 4) for (let x = (y % 8) * 2; x < W; x += 8) b(ctx, x, y, 8, 4, '#e3d6bd');
-  r(ctx, 0, 124, W, 11, '#8d8a86');
+  for (let y = 113; y < 124; y += 4) for (let x = (y % 8) * 2; x < W; x += 8) b(ctx, x, y, 8, 4, '#dcecd9');
+  r(ctx, 0, 124, W, 11, '#9aa89d');
   for (let x = 4; x < W; x += 16) r(ctx, x, 129, 8, 1, '#f2e6c8');
   // stools and a table on the sidewalk
   b(ctx, 40, 106, 14, 3, PAL.red);

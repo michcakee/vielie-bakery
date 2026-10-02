@@ -200,3 +200,22 @@ None required: all art and audio are original code. Optional: a licensed display
 - Day in 3–8 minutes: 3–5 minutes hand-played.
 - Save survives reload: yes (autosave after every action; checked by reloading the pane).
 - Slower, noisier, more confusing: audio now starts muted; the grade card is the only new overlay and fades in 2 s.
+
+
+## Phase 4: release check (Part 3, section 8)
+
+| Check | Result | Notes |
+| --- | --- | --- |
+| Network calls (`fetch`, XHR, websockets, SDK init) listed and justified | **Pass** | One: `public/sw.js` fetches the game's own files for offline caching (same origin only). Listed under "Data that leaves the device". No SDKs. |
+| `CREDITS.md` covers every asset and library | **Pass, one UNKNOWN** | All fonts, libraries and generated content listed. Cute Cubes' licence is unverified (no licence file in the download). |
+| Privacy policy matches the code | **Pass** | No data collected; local saves; restore link opens the user's own mail app and keeps nothing; delete-data in Settings. |
+| No brand names or copyrighted characters | **Pass** | "Oreos" renamed. Grep for common brands/characters is clean. |
+| Delete-data button works | **Pass** | Settings → Delete all my data: verified in the browser that every `vielie-*` key is removed and the game reloads to a fresh title screen. |
+| Purchase flows show real price and confirmation | **N/A** | No purchases. |
+| Accessibility (section 5) | **Pass, with notes** | Keyboard: number keys, Space, Escape, Tab-trapped modals. Icon buttons and sprites have labels or are `aria-hidden`. Contrast: muted text, headings and figures raised past 4.5:1 on cream; a full automated audit on a real device is still worth doing. Colour is never the only signal (wrong-step shake plus "oops" sound; sold-out chips carry a screen-reader "sold out"). Mute and reduced-motion toggles; sparkles under 3 flashes/s and off under reduced motion. |
+
+### Things only you can do
+1. Fill in the `[OWNER: fill in]` placeholders in `public/privacy.html` and `public/terms.html` (legal name, contact email, governing state, dates), and in `docs/store/STORE_LISTING.md` (developer name, support email, privacy policy URL).
+2. Decide on the Cute Cubes font: find the author's licence terms, or swap in an OFL font (the game falls back to VT323 if the file is removed).
+3. Store accounts and forms: Google Play Console and Apple Developer accounts, the Data safety / App Privacy questionnaires (answers in `docs/store/`), screenshots from real builds, and the signed builds themselves (see `docs/MOBILE_BUILD.md`; this machine has no Android SDK or Xcode).
+4. Confirm your friends are happy having their first names in the game (L9).

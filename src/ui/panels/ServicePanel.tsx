@@ -1,0 +1,262 @@
+import { useEffect, useMemo, useState } from 'react';
+import { CONFIG, PRODUCTS } from '../../data/catalog';
+import { translate } from '../../data/people';
+import { effectivePrice, has, makeable, onMenu } from '../../engine/economy';
+import { rngFor } from '../../engine/rng';
+import { clockLabel } from '../../engine/time';
+import type { ProductId, Visit } from '../../engine/types';
+import { money2 } from '../../lib/format';
+import { play } from '../audio';
+import { useGame } from '../GameContext';
+import { Btn, Meter } from '../kit';
+import { Person, Sprite } from '../pixel/Sprite';
+
+const STEP_ICON: Record<string, string> = {
+  slice: 'knife',
+  chaLua: 'chaLua',
+  pickles: 'veg',
+  herbs: 'leaf',
+  sauce: 'chili',
+  milk: 'condensed',
+  phin: 'coffee',
+  ice: 'ice',
+  stir: 'spoon',
+  tea: 'tea',
+  kumquat: 'kumquat',
+  sugar: 'sugar',
+};
+
+export function stepsFor(p: ProductId, coffeeBar: boolean) {
+  const steps = PRODUCTS[p].steps ?? [];
+  return coffeeBar && PRODUCTS[p].kind === 'drink' ? steps.slice(0, -1) : steps;
+}
+
+/** Tap the steps in order to make a bánh mì or a drink. Mistakes lower quality a little. */
+function Assembly({ visit, onDone, onCancel }: { visit: Visit; onDone: (process: number) => void; onCancel: () => void }) {
+  const { state: s, reduced } = useGame();
+  const p = visit.wants;
+  const steps = useMemo(() => stepsFor(p, has(s, 'coffeeBar')), [p, s.upgrades]);
+  const order = useMemo(() => {
+    const r = rngFor(visit.id, s.day, 3);
+    return [...steps].sort(() => r() - 0.5);
+  }, [steps, visit.id, s.day]);
+  const [done, setDone] = useState(0);
+  const [mistakes, setMistakes] = useState(0);
+  const [shake, setShake] = useState<string | null>(null);
+  const hints = s.day <= 3 || mistakes > 0;
+  const finished = done >= steps.length;
+
+  useEffect(() => {
+    if (!finished) return;
+    play('sparkle');
+    const t = window.setTimeout(() => onDone(Math.max(40, 100 - mistakes * 15)), reduced ? 50 : 380);
+    return () => window.clearTimeout(t);
+  }, [finished]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const tap = (id: string) => {
+    if (finished) return;
+    if (steps[done].id === id) {
+      play(id === 'slice' ? 'chop' : id === 'phin' || id === 'tea' || id === 'milk' ? 'pour' : 'pop');
+      setDone(done + 1);
+    } else {
+      play('oops');
+      setMistakes(mistakes + 1);
+      setShake(id);
+      window.setTimeout(() => setShake(null), 300);
+    }
+  };
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const n = Number(e.key);
+      if (n >= 1 && n <= order.length) tap(order[n - 1].id);
+      if (e.key === 'Escape') onCancel();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  });
+
+  return (
+    <div className="assembly" role="group" aria-label={`Making ${PRODUCTS[p].name} for ${visit.name}`}>
+      <div className="ticket">
+        <div className="ticket-head">
+          <Sprite name={p} scale={3} />
+          <div>
+            <b>{PRODUCTS[p].name}</b>
+            <span>for {visit.name}</span>
+          </div>
+        </div>
+        <ol>
+          {steps.map((st, i) => (
+            <li key={st.id} className={i < done ? 'done' : i === done ? 'now' : ''}>
+              {i < done ? <Sprite name="check" scale={2} /> : <span className="num">{i + 1}</span>}
+              <span lang="vi">{st.vi}</span>
+              <span className="muted">{st.label}</span>
+            </li>
+          ))}
+        </ol>
+      </div>
+      <div className={`board-build ${finished ? 'finished' : ''}`}>
+        <div className="build-stack" aria-live="polite">
+          {finished ? (
+            <span className="build-final">
+              <Sprite name={p} scale={5} />
+              <span className="sparkles" />
+            </span>
+          ) : (
+            steps.slice(0, done).map((st, i) => (
+              <span key={st.id} className="build-layer" style={{ ['--i' as string]: i }}>
+                <Sprite name={STEP_ICON[st.id] ?? 'box'} scale={3} />
+              </span>
+            ))
+          )}
+        </div>
+        <div className="step-buttons">
+          {order.map((st, i) => (
+            <button
+              key={st.id}
+              type="button"
+              className={`step-btn ${hints && !finished && steps[done]?.id === st.id ? 'glow' : ''} ${shake === st.id ? 'shake' : ''} ${steps.findIndex((x) => x.id === st.id) < done ? 'used' : ''}`}
+              onClick={() => tap(st.id)}
+              disabled={finished || steps.findIndex((x) => x.id === st.id) < done}
+            >
+              <kbd>{i + 1}</kbd>
+              <Sprite name={STEP_ICON[st.id] ?? 'box'} scale={3} />
+              <span lang="vi">{st.vi}</span>
+            </button>
+          ))}
+        </div>
+        <button type="button" className="link-btn" onClick={onCancel}>
+          Put it down (Esc)
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export function ServicePanel({ paused, setPaused, speed, setSpeed, activeId, setActiveId }: { paused: boolean; setPaused: (p: boolean) => void; speed: number; setSpeed: (n: number) => void; activeId: number | null; setActiveId: (id: number | null) => void }) {
+  const { state: s, dispatch, prefs } = useGame();
+  const svc = s.service!;
+  const waiting = svc.visits.filter((v) => v.status === 'waiting').sort((a, b) => (a.waitStart ?? 0) - (b.waitStart ?? 0));
+  const active = waiting.find((v) => v.id === activeId) ?? null;
+  const coming = svc.visits.filter((v) => v.status === 'walking').length;
+  const pct = svc.clock / CONFIG.dayMinutes;
+  const canLastCall = svc.clock >= CONFIG.lastCallAt - 60;
+  const menu = onMenu(s);
+
+  useEffect(() => {
+    if (activeId !== null && !active) setActiveId(null);
+  }, [activeId, active, setActiveId]);
+
+  const pick = (v: Visit) => {
+    if (PRODUCTS[v.wants].kind === 'tray') {
+      play('coin');
+      dispatch({ type: 'serve', visitId: v.id });
+    } else {
+      play('pop');
+      setActiveId(v.id);
+    }
+  };
+
+  useEffect(() => {
+    if (active) return;
+    const onKey = (e: KeyboardEvent) => {
+      const n = Number(e.key);
+      if (n >= 1 && n <= waiting.length && !(e.target instanceof HTMLInputElement)) pick(waiting[n - 1]);
+      if (e.key === ' ' && e.target === document.body) {
+        e.preventDefault();
+        setPaused(!paused);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  });
+
+  return (
+    <div className="service">
+      <div className="day-track" aria-label={`Shop open, ${clockLabel(svc.clock)}`}>
+        <div className="day-fill" style={{ width: `${pct * 100}%` }} />
+        <span style={{ left: '0%' }}>7am rush</span>
+        <span style={{ left: '33%' }}>Lunch</span>
+        <span style={{ left: '58%' }}>Afternoon</span>
+        <span style={{ left: '84%' }}>Last call</span>
+      </div>
+      <div className="service-controls">
+        <Btn kind="ghost" onClick={() => setPaused(!paused)} aria-label={paused ? 'Resume' : 'Pause'} aria-pressed={paused}>
+          <Sprite name={paused ? 'playIcon' : 'pause'} scale={2} /> {paused ? 'Resume' : 'Pause'}
+        </Btn>
+        <Btn kind="ghost" onClick={() => setSpeed(speed === 1 ? 2 : 1)} aria-pressed={speed === 2}>
+          <Sprite name="fast" scale={2} /> {speed === 2 ? 'Fast' : 'Normal'}
+        </Btn>
+        <Btn kind={svc.lastCall ? 'primary' : 'plain'} disabled={!canLastCall} onClick={() => dispatch({ type: 'lastCall', on: !svc.lastCall })} aria-pressed={svc.lastCall} title="Pastries 40% off for the last hour">
+          {svc.lastCall ? 'LAST CALL! −40%' : canLastCall ? 'Start last call' : 'Last call from 5pm'}
+        </Btn>
+        <Btn kind="ghost" onClick={() => dispatch({ type: 'closeEarly' })} sfx="bell">
+          Close up
+        </Btn>
+      </div>
+
+      {active ? (
+        <Assembly
+          key={active.id}
+          visit={active}
+          onCancel={() => setActiveId(null)}
+          onDone={(process) => {
+            dispatch({ type: 'serve', visitId: active.id, process });
+            play('coin');
+            setActiveId(null);
+          }}
+        />
+      ) : (
+        <div className="orders" aria-live="polite">
+          <h3 className="orders-title">
+            At the counter {coming > 0 && <span className="muted">· {coming} walking in</span>}
+          </h3>
+          {waiting.length === 0 ? (
+            <p className="empty-line">{svc.clock < 20 ? 'Doors open! The street is waking up…' : 'No one waiting. The cash register is taking a breather.'}</p>
+          ) : (
+            <ul>
+              {waiting.map((v, i) => {
+                const patience = 1 - (svc.clock - (v.waitStart ?? svc.clock)) / v.patience;
+                const tray = PRODUCTS[v.wants].kind === 'tray';
+                return (
+                  <li key={v.id}>
+                    <button type="button" className={`order ${patience < 0.3 ? 'urgent' : ''}`} onClick={() => pick(v)}>
+                      <kbd>{i + 1}</kbd>
+                      <Person look={v.look} scale={2} />
+                      <span className="order-who">
+                        <b>{v.name}</b>
+                        <span lang="vi">{v.line}</span>
+                        {prefs.translations && translate(v.line) && <em>{translate(v.line)}</em>}
+                      </span>
+                      <span className="order-what">
+                        <Sprite name={v.wants} scale={2} />
+                        {v.qty > 1 && <b>×{v.qty}</b>}
+                        <span>{money2(effectivePrice(s, v.wants) * v.qty)}</span>
+                      </span>
+                      <span className="order-act">{tray ? 'Hand over' : 'Make it'}</span>
+                      <Meter value={patience} tone={patience < 0.3 ? 'bad' : patience < 0.6 ? 'meh' : 'good'} label={`${v.name}'s patience`} />
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      )}
+
+      <div className="stock-strip" aria-label="What's left">
+        {menu.map((p) => {
+          const n = PRODUCTS[p].kind === 'tray' ? s.display[p].qty : makeable(s, p);
+          return (
+            <span key={p} className={`stock-chip ${n === 0 ? 'out' : n < 4 ? 'low' : ''}`} title={PRODUCTS[p].name}>
+              <Sprite name={p} scale={2} />
+              <b>{n}</b>
+              {n === 0 && <span className="sr-only">sold out</span>}
+            </span>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

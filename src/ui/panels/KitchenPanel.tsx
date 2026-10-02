@@ -1,0 +1,246 @@
+import { useEffect, useRef, useState } from 'react';
+import { BAGUETTE, CONFIG, INGREDIENTS, PRODUCTS, WEATHER } from '../../data/catalog';
+import {
+  acceptance,
+  canBakeTray,
+  COMPETITOR,
+  competitorOpen,
+  demandLabel,
+  expectedWalkIns,
+  itemCost,
+  makeable,
+  missingFor,
+  onMenu,
+  ovenCapacity,
+  priceBounds,
+  recipeCost,
+} from '../../engine/economy';
+import type { IngredientId, ProductId } from '../../engine/types';
+import { money2, pct } from '../../lib/format';
+import { play } from '../audio';
+import { useGame } from '../GameContext';
+import { Btn, Card, Meter, Stepper, Tip } from '../kit';
+import { Sprite } from '../pixel/Sprite';
+
+type Bakeable = ProductId | 'baguette';
+const BAKE_MS = 3200;
+const CENTER = 0.7;
+
+function info(item: Bakeable) {
+  if (item === 'baguette') return { name: 'Baguettes', vi: 'Bánh mì không', recipe: BAGUETTE.recipe, yield: BAGUETTE.yield, window: BAGUETTE.ovenWindow };
+  const d = PRODUCTS[item];
+  return { name: d.name, vi: d.en, recipe: d.recipe, yield: d.yield, window: d.ovenWindow ?? 18 };
+}
+
+export function processScore(x: number, window: number): number {
+  const half = window / 200;
+  if (x >= 0.97) return 25;
+  if (Math.abs(x - CENTER) <= half) return Math.round(100 - (Math.abs(x - CENTER) / half) * 15);
+  if (x < CENTER) return Math.round(45 + (x / (CENTER - half)) * 35);
+  return Math.round(80 - ((x - CENTER - half) / (0.97 - CENTER - half)) * 40);
+}
+
+function OvenGame({ item, onDone, onCancel }: { item: Bakeable; onDone: (q: number) => void; onCancel: () => void }) {
+  const [x, setX] = useState(0);
+  const [result, setResult] = useState<number | null>(null);
+  const raf = useRef(0);
+  const xRef = useRef(0);
+  const win = info(item).window;
+  const half = win / 200;
+
+  const stop = (val = xRef.current) => {
+    if (result !== null) return;
+    cancelAnimationFrame(raf.current);
+    const q = processScore(val, win);
+    setResult(q);
+    play(q >= 85 ? 'ding' : q >= 60 ? 'pop' : 'oops');
+    window.setTimeout(() => onDone(q), 700);
+  };
+
+  useEffect(() => {
+    const t0 = performance.now();
+    const step = (t: number) => {
+      const k = Math.min(1, (t - t0) / BAKE_MS);
+      xRef.current = k;
+      setX(k);
+      if (k < 1) raf.current = requestAnimationFrame(step);
+      else stop(1);
+    };
+    raf.current = requestAnimationFrame(step);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        stop();
+      }
+      if (e.key === 'Escape') onCancel();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      cancelAnimationFrame(raf.current);
+      window.removeEventListener('keydown', onKey);
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const zone = x >= 0.97 ? 'burnt' : Math.abs(x - CENTER) <= half ? 'golden' : x > CENTER ? 'dark' : 'raw';
+  const label = { raw: 'Still pale…', golden: 'Golden! Take it out!', dark: 'Getting dark!', burnt: 'Burnt…' }[zone];
+  return (
+    <div className="oven-game" role="group" aria-label={`Baking ${info(item).name}`}>
+      <div className={`oven-window zone-${zone}`}>
+        <Sprite name={item} scale={4} className="baking-item" style={{ filter: `brightness(${1.25 - x * 0.55}) saturate(${0.6 + x * 0.8})` }} />
+      </div>
+      <div className="heat-bar" aria-hidden="true">
+        <span className="heat-golden" style={{ left: `${(CENTER - half) * 100}%`, width: `${half * 200}%` }} />
+        <span className="heat-burnt" />
+        <span className="heat-needle" style={{ left: `${x * 100}%` }} />
+      </div>
+      <p className={`oven-say zone-${zone}`} aria-live="polite">
+        {result === null ? label : result >= 85 ? `Perfect bake! Quality ${result}` : result >= 60 ? `Not bad! Quality ${result}` : `Oops… quality ${result}`}
+      </p>
+      <Btn kind="go" onClick={() => stop()} disabled={result !== null} sfx={null} className="big">
+        Lấy ra! Take it out
+      </Btn>
+      <span className="muted small">Space or Enter works too.</span>
+    </div>
+  );
+}
+
+function OvenCard() {
+  const { state: s, dispatch } = useGame();
+  const [baking, setBaking] = useState<Bakeable | null>(null);
+  const cap = ovenCapacity(s);
+  const left = cap - s.traysToday;
+  const items: Bakeable[] = ['baguette', ...onMenu(s).filter((p) => PRODUCTS[p].kind === 'tray')];
+  const morning = s.phase === 'morning' && !s.events.length;
+
+  const bake = (item: Bakeable, q: number) => {
+    dispatch({ type: 'bake', item, process: q });
+    play('sparkle');
+    setBaking(null);
+  };
+
+  return (
+    <Card
+      title="Oven"
+      icon="hot"
+      aside={
+        <span className="trays" aria-label={`${left} of ${cap} trays left this morning`}>
+          {Array.from({ length: cap }).map((_, i) => (
+            <i key={i} className={i < s.traysToday ? 'used' : ''} />
+          ))}
+          <span>{left} trays left</span>
+        </span>
+      }
+    >
+      {baking ? (
+        <OvenGame item={baking} onDone={(q) => bake(baking, q)} onCancel={() => setBaking(null)} />
+      ) : (
+        <>
+          <p className="muted">
+            Each tray takes one oven slot. Bake in the morning; what's in the case is all you can sell today. Bánh mì and drinks are made to order from the pantry.
+          </p>
+          <ul className="bake-list">
+            {items.map((item) => {
+              const inf = info(item);
+              const ok = canBakeTray(s, inf.recipe);
+              const missing = missingFor(s, inf.recipe);
+              const unit = recipeCost(s, inf.recipe) / inf.yield;
+              const have = item === 'baguette' ? s.baguettes.qty : s.display[item].qty;
+              return (
+                <li key={item} className="bake-row">
+                  <Sprite name={item} scale={3} />
+                  <div className="bake-info">
+                    <b>{inf.name}</b>
+                    <span className="muted small">
+                      Makes {inf.yield} · {money2(unit)} each · you have {have}
+                    </span>
+                    <span className="recipe">
+                      {(Object.entries(inf.recipe) as [IngredientId, number][]).map(([id, n]) => (
+                        <span key={id} className={s.pantry[id].qty < n ? 'short' : ''} title={INGREDIENTS[id].name}>
+                          <Sprite name={id} scale={1} /> {n}
+                        </span>
+                      ))}
+                    </span>
+                    {missing.length > 0 && <span className="warn small">Need more {missing.map((m) => INGREDIENTS[m].name.toLowerCase()).join(', ')}. Stock up in the Market.</span>}
+                  </div>
+                  <div className="bake-actions">
+                    <Btn kind="primary" disabled={!morning || !ok || left <= 0} onClick={() => setBaking(item)} sfx="pop">
+                      Bake
+                    </Btn>
+                    <button type="button" className="link-btn" disabled={!morning || !ok || left <= 0} onClick={() => bake(item, 72)} title="Skip the mini-game: fair quality">
+                      Quick bake
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+          {!morning && <p className="muted small">The oven is for mornings. Come back tomorrow!</p>}
+        </>
+      )}
+    </Card>
+  );
+}
+
+function PriceRow({ p }: { p: ProductId }) {
+  const { state: s, dispatch } = useGame();
+  const d = PRODUCTS[p];
+  const price = s.prices[p];
+  const [lo, hi] = priceBounds(p);
+  const a = acceptance(s, p);
+  const lab = demandLabel(a);
+  const cost = itemCost(s, p);
+  const keep = price - cost;
+  const theirs = competitorOpen(s.day) ? COMPETITOR.prices[p] : undefined;
+  const stock = d.kind === 'tray' ? s.display[p].qty : makeable(s, p);
+  return (
+    <li className="price-row">
+      <Sprite name={p} scale={3} />
+      <div className="price-main">
+        <div className="price-top">
+          <b>{d.name}</b>
+          <span className="muted small">{d.en}</span>
+        </div>
+        <div className="price-controls">
+          <Stepper value={price} step={CONFIG.priceStep} min={lo} max={hi} format={money2} label={`${d.name} price`} disabled={s.phase !== 'morning'} onChange={(v) => dispatch({ type: 'setPrice', product: p, price: v })} />
+          <div className="demand">
+            <Meter value={a} tone={lab.tone} label={`Demand for ${d.name}`} />
+            <span className={`demand-say tone-${lab.tone}`}>{lab.text}</span>
+          </div>
+        </div>
+        <div className="price-facts small">
+          <span>
+            Costs {money2(cost)} to make · <Tip concept="margin">you keep</Tip> <b className={keep < 0 ? 'neg' : 'pos'}>{money2(keep)}</b> ({pct(price > 0 ? keep / price : 0)})
+          </span>
+          <span>{d.kind === 'tray' ? `${stock} in the case` : `${stock} can be made`}</span>
+          {theirs !== undefined && <span className="rival">Cô Tư: {money2(theirs)}</span>}
+        </div>
+      </div>
+    </li>
+  );
+}
+
+export function KitchenPanel() {
+  const { state: s } = useGame();
+  const walkIns = Math.round(expectedWalkIns(s));
+  return (
+    <div className="panel-stack">
+      <Card className="forecast" title="Today's forecast" icon={s.market.weather === 'rainy' ? 'rain' : 'sun'}>
+        <p>
+          About <b>{walkIns}</b> walk-ins expected, plus regulars. <span className="muted">{WEATHER[s.market.weather].tip}</span>
+        </p>
+      </Card>
+      <OvenCard />
+      <Card title="Menu & prices" icon="coin">
+        <p className="muted small">
+          The meter shows how many shoppers think the price is fair. Higher prices mean more per sale but fewer sales: <Tip concept="elasticity">find the sweet spot</Tip>.
+        </p>
+        <ul className="price-list">
+          {onMenu(s).map((p) => (
+            <PriceRow key={p} p={p} />
+          ))}
+        </ul>
+        {s.phase !== 'morning' && <p className="muted small">Prices are set for today once the doors open.</p>}
+      </Card>
+    </div>
+  );
+}

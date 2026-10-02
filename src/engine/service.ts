@@ -69,8 +69,13 @@ function appeal(s: GameState, p: ProductId, seg: number): number {
   return w;
 }
 
+export const dishName = (p: ProductId) => {
+  const n = PRODUCTS[p].name;
+  return n.charAt(0).toLowerCase() + n.slice(1);
+};
+
 function orderLine(rand: () => number, p: ProductId): string {
-  return pick(rand, LINES.order(PRODUCTS[p].name.replace('Bánh ', 'bánh ').replace('Hộp ', 'hộp ')));
+  return pick(rand, LINES.order(dishName(p)));
 }
 
 /** Everyone who will come by today, decided when the doors open. */
@@ -83,6 +88,8 @@ export function buildSchedule(s: GameState): Visit[] {
   const pm = patienceMult(s);
   const ecoShare = effectActive(s, 'greenWeek') ? 0.45 : 0.18;
 
+  const names = [...WALKIN_NAMES].sort(() => rand() - 0.5);
+  let nameIdx = 0;
   const make = (opts: { seg: number; arrive?: number; who?: string; name?: string; look?: Look; budget?: number; patience?: number; wants?: ProductId; lastCallOnly?: boolean; eco?: boolean }) => {
     const seg = opts.seg;
     const [start, len] = SEGMENTS[seg];
@@ -93,7 +100,7 @@ export function buildSchedule(s: GameState): Visit[] {
     const alt = altPool.length && rand() < CONFIG.substitutionChance ? weightedPick(rand, altPool, (p) => appeal(s, p, seg)) : null;
     const v: Omit<Visit, 'id'> = {
       who: opts.who ?? 'walkin',
-      name: opts.name ?? pick(rand, WALKIN_NAMES),
+      name: opts.name ?? names[nameIdx++ % names.length],
       look: opts.look ?? randomLook(rand),
       wants,
       alt,
@@ -196,7 +203,7 @@ function arriveAtCounter(s: GameState, v: Visit, rand: () => number): GameState 
     }
     if (v.alt && available(s, v.alt)) {
       wants = v.alt;
-      line = LINES.substitute(PRODUCTS[wants].name.toLowerCase());
+      line = LINES.substitute(dishName(wants));
     } else {
       return leave(s, v, 'sad', pick(rand, LINES.soldOut));
     }

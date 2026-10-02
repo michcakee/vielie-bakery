@@ -198,6 +198,7 @@ export function translate(line: string | undefined): string | undefined {
   if (!line) return undefined;
   if (TRANSLATIONS[line]) return TRANSLATIONS[line];
   if (line.startsWith('Cho mình một ')) return `One ${line.slice(13, -1)}, please!`;
+  if (line.startsWith('Cho mình ') && line.endsWith(' nhé.')) return `Then I'll have ${line.slice(9, -5)}.`;
   if (line.startsWith('Một ')) return `One ${line.slice(4, -5)}, please!`;
   if (line.endsWith(', cảm ơn!')) return `${line.slice(0, -9)}, thanks!`;
   if (line.startsWith('Vậy cho mình ')) return `Then I'll have ${line.slice(13, -5)}.`;

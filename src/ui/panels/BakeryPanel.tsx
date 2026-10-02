@@ -1,10 +1,11 @@
 import { BAGUETTE, INGREDIENTS, PRODUCTS } from '../../data/catalog';
+import { REGULARS } from '../../data/people';
 import { canBakeTray, effectActive, makeable, onMenu, ovenCapacity } from '../../engine/economy';
 import { activeQuests, WEEKLY_GOALS } from '../../engine/progression';
 import type { GameState, ProductId } from '../../engine/types';
 import { useGame } from '../GameContext';
 import { Btn, Card, Meter } from '../kit';
-import { Sprite } from '../pixel/Sprite';
+import { Person, Sprite } from '../pixel/Sprite';
 
 export type Tab = 'bakery' | 'kitchen' | 'market' | 'build' | 'money' | 'eco';
 
@@ -103,6 +104,8 @@ export function BakeryPanel({ goTo, onOpen }: { goTo: (t: Tab) => void; onOpen: 
         )}
       </Card>
 
+      <Neighbours />
+
       <Card title="Quests" icon="book">
         <ul className="quests">
           {quests.map((q) => {
@@ -135,3 +138,37 @@ export function BakeryPanel({ goTo, onOpen }: { goTo: (t: Tab) => void; onOpen: 
 }
 
 export const hasStock = (s: GameState, p: ProductId) => (PRODUCTS[p].kind === 'tray' ? s.display[p].qty > 0 : makeable(s, p) > 0);
+
+function Neighbours() {
+  const { state: s } = useGame();
+  const met = REGULARS.filter((r) => (s.visitsByRegular[r.id] ?? 0) > 0);
+  if (!met.length) return null;
+  return (
+    <Card title="Neighbours" icon="heart" aside={<span className="small muted">{met.length} regulars</span>}>
+      <ul className="neighbours">
+        {met.map((r) => {
+          const hearts = s.hearts[r.id] ?? 0;
+          return (
+            <li key={r.id}>
+              <Person look={r.look} scale={2} />
+              <div>
+                <b>{r.name}</b>
+                <span className="small muted">
+                  {r.role} · loves {r.favorite.map((p) => PRODUCTS[p].name).join(', ')}
+                </span>
+                <span className="small">{r.behavior}</span>
+              </div>
+              <span className="hearts" role="img" aria-label={`${Math.floor(hearts)} of 5 hearts`}>
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <span key={i} className={i < Math.floor(hearts) ? 'on' : 'off'}>
+                    <Sprite name="heart" scale={1} />
+                  </span>
+                ))}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </Card>
+  );
+}

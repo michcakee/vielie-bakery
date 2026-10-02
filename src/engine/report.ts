@@ -21,6 +21,7 @@ export function recap(s: GameState, t: DayStats): string[] {
     const n = t.pricey[p] ?? 0;
     if (n >= 3) out.push(`${n} people looked at the ${nameOf(p)} price and said "Đắt quá…"`);
   }
+  if ((t.lockSaved ?? 0) >= 0.5) out.push(`Your price lock saved $${t.lockSaved!.toFixed(2)} compared with today's market price. Hedging paid off!`);
   if (t.savedOnSupplies >= 1) out.push(`You saved $${t.savedOnSupplies.toFixed(2)} on supplies by shopping smart.`);
   if (t.diverted > 0) out.push(`${t.diverted} ${t.diverted === 1 ? 'person' : 'people'} tried Bánh Mì Cô Tư across the street instead.`);
   if (t.lostSlow >= 3) out.push(`${t.lostSlow} customers gave up waiting in the queue.`);

@@ -138,10 +138,12 @@ export interface DayStats {
   donatedUnits: number;
   keptUnits: number;
   servedBeforeNoon: number;
+  /** Community and reputation at the start of the day, for the report. */
   community: number;
   reputation: number;
   xp: number;
   savedOnSupplies: number;
+  lockSaved?: number;
   purchasedUnits: number;
   purchasedEco: number;
   trays: number;
@@ -283,6 +285,8 @@ export interface Report {
   ecoAfter: number;
   levelBefore: number;
   levelAfter: number;
+  communityDelta: number;
+  repDelta: number;
   newUnlocks: string[];
   loanPaid: number;
   savedToFund: number;

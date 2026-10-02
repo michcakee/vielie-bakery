@@ -2210,6 +2210,32 @@ textarea {
   border-radius: 6px;
 }
 
+.neighbours {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.neighbours li {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 0;
+  border-top: 2px dashed rgba(59, 42, 37, 0.2);
+}
+.neighbours li > div {
+  display: grid;
+  line-height: 1.3;
+}
+.hearts {
+  display: inline-flex;
+  gap: 1px;
+}
+.hearts .off {
+  opacity: 0.2;
+  filter: grayscale(1);
+}
+
 /* ------------------------------------------------------------- closing */
 .closing {
   background: var(--paper);

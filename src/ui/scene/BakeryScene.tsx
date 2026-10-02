@@ -156,7 +156,7 @@ export function BakeryScene({ onCustomer, baking = false, caption }: Props) {
           </div>
         )}
         {s.decor.includes('birdcage') && (
-          <div className="sway slow" style={{ left: 98, top: 14 }}>
+          <div className="sway" style={{ left: 11, top: 18 }}>
             <Sprite name="birdcage" scale={1} />
           </div>
         )}

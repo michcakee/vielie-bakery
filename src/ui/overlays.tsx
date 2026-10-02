@@ -228,6 +228,10 @@ export function DayReport() {
         <span>
           <Sprite name="heart" scale={2} /> {t.love} loved it
         </span>
+        <span>
+          <Sprite name="people" scale={2} /> Community {r.communityDelta >= 0 ? '+' : '−'}
+          {Math.abs(Math.round(r.communityDelta * 10) / 10)}
+        </span>
       </div>
       <ul className="recap">
         {r.recap.map((line) => (
@@ -308,7 +312,8 @@ export function Toasts() {
   useEffect(() => {
     if (!t) return;
     play(t.kind === 'level' || t.kind === 'unlock' ? 'level' : t.kind === 'info' ? 'ding' : 'sparkle');
-    const id = window.setTimeout(() => dispatch({ type: 'dismissToast', id: t.id }), 4200);
+    const ms = s.toasts.length > 2 ? 1400 : t.kind === 'level' || t.kind === 'unlock' ? 4200 : 2800;
+    const id = window.setTimeout(() => dispatch({ type: 'dismissToast', id: t.id }), ms);
     return () => window.clearTimeout(id);
   }, [t?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   if (!t) return null;

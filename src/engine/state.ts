@@ -136,7 +136,7 @@ export function createNewGame(seed = newSeed()): GameState {
     unlocked: [...START_PRODUCTS],
     market,
     service: null,
-    today: { ...emptyDay(1, market.weather), made: { ...zeroProducts(), flan: 8 } },
+    today: { ...emptyDay(1, market.weather), made: { ...zeroProducts(), flan: 8 }, community: 20, reputation: 30 },
     history: [],
     leftoverPlan: {},
     events: [],
@@ -227,14 +227,17 @@ function buy(s: GameState, id: IngredientId, supplier: SupplierId, packs: number
     eco: (p.qty * p.eco + units * sup.eco) / qty,
   };
   const saved = Math.max(0, normalPackPrice(id) * packs - cost);
+  const lock = s.locks.find((l) => l.ingredient === id && l.until >= s.day);
+  const lockSaved = lock ? Math.max(0, (s.market.prices[id] - lock.price) * INGREDIENTS[id].price * sup.priceMult * packs) : 0;
   let next: GameState = {
     ...s,
     cash: round2(s.cash - cost),
     pantry: { ...s.pantry, [id]: item },
     supplierLoyalty: { ...s.supplierLoyalty, [supplier]: s.supplierLoyalty[supplier] + packs },
     today: { ...s.today, savedOnSupplies: s.today.savedOnSupplies + saved, purchasedUnits: s.today.purchasedUnits + units, purchasedEco: s.today.purchasedEco + units * sup.eco },
-    questProgress: { ...s.questProgress, packs: (s.questProgress.packs ?? 0) + packs, saved: (s.questProgress.saved ?? 0) + saved },
+    questProgress: { ...s.questProgress, packs: (s.questProgress.packs ?? 0) + packs, saved: (s.questProgress.saved ?? 0) + saved, lockSaved: (s.questProgress.lockSaved ?? 0) + lockSaved },
   };
+  if (lockSaved > 0) next.today = { ...next.today, lockSaved: (next.today.lockSaved ?? 0) + lockSaved };
   next = learn(next, 'variableCost');
   return checkProgress(next);
 }
@@ -396,6 +399,8 @@ function finishDay(s: GameState): GameState {
     ecoAfter,
     levelBefore,
     levelAfter: levelOf(next.xp),
+    communityDelta: next.community - t.community,
+    repDelta: next.reputation - t.reputation,
     newUnlocks: next.unlocked.filter((p) => !s.unlocked.includes(p)).map((p) => PRODUCTS[p].name),
     loanPaid,
     savedToFund,
@@ -418,7 +423,7 @@ function startDay(s: GameState): GameState {
     bakedToday: Object.fromEntries(PRODUCT_ORDER.map((p) => [p, 0])) as ByProduct<number>,
     effects: s.effects.filter((e) => e.until >= day),
     locks: s.locks.filter((l) => l.until >= day),
-    today: emptyDay(day, market.weather),
+    today: { ...emptyDay(day, market.weather), community: s.community, reputation: s.reputation },
   };
   if (has(next, 'garden')) {
     const v = next.pantry.veg;

@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState, type Dispatch, type ReactNode } from 'react';
-import { createNewGame, gameReducer, type Action } from '../engine/state';
 import { loadGame, loadPrefs, saveGame, savePrefs, type Prefs } from '../engine/save';
+import { createNewGame, gameReducer, type Action } from '../engine/state';
 import type { GameState } from '../engine/types';
 import { setAudio } from './audio';
 
@@ -11,6 +11,9 @@ interface Ctx {
   prefs: Prefs;
   setPrefs: (p: Partial<Prefs>) => void;
   reduced: boolean;
+  business: boolean;
+  slot: number;
+  switchSlot: (slot: number) => boolean;
 }
 
 const GameCtx = createContext<Ctx | null>(null);
@@ -26,27 +29,29 @@ function safeReducer(s: GameState, a: Action): GameState {
 }
 
 export function GameProvider({ children }: { children: ReactNode }) {
-  const [saved] = useState(() => loadGame());
-  const [state, dispatch] = useReducer(safeReducer, saved, (s) => s ?? createNewGame());
   const [prefs, setPrefsState] = useState<Prefs>(() => loadPrefs());
+  const [saved, setSaved] = useState(() => loadGame(loadPrefs().slot));
+  const [state, dispatch] = useReducer(safeReducer, saved, (s) => s ?? createNewGame());
   const [osReduced, setOsReduced] = useState(() => typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches);
   const lastSave = useRef(0);
   const pending = useRef<number>(0);
+  const slot = prefs.slot;
 
-  // Save on every meaningful change, but at most twice a second while the shop is open.
+  // Save on every meaningful change, at most twice a second while the shop is open.
   useEffect(() => {
+    if (state.phase === 'setup' && !saved) return;
     const now = performance.now();
     window.clearTimeout(pending.current);
     if (state.phase !== 'service' || now - lastSave.current > 2000) {
-      saveGame(state);
+      saveGame(state, slot);
       lastSave.current = now;
     } else {
       pending.current = window.setTimeout(() => {
-        saveGame(state);
+        saveGame(state, slot);
         lastSave.current = performance.now();
       }, 600);
     }
-  }, [state]);
+  }, [state, slot, saved]);
 
   useEffect(() => {
     if (typeof matchMedia === 'undefined') return;
@@ -59,7 +64,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const reduced = osReduced || prefs.reducedMotion;
   useEffect(() => {
     document.documentElement.dataset.motion = reduced ? 'reduced' : 'full';
-  }, [reduced]);
+    document.documentElement.style.setProperty('--text-scale', String(prefs.textScale ?? 1));
+  }, [reduced, prefs.textScale]);
   useEffect(() => setAudio({ sound: prefs.sound, music: prefs.music }), [prefs.sound, prefs.music]);
 
   const setPrefs = useCallback(
@@ -72,7 +78,23 @@ export function GameProvider({ children }: { children: ReactNode }) {
     [],
   );
 
-  const value = useMemo(() => ({ state, dispatch, hasSave: !!saved, prefs, setPrefs, reduced }), [state, saved, prefs, setPrefs, reduced]);
+  /** Load another save slot (or a blank bakery if it's empty). Returns true if the slot had a game. */
+  const switchSlot = useCallback(
+    (n: number) => {
+      saveGame(state, slot);
+      const s = loadGame(n);
+      setPrefs({ slot: n });
+      setSaved(s);
+      dispatch({ type: 'load', state: s ?? createNewGame() });
+      return !!s;
+    },
+    [state, slot, setPrefs],
+  );
+
+  const value = useMemo(
+    () => ({ state, dispatch, hasSave: !!saved, prefs, setPrefs, reduced, business: prefs.view === 'business', slot, switchSlot }),
+    [state, saved, prefs, setPrefs, reduced, slot, switchSlot],
+  );
   return <GameCtx.Provider value={value}>{children}</GameCtx.Provider>;
 }
 

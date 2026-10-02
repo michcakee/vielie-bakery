@@ -20,7 +20,7 @@ function Toggle({ label, hint, on, set }: { label: string; hint?: string; on: bo
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function Settings({ onClose, onQuit }: { onClose: () => void; onQuit: () => void }) {
-  const { state, dispatch, prefs, setPrefs } = useGame();
+  const { state, dispatch, prefs, setPrefs, slot } = useGame();
   const [code, setCode] = useState('');
   const [msg, setMsg] = useState<string | null>(null);
   const [email, setEmail] = useState(prefs.email);
@@ -72,6 +72,15 @@ export function Settings({ onClose, onQuit }: { onClose: () => void; onQuit: () 
         <Toggle label="Relaxed pace" hint="Slower days and more patient customers" on={prefs.relaxed} set={(v) => setPrefs({ relaxed: v })} />
         <Toggle label="English under Vietnamese" hint="Show translations in speech bubbles" on={prefs.translations} set={(v) => setPrefs({ translations: v })} />
         <Toggle label="Reduce motion" hint="Fewer moving decorations" on={prefs.reducedMotion} set={(v) => setPrefs({ reducedMotion: v })} />
+        <Toggle label="Business view" hint="Full financial statements, ratios and elasticities instead of plain words" on={prefs.view === 'business'} set={(v) => setPrefs({ view: v ? 'business' : 'casual' })} />
+        <div className="seg" role="radiogroup" aria-label="Text size">
+          <span className="small">Text size:</span>
+          {[1, 1.15, 1.3].map((t) => (
+            <button key={t} type="button" role="radio" aria-checked={(prefs.textScale ?? 1) === t} className={(prefs.textScale ?? 1) === t ? 'on' : ''} onClick={() => setPrefs({ textScale: t })}>
+              {t === 1 ? 'Normal' : t === 1.15 ? 'Large' : 'Larger'}
+            </button>
+          ))}
+        </div>
       </div>
 
       <h3>Saving</h3>
@@ -127,7 +136,7 @@ export function Settings({ onClose, onQuit }: { onClose: () => void; onQuit: () 
           kind="danger"
           disabled={confirmReset.trim().toUpperCase() !== 'RESET'}
           onClick={() => {
-            clearSave();
+            clearSave(slot);
             dispatch({ type: 'newGame' });
             setConfirmReset('');
             onClose();

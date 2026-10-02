@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { BAGUETTE, CONFIG, INGREDIENTS, PRODUCTS, WEATHER } from '../../data/catalog';
+import { BAGUETTE, CONFIG, INGREDIENTS, PRODUCTS, PRODUCT_ORDER, UPGRADES, WEATHER } from '../../data/catalog';
+import { suggestedTrays } from '../../engine/forecast';
 import {
   acceptance,
   canBakeTray,
@@ -11,6 +12,11 @@ import {
   missingFor,
   onMenu,
   trayCapacity,
+  ovenCapacity,
+  laborTrays,
+  expectedUnits,
+  elasticityAt,
+  playerShare,
   priceBounds,
   recipeCost,
 } from '../../engine/economy';
@@ -180,7 +186,7 @@ function OvenCard() {
   );
 }
 
-function PriceRow({ p }: { p: ProductId }) {
+function PriceRow({ p, business }: { p: ProductId; business: boolean }) {
   const { state: s, dispatch } = useGame();
   const d = PRODUCTS[p];
   const price = s.prices[p];
@@ -213,14 +219,94 @@ function PriceRow({ p }: { p: ProductId }) {
           </span>
           <span>{d.kind === 'tray' ? `${stock} in the case` : `${stock} can be made`}</span>
           {theirs !== undefined && <span className="rival">{rival!.name}: {money2(theirs)}</span>}
+          {business && (
+            <span>
+              ~{expectedUnits(s, p).toFixed(0)} a day expected · elasticity {Math.abs(elasticityAt(s, p)).toFixed(1)} · your share {pct(playerShare(s, p))}
+            </span>
+          )}
         </div>
       </div>
     </li>
   );
 }
 
+function PlanCard() {
+  const { state: s, dispatch } = useGame();
+  const suggested = suggestedTrays(s);
+  const items: Bakeable[] = ['baguette', ...onMenu(s).filter((p) => PRODUCTS[p].kind === 'tray')];
+  const ovens = ovenCapacity(s);
+  const people = laborTrays(s);
+  return (
+    <Card title="Production plan" icon="note" aside={<span className="small muted">Used on team / autopilot days</span>}>
+      <p className="small">
+        Capacity: ovens {ovens} trays, team {people} trays, so <b>{Math.min(ovens, people)}</b> a morning. {ovens < people ? 'Ovens are the bottleneck.' : ovens > people ? 'People are the bottleneck.' : ''}
+      </p>
+      <ul className="plan-list">
+        {items.map((item) => {
+          const planned = s.plan.trays[item];
+          const sugg = suggested[item] ?? 0;
+          return (
+            <li key={item}>
+              <Sprite name={item} scale={2} />
+              <span>{item === 'baguette' ? 'Baguettes' : PRODUCTS[item].name}</span>
+              <Stepper value={planned ?? sugg} step={1} min={0} max={20} format={(v) => `${v} tray${v === 1 ? '' : 's'}`} label={`Planned trays of ${item}`} onChange={(v) => dispatch({ type: 'setPlan', item, trays: v })} />
+              {planned === undefined ? (
+                <span className="tiny muted">following the forecast</span>
+              ) : (
+                <button type="button" className="link-btn" onClick={() => dispatch({ type: 'setPlan', item, trays: null })}>
+                  use forecast ({sugg})
+                </button>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+      <label className="toggle">
+        <input type="checkbox" checked={s.plan.autoStock !== false} onChange={(e) => dispatch({ type: 'setAutoStock', on: e.target.checked })} />
+        <span className="toggle-ui" aria-hidden="true" />
+        <span>
+          <b>Restock automatically</b>
+          <span className="small muted">Before a team day, buy what the forecast needs at the wet market</span>
+        </span>
+      </label>
+      {s.phase === 'morning' && (
+        <Btn onClick={() => dispatch({ type: 'autoBake' })} disabled={!!s.events.length}>
+          Bake the plan now
+        </Btn>
+      )}
+    </Card>
+  );
+}
+
+function MenuCard() {
+  const { state: s, dispatch } = useGame();
+  const options = PRODUCT_ORDER.filter((p) => s.unlocked.includes(p) && !PRODUCTS[p].season);
+  return (
+    <Card title="What's on the menu" icon="book">
+      <p className="small muted">A wider menu catches more kinds of customers, but every item needs ingredients, oven space and hands. Seasonal specials appear on their own.</p>
+      <ul className="menu-toggles">
+        {options.map((p) => {
+          const needs = PRODUCTS[p].equipment && !s.upgrades.includes(PRODUCTS[p].equipment!);
+          return (
+            <li key={p}>
+              <label className="toggle">
+                <input type="checkbox" checked={s.menu.includes(p)} disabled={s.phase === 'service'} onChange={(e) => dispatch({ type: 'setMenu', product: p, on: e.target.checked })} />
+                <span className="toggle-ui" aria-hidden="true" />
+                <span>
+                  <Sprite name={p} scale={2} /> <b>{PRODUCTS[p].name}</b>
+                  {needs && <span className="small warn"> needs a {UPGRADES[PRODUCTS[p].equipment!].name.toLowerCase()}</span>}
+                </span>
+              </label>
+            </li>
+          );
+        })}
+      </ul>
+    </Card>
+  );
+}
+
 export function KitchenPanel() {
-  const { state: s } = useGame();
+  const { state: s, business } = useGame();
   const walkIns = Math.round(expectedWalkIns(s));
   return (
     <div className="panel-stack">
@@ -236,11 +322,13 @@ export function KitchenPanel() {
         </p>
         <ul className="price-list">
           {onMenu(s).map((p) => (
-            <PriceRow key={p} p={p} />
+            <PriceRow key={p} p={p} business={business} />
           ))}
         </ul>
         {s.phase !== 'morning' && <p className="muted small">Prices are set for today once the doors open.</p>}
       </Card>
+      <MenuCard />
+      <PlanCard />
     </div>
   );
 }

@@ -137,7 +137,7 @@ function Assembly({ visit, onDone, onCancel }: { visit: Visit; onDone: (process:
 export function ServicePanel({ paused, setPaused, speed, setSpeed, activeId, setActiveId }: { paused: boolean; setPaused: (p: boolean) => void; speed: number; setSpeed: (n: number) => void; activeId: number | null; setActiveId: (id: number | null) => void }) {
   const { state: s, dispatch, prefs } = useGame();
   const svc = s.service!;
-  const waiting = svc.visits.filter((v) => v.status === 'waiting').sort((a, b) => (a.waitStart ?? 0) - (b.waitStart ?? 0));
+  const waiting = svc.visits.filter((v) => v.status === 'waiting' && !v.servedBy).sort((a, b) => (a.waitStart ?? 0) - (b.waitStart ?? 0));
   const active = waiting.find((v) => v.id === activeId) ?? null;
   const coming = svc.visits.filter((v) => v.status === 'walking').length;
   const pct = svc.clock / CONFIG.dayMinutes;
@@ -190,6 +190,14 @@ export function ServicePanel({ paused, setPaused, speed, setSpeed, activeId, set
         </Btn>
         <Btn kind={svc.lastCall ? 'primary' : 'plain'} disabled={!canLastCall} onClick={() => dispatch({ type: 'lastCall', on: !svc.lastCall })} aria-pressed={svc.lastCall} title="Pastries 40% off for the last hour">
           {svc.lastCall ? 'LAST CALL! −40%' : canLastCall ? 'Start last call' : 'Last call from 5pm'}
+        </Btn>
+        {!svc.auto && (
+          <Btn kind="ghost" onClick={() => dispatch({ type: 'handOver' })} title="The autopilot and your team serve everyone; you can still jump in">
+            Hand over the counter
+          </Btn>
+        )}
+        <Btn kind="ghost" onClick={() => dispatch({ type: 'skipToClose' })} title="Let the team finish the day instantly">
+          Skip to closing
         </Btn>
         <Btn kind="ghost" onClick={() => dispatch({ type: 'closeEarly' })} sfx="bell">
           Close up

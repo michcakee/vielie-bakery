@@ -353,6 +353,7 @@ export function serve(s: GameState, visitId: number, process?: number, by: strin
   nsvc = addFx(nsvc, 'coin', paid + tip, visitId);
   if (mood === 'love') nsvc = addFx(nsvc, 'heart', undefined, visitId);
   const staff = by.startsWith('staff:') ? next.staff.map((e) => (`staff:${e.id}` === by ? { ...e, served: e.served + 1 } : e)) : next.staff;
+  const campaigns = v.source ? next.campaigns.map((c) => (`c${c.id}` === v.source ? { ...c, newCustomers: c.newCustomers + 1, revenue: c.revenue + paid } : c)) : next.campaigns;
   return {
     ...next,
     today: t,
@@ -362,6 +363,7 @@ export function serve(s: GameState, visitId: number, process?: number, by: strin
     visitsByRegular,
     lifetime,
     staff,
+    campaigns,
     service: nsvc,
     questProgress: by === 'player' ? { ...next.questProgress, handServed: (next.questProgress.handServed ?? 0) + 1 } : next.questProgress,
   };

@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { DECOR, DECOR_ORDER, LEVELS, UPGRADES, UPGRADE_ORDER } from '../../data/catalog';
-import { has, levelOf } from '../../engine/economy';
+import { DECOR, DECOR_ORDER, LEVELS, STAGES, UPGRADES, UPGRADE_ORDER } from '../../data/catalog';
+import { GOALS, LOCATIONS, LOCATION_ORDER, SEGMENTS } from '../../data/world';
+import { activeRivals, businessStage, countOf, depreciationPerDay, levelOf, marketTraffic } from '../../engine/economy';
+import { valuation } from '../../engine/finance';
 import { canShop } from '../../engine/state';
-import type { DecorId, UpgradeId } from '../../engine/types';
-import { money } from '../../lib/format';
+import type { DecorId, LocationId, SegmentId, UpgradeId } from '../../engine/types';
+import { money, money2, pct } from '../../lib/format';
 import { useGame } from '../GameContext';
 import { Btn, Card, Tip } from '../kit';
 import { LookEditor } from '../LookEditor';
@@ -47,41 +49,95 @@ const DECOR_ICON: Record<DecorId, string> = {
   hoaMai: 'hoaMai',
 };
 
+function goalProgress(s: ReturnType<typeof useGame>['state']): { pct: number; text: string } {
+  const v = valuation(s);
+  switch (s.goal) {
+    case 'legacy':
+      return { pct: Math.min(1, (levelOf(s.xp) / 5) * 0.6 + (s.community / 75) * 0.4), text: `Level ${levelOf(s.xp)}/5, community ${Math.round(s.community)}/75` };
+    case 'value':
+      return { pct: Math.min(1, v.ownerValue / 250000), text: `${money(v.ownerValue)} of $250,000` };
+    case 'survive':
+      return { pct: Math.min(1, s.day / 720), text: `Day ${s.day} of 720` };
+    case 'chain':
+      return { pct: Math.min(1, (1 + s.branches.filter((b) => !b.closed).length) / 3), text: `${1 + s.branches.filter((b) => !b.closed).length} of 3 shops` };
+    case 'community':
+      return { pct: Math.min(1, (s.community / 90 + s.lifetime.served / 10000) / 2), text: `Community ${Math.round(s.community)}/90, ${s.lifetime.served.toLocaleString('en-US')}/10,000 served` };
+    case 'leader': {
+      const recent = s.history.slice(-30);
+      const share = recent.length ? recent.reduce((t, h) => t + h.share, 0) / recent.length : 0;
+      return { pct: Math.min(1, share / 0.5), text: `${pct(share)} of shoppers (need over 50% for a month)` };
+    }
+    default:
+      return { pct: 0, text: '' };
+  }
+}
+
 export function BuildPanel() {
-  const { state: s, dispatch } = useGame();
+  const { state: s, dispatch, business } = useGame();
   const level = levelOf(s.xp);
   const shopping = canShop(s);
   const [name, setName] = useState(s.bakeryName);
+  const [branchName, setBranchName] = useState('');
+  const v = valuation(s);
+  const stage = businessStage(s);
+  const gp = goalProgress(s);
+  const pi = s.macro.priceIndex;
 
-  const item = (opts: { key: string; icon: string; name: string; vi: string; cost: number; owned: boolean; lockLevel: number; needs?: string; effect: string; blurb?: string; onBuy: () => void; group?: string }) => {
-    const locked = level < opts.lockLevel;
+  const upgrade = (id: UpgradeId) => {
+    const u = UPGRADES[id];
+    const owned = countOf(s, id);
+    const cost = Math.round(u.cost * pi);
+    const locked = level < u.level;
+    const needs = u.requires && !s.upgrades.includes(u.requires) ? UPGRADES[u.requires].name.toLowerCase() : undefined;
+    const items = s.equipment.filter((e) => e.kind === id);
     return (
-      <li key={opts.key} className={`shop-item ${opts.owned ? 'owned' : ''} ${locked ? 'locked' : ''}`}>
+      <li key={id} className={`shop-item ${owned ? 'owned' : ''} ${locked ? 'locked' : ''}`}>
         <span className="shop-icon">
-          <Sprite name={opts.icon} scale={3} />
+          <Sprite name={UP_ICON[id]} scale={3} />
         </span>
         <div className="shop-info">
-          <b>{opts.name}</b>
+          <b>
+            {u.name} {owned > 0 && <span className="muted">×{owned}</span>}
+          </b>
           <span className="muted small" lang="vi">
-            {opts.vi}
+            {u.vi}
           </span>
-          <span className="small">{opts.blurb ?? opts.effect}</span>
-          {opts.blurb && <span className="small effect">{opts.effect}</span>}
+          <span className="small">{u.blurb}</span>
+          <span className="small effect">{u.effect}</span>
+          {business && (
+            <span className="tiny muted">
+              Capital expense: lasts ~{u.life} years, so about {money2(depreciationPerDay(cost, u.life))} a day of <Tip concept="depreciation">depreciation</Tip>
+              {u.maintenance ? ` + ${money2(u.maintenance * pi)} upkeep` : ''}
+              {u.utilities ? ` + ${money2(u.utilities * pi)} power` : ''}
+              {u.rent ? ` + ${money2(u.rent * s.macro.rentIndex)} rent` : ''} a day.
+            </span>
+          )}
+          {items.map((e) => (
+            <span key={e.uid} className="tiny">
+              Bought day {e.boughtDay}: book value {money(e.cost - e.depreciated)}
+              {e.broken && <b className="warn"> · broken</b>}
+              {u.group !== 'room' && (
+                <button type="button" className="link-btn" disabled={!shopping} onClick={() => dispatch({ type: 'sellEquipment', uid: e.uid })}>
+                  sell for {money((e.cost - e.depreciated) * 0.6)}
+                </button>
+              )}
+            </span>
+          ))}
         </div>
         <div className="shop-act">
-          {opts.owned ? (
+          {owned >= u.max ? (
             <span className="owned-tag">
               <Sprite name="check" scale={2} /> Yours
             </span>
           ) : locked ? (
             <span className="lock-tag">
-              <Sprite name="lock" scale={2} /> Level {opts.lockLevel}
+              <Sprite name="lock" scale={2} /> Level {u.level}
             </span>
-          ) : opts.needs ? (
-            <span className="lock-tag">Needs {opts.needs}</span>
+          ) : needs ? (
+            <span className="lock-tag">Needs {needs}</span>
           ) : (
-            <Btn kind="primary" disabled={!shopping || s.cash < opts.cost} onClick={opts.onBuy} sfx="sparkle">
-              {money(opts.cost)}
+            <Btn kind="primary" disabled={!shopping || s.cash < cost} onClick={() => dispatch({ type: 'buyUpgrade', id })} sfx="sparkle">
+              {money(cost)}
             </Btn>
           )}
         </div>
@@ -89,46 +145,137 @@ export function BuildPanel() {
     );
   };
 
-  const upgrade = (id: UpgradeId) => {
-    const u = UPGRADES[id];
-    return item({
-      key: id,
-      icon: UP_ICON[id],
-      name: u.name,
-      vi: u.vi,
-      cost: u.cost,
-      owned: has(s, id),
-      lockLevel: u.level,
-      needs: u.requires && !has(s, u.requires) ? UPGRADES[u.requires].name.toLowerCase() : undefined,
-      effect: u.effect,
-      blurb: u.blurb,
-      onBuy: () => dispatch({ type: 'buyUpgrade', id }),
-    });
-  };
+  const openBranches = s.branches.filter((b) => !b.closed);
 
   return (
     <div className="panel-stack">
-      <Card className="oc-note" title="One wallet, many wishes" icon="coin">
+      <Card className="oc-note" title={`Stage ${stage}: ${STAGES[stage - 1].name}`} icon="house">
         <p className="small">
-          You have <b>{money(s.cash, 2)}</b>. Every choice here means giving up another for now: that's <Tip concept="opportunityCost">opportunity cost</Tip>. Equipment is an{' '}
-          <Tip concept="investment">investment</Tip>: it isn't counted as today's cost, it keeps helping you earn.
+          You have <b>{money(s.cash, 2)}</b>. Every purchase here means giving up something else for now: <Tip concept="opportunityCost">opportunity cost</Tip>. Equipment is an{' '}
+          <Tip concept="investment">investment</Tip>, not today's cost: it's spread over its life as depreciation.
         </p>
+        <div className="goal-box">
+          <b>Goal: {GOALS[s.goal]?.name}</b>
+          <span className="small">{GOALS[s.goal]?.blurb}</span>
+          <span className="meter meter-xp">
+            <span className="meter-fill" style={{ width: `${gp.pct * 100}%` }} />
+          </span>
+          <span className="small muted">{gp.text}</span>
+        </div>
       </Card>
-      <Card title="Equipment" icon="hot">
-        <ul className="shop-list">{UPGRADE_ORDER.filter((id) => UPGRADES[id].group !== 'room' && UPGRADES[id].group !== 'eco').map(upgrade)}</ul>
+
+      <Card title="Kitchen & equipment" icon="hot">
+        <ul className="shop-list">{UPGRADE_ORDER.filter((id) => UPGRADES[id].group === 'kitchen' || UPGRADES[id].group === 'shop' || UPGRADES[id].group === 'delivery').map(upgrade)}</ul>
       </Card>
-      <Card title="Grow the bakery" icon="house">
-        <p className="muted small">New rooms bring more customers, but rent goes up every day: a <Tip concept="fixedCost">fixed cost</Tip>.</p>
+
+      <Card title="Grow the building" icon="house">
+        <p className="muted small">
+          More space brings more customers, but rent goes up every month: a <Tip concept="fixedCost">fixed cost</Tip>.
+        </p>
         <ul className="shop-list">{UPGRADE_ORDER.filter((id) => UPGRADES[id].group === 'room').map(upgrade)}</ul>
       </Card>
+
+      <Card title="More shops" icon="shop" aside={level < 4 ? <span className="lock-tag">Level 4</span> : undefined}>
+        {openBranches.map((b) => (
+          <div key={b.id} className="branch-card">
+            <b>
+              {b.name} <span className="muted">· {LOCATIONS[b.location].name}</span>
+            </b>
+            <span className="small">
+              Yesterday: {money(b.lastRevenue)} sales, <span className={b.lastProfit >= 0 ? 'pos' : 'neg'}>{money(b.lastProfit)} profit</span> · {b.lastServed} served, {b.lastLost} turned away · reputation {Math.round(b.reputation)} · staff {s.staff.filter((e) => e.branch === b.id).length}
+            </span>
+            {!s.staff.some((e) => e.branch === b.id && e.role === 'manager') && <span className="small warn">No manager: this shop runs at 80%. Hire one in Staff.</span>}
+            <Btn kind="danger" disabled={!shopping} onClick={() => dispatch({ type: 'closeBranch', id: b.id })}>
+              Close this shop
+            </Btn>
+          </div>
+        ))}
+        <p className="small muted">A new shop needs a fit-out (capital), a lease deposit (returned when you leave), rent every month and a team. It runs on its own each day with your prices and menu; the results flow into your books.</p>
+        <label className="small" htmlFor="branch-name">
+          Name for the new shop
+        </label>
+        <input id="branch-name" value={branchName} onChange={(e) => setBranchName(e.target.value)} placeholder={`${s.bakeryName} 2`} maxLength={28} />
+        <ul className="shop-list">
+          {LOCATION_ORDER.filter((l) => l !== s.location && !openBranches.some((b) => b.location === l)).map((id: LocationId) => {
+            const l = LOCATIONS[id];
+            const cost = Math.round((l.fitOut + l.deposit) * pi);
+            const top = (Object.entries(l.segments) as [SegmentId, number][]).sort((a, b) => b[1] - a[1]).slice(0, 2);
+            return (
+              <li key={id} className="shop-item">
+                <span className="shop-icon">
+                  <Sprite name="shop" scale={3} />
+                </span>
+                <div className="shop-info">
+                  <b>{l.name}</b>
+                  <span className="small muted" lang="vi">
+                    {l.vi}
+                  </span>
+                  <span className="small">{l.blurb}</span>
+                  <span className="small effect">
+                    Rent {money(l.rent * 30 * s.macro.rentIndex)}/month · ~{Math.round(marketTraffic(s, id))} passers-by a day · mostly {top.map(([sg]) => SEGMENTS[sg].name.toLowerCase()).join(' & ')} · {activeRivals(s, id).length} rival{activeRivals(s, id).length === 1 ? '' : 's'}
+                  </span>
+                  <span className="tiny muted">
+                    Fit-out {money(l.fitOut * pi)} + deposit {money(l.deposit * pi)}
+                  </span>
+                </div>
+                <div className="shop-act">
+                  <Btn kind="primary" disabled={!shopping || level < 4 || s.cash < cost} onClick={() => dispatch({ type: 'openBranch', location: id, name: branchName })}>
+                    Open ({money(cost)})
+                  </Btn>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </Card>
+
+      <Card title="What is the bakery worth?" icon="chart">
+        <p className="small">
+          A buyer would look at your yearly cash earnings ({money(v.ebitdaAnnual)}) × a multiple ({v.multiple.toFixed(1)}, higher for growing, well-loved bakeries) = <b>{money(v.enterprise)}</b>, then add cash and subtract debt: equity worth <b>{money(v.equityValue)}</b>
+          {s.investors.length ? `, of which your share is ${money(v.ownerValue)}` : ''}. Sales growth over the last quarter: {pct(v.growth)}.
+        </p>
+        {s.offer && <p className="note">{s.offer.buyer} plans to make you an offer soon.</p>}
+      </Card>
+
       <Card title="Decorate" icon="plant">
         <ul className="shop-list decor">
           {DECOR_ORDER.map((id) => {
             const d = DECOR[id];
-            return item({ key: id, icon: DECOR_ICON[id], name: d.name, vi: d.vi, cost: d.cost, owned: s.decor.includes(id), lockLevel: d.level, effect: d.bonus, onBuy: () => dispatch({ type: 'buyDecor', id }) });
+            const owned = s.decor.includes(id);
+            const locked = level < d.level;
+            return (
+              <li key={id} className={`shop-item ${owned ? 'owned' : ''} ${locked ? 'locked' : ''}`}>
+                <span className="shop-icon">
+                  <Sprite name={DECOR_ICON[id]} scale={3} />
+                </span>
+                <div className="shop-info">
+                  <b>{d.name}</b>
+                  <span className="muted small" lang="vi">
+                    {d.vi}
+                  </span>
+                  <span className="small">{d.bonus}</span>
+                </div>
+                <div className="shop-act">
+                  {owned ? (
+                    <span className="owned-tag">
+                      <Sprite name="check" scale={2} /> Yours
+                    </span>
+                  ) : locked ? (
+                    <span className="lock-tag">
+                      <Sprite name="lock" scale={2} /> Level {d.level}
+                    </span>
+                  ) : (
+                    <Btn kind="primary" disabled={!shopping || s.cash < d.cost} onClick={() => dispatch({ type: 'buyDecor', id })} sfx="sparkle">
+                      {money(d.cost)}
+                    </Btn>
+                  )}
+                </div>
+              </li>
+            );
           })}
         </ul>
       </Card>
+
       <Card title="You & your bakery" icon="people">
         <form
           className="rename"
@@ -145,7 +292,7 @@ export function BuildPanel() {
         </form>
         <LookEditor look={s.look} onChange={(look) => dispatch({ type: 'setLook', look })} big={6} />
         <p className="muted small">
-          Level {level}: {LEVELS[level - 1].name}. {LEVELS[level] ? `Next: ${LEVELS[level].name} at ${LEVELS[level].xp} XP.` : 'You made it. Vielie Bakery is a local legend.'}
+          Level {level}: {LEVELS[level - 1].name}. {LEVELS[level] ? `Next: ${LEVELS[level].name} at ${LEVELS[level].xp.toLocaleString('en-US')} XP.` : 'You made it. Vielie Bakery is a local legend.'}
         </p>
       </Card>
     </div>

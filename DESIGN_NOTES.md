@@ -84,6 +84,6 @@ Each step is one change, played for at least a day before the next.
 - The day report names the best order of the day (score, item, customer).
 - The grade is stored on the visit, so staff-served orders are graded too (for analytics later), but only the player's own serves show the card.
 
-*Numbers to playtest*: weights 45/35/20; star cuts 90/75/60/40; tip 15%/6% capped $1.50; card lifetime 1.6 s.
+*Numbers to playtest*: weights 45/35/20; star cuts 90/75/60/40; tip 15%/6% capped $1.50; card lifetime 2 s.
 
 *Also in this change*: audio starts muted (one-time default change for existing players too; Settings turns it back on).

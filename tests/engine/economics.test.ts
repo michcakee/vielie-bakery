@@ -86,7 +86,7 @@ describe('financial formulas', () => {
 
   it('a loan is paid down every month and cash goes out', () => {
     let s = richDay(morning(createNewGame(25)));
-    s = gameReducer(s, { type: 'takeLoan', principal: 5000, term: 6 });
+    s = gameReducer(s, { type: 'takeLoan', principal: 3000, term: 6 });
     const start = s.loans[0].balance;
     for (let d = 0; d < 40; d++) s = playDay(s);
     expect(s.loans.length === 0 || s.loans[0].balance < start).toBe(true);

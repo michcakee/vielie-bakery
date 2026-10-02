@@ -40,7 +40,7 @@ import {
   wages,
 } from './economy';
 import { EVENTS, eventFor, refreshKinds } from './events';
-import { bondCapacity, creditLimit, creditLineRate, investorTerms, makeLoan, quoteLoan, valuation } from './finance';
+import { bondCapacity, borrowingLimit, creditLimit, creditLineRate, investorTerms, makeLoan, quoteLoan, valuation } from './finance';
 import { suggestedTrays, forecast, ingredientsNeeded } from './forecast';
 import { bump, decide, learn, spend, toast } from './helpers';
 import { hireValue, makeEmployee, marketWage, quitters, updateMorale, weeklyApplicants } from './labor';
@@ -942,6 +942,8 @@ function runDay(s: GameState): GameState {
 
 export function gameReducer(s: GameState, a: Action): GameState {
   if (s.ending && a.type !== 'newGame' && a.type !== 'load' && a.type !== 'dismissToast') return s;
+  // Untrusted input guard: NaN or ±Infinity anywhere in an action would silently pass every `<`/`>` check.
+  if (a.type !== 'load' && a.type !== 'newGame' && Object.values(a).some((v) => typeof v === 'number' && !Number.isFinite(v))) return s;
   switch (a.type) {
     case 'setup': {
       if (s.phase !== 'setup') return s;
@@ -977,7 +979,7 @@ export function gameReducer(s: GameState, a: Action): GameState {
       return learn(next, 'forecasting');
     }
     case 'signContract': {
-      if (!canShop(s) || a.packsPerWeek < 1 || a.weeks < 2 || a.weeks > 26) return s;
+      if (!canShop(s) || !Number.isInteger(a.packsPerWeek) || !Number.isInteger(a.weeks) || a.packsPerWeek < 1 || a.packsPerWeek > 50 || a.weeks < 2 || a.weeks > 26) return s;
       const price = round2(packPrice(s, a.ingredient, a.supplier, a.packsPerWeek) * 1.03);
       const next = { ...s, contracts: [...s.contracts, { id: s.nextId, ingredient: a.ingredient, supplier: a.supplier, packsPerWeek: a.packsPerWeek, price, startDay: s.day, endDay: s.day + a.weeks * 7 - 1, delivered: 0 }], nextId: s.nextId + 1 };
       return learn(decide(next, { kind: 'contract', text: `Signed a ${a.weeks}-week contract: ${a.packsPerWeek} packs of ${INGREDIENTS[a.ingredient].name.toLowerCase()} a week at $${price}.`, metric: 'profit', before: avgProfit(s) }), 'hedging', 'contracts');
@@ -990,7 +992,7 @@ export function gameReducer(s: GameState, a: Action): GameState {
       return toast({ ...next, contracts: next.contracts.filter((x) => x.id !== a.id) }, 'info', 'Contract cancelled', `A $${fee.toFixed(0)} cancellation fee (two weeks of deliveries).`);
     }
     case 'bake':
-      return bake(s, a.item, a.process);
+      return bake(s, a.item, clamp(a.process, 0, 100));
     case 'autoBake':
       return autoBake(s);
     case 'setPlan':
@@ -1039,7 +1041,7 @@ export function gameReducer(s: GameState, a: Action): GameState {
       return next.today.served !== before || next.phase !== s.phase ? checkProgress(next) : next;
     }
     case 'serve': {
-      const next = serve(s, a.visitId, a.process);
+      const next = serve(s, a.visitId, a.process === undefined ? undefined : clamp(a.process, 0, 100));
       return next === s ? s : checkProgress(next);
     }
     case 'lastCall':
@@ -1138,7 +1140,7 @@ export function gameReducer(s: GameState, a: Action): GameState {
     case 'savingsRate':
       return { ...s, savingsRate: clamp(a.rate, 0, 0.5) };
     case 'takeLoan': {
-      if (s.phase === 'service' || !ECON.finance.loanTerms.includes(a.term as 6) || a.principal < 500) return s;
+      if (s.phase === 'service' || !ECON.finance.loanTerms.includes(a.term as 6) || a.principal < 500 || a.principal > borrowingLimit(s)) return s;
       const q = quoteLoan(s, a.principal, a.term);
       const next = move({ ...s, loans: [...s.loans, makeLoan(s.nextId, q, s.day)], nextId: s.nextId + 1 }, 'cashBorrowed', a.principal);
       return learn(decide(next, { kind: 'loan', text: `Borrowed $${a.principal.toLocaleString('en-US')} for ${a.term} months at ${(q.rate * 100).toFixed(1)}% ($${q.payment.toFixed(0)}/month).`, metric: 'profit', before: avgProfit(s) }), 'interest', 'debt', 'leverage');
@@ -1180,6 +1182,7 @@ export function gameReducer(s: GameState, a: Action): GameState {
     }
     case 'campaign': {
       const c = CAMPAIGNS[a.kind];
+      if (!c) return s;
       const cost = Math.round(c.cost * s.macro.priceIndex);
       if (s.phase !== 'morning' || levelOf(s.xp) < 2 || (c.needs && !has(s, c.needs)) || s.campaigns.some((x) => x.kind === a.kind && x.endDay >= s.day)) return s;
       const paid = spend(s, cost, false, 'marketing');

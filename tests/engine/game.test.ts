@@ -177,13 +177,13 @@ describe('saving', () => {
   it('round-trips through a save code, loans included', async () => {
     let s = playDay(createNewGame(14));
     s = morning(s);
-    s = gameReducer(s, { type: 'takeLoan', principal: 5000, term: 12 });
+    s = gameReducer(s, { type: 'takeLoan', principal: 3000, term: 12 });
     const code = await exportCode(s);
     const back = await importCode(code);
     expect(back!.day).toBe(s.day);
     expect(back!.cash).toBe(s.cash);
     expect(back!.loans).toHaveLength(1);
-    expect(back!.loans[0].balance).toBe(5000);
+    expect(back!.loans[0].balance).toBe(3000);
     expect(await importCode('zgarbage')).toBeNull();
   });
 

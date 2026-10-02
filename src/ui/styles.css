@@ -30,8 +30,8 @@
   --r: 6px;
   --font: 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --pixel: 'VT323', ui-monospace, monospace;
-  /* Cube display face: capitals, digits and punctuation only, so it's used on all-caps pieces and numbers. */
-  --cube: 'Kawaii Cubes', 'Cute Cubes', 'VT323', ui-monospace, monospace;
+  /* Cube display face, used on headings and numbers (set in caps for the pixel-sign look). */
+  --cube: 'Kawaii Cubes', 'Pixelify Sans', 'VT323', ui-monospace, monospace;
   color-scheme: light;
 }
 
@@ -4070,7 +4070,7 @@ html[data-motion='reduced'] .app.shake {
   animation: none;
 }
 
-/* ---------- cube display face (Cute Cubes has no lowercase, so these are set in caps) ---------- */
+/* ---------- cube display face (Pixelify Sans; set in caps for the pixel-sign look) ---------- */
 .title-logo,
 .hud-name h1,
 .ext-sign,

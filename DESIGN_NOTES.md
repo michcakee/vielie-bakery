@@ -153,7 +153,7 @@ No `fetch`, XHR, WebSocket or beacon to any other host. No analytics, ads, crash
 | L3 | No `privacy.html`, no `terms.html`, no Credits screen; Settings has no links to them | §4 required pages | Draft both with `[OWNER: fill in]` placeholders, add a Credits screen, link all three from Settings; reachable from web and app |
 | L4 | "Reset bakery" wipes **one slot**; there is no single "delete all my data" (all slots, backups, prefs) | §4 delete-data button | Add "Delete all my data" that clears every game key |
 | L5 | **Flash rate**: the assembly sparkle twinkles at 2.5 flashes/s and the five-star variant at 4 flashes/s | §5 no more than 3 flashes/s | Slow both below 3/s (they already stop under reduced motion) |
-| L6 | Cute Cubes font: the download had **no licence file**; "free for personal and commercial use" is only FontGet's page label | §3 check the licence file, not the website | Keep as UNKNOWN until the author's terms are found; the fallback is OFL VT323 |
+| L6 | ~~Cute Cubes font had no licence file~~ **Resolved:** replaced by Pixelify Sans (SIL OFL 1.1, Google Fonts) | §3 | Done |
 | L7 | The Android manifest requests `INTERNET` (Capacitor's template default; the game never uses it) | §1 keep the surface tiny | Remove it from the manifest; Capacitor serves from a local scheme |
 | L8 | All in-game text, pixel art and audio are **AI-generated** (Claude, with the owner) | §7 list AI-generated content | Listed in CREDITS.md |
 | L9 | Staff applicants use the owner's friends' **real first names** (Vy, Sang, Hieu, Yen Vy, Phuong Khanh, Vien) | §3 no real people's names | The owner's deliberate choice, first names only; keep, noted here |
@@ -167,7 +167,7 @@ Grepped for common brands and characters (Oreo, Nutella, Starbucks, Coca-Cola, P
 
 ## Assets to replace
 
-None required: all art and audio are original code. Optional: a licensed display font in place of Cute Cubes if its terms can't be confirmed (L6).
+None: all art and audio are original code, and every font is OFL.
 
 
 ### Phase 2: legal cleanup
@@ -183,7 +183,7 @@ None required: all art and audio are original code. Optional: a licensed display
 - `.gitignore` now excludes keystores, signing keys, provisioning profiles and Firebase config files.
 - Title street: passers-by now stand on the pavement (feet at the kerb) instead of floating over the shop fronts.
 
-*Decisions left to you*: L6 (Cute Cubes licence) stays UNKNOWN in CREDITS until the author's terms are found; L9 (friends' first names) kept on your say-so.
+*Decisions left to you*: L9 (friends' first names) kept on your say-so. L6 was resolved by swapping to Pixelify Sans (OFL).
 
 ### Phase 3, item 8: light story beats
 
@@ -207,7 +207,7 @@ None required: all art and audio are original code. Optional: a licensed display
 | Check | Result | Notes |
 | --- | --- | --- |
 | Network calls (`fetch`, XHR, websockets, SDK init) listed and justified | **Pass** | One: `public/sw.js` fetches the game's own files for offline caching (same origin only). Listed under "Data that leaves the device". No SDKs. |
-| `CREDITS.md` covers every asset and library | **Pass, one UNKNOWN** | All fonts, libraries and generated content listed. Cute Cubes' licence is unverified (no licence file in the download). |
+| `CREDITS.md` covers every asset and library | **Pass** | All fonts (all OFL), libraries and generated content listed. |
 | Privacy policy matches the code | **Pass** | No data collected; local saves; restore link opens the user's own mail app and keeps nothing; delete-data in Settings. |
 | No brand names or copyrighted characters | **Pass** | "Oreos" renamed. Grep for common brands/characters is clean. |
 | Delete-data button works | **Pass** | Settings → Delete all my data: verified in the browser that every `vielie-*` key is removed and the game reloads to a fresh title screen. |
@@ -216,6 +216,6 @@ None required: all art and audio are original code. Optional: a licensed display
 
 ### Things only you can do
 1. Fill in the `[OWNER: fill in]` placeholders in `public/privacy.html` and `public/terms.html` (legal name, contact email, governing state, dates), and in `docs/store/STORE_LISTING.md` (developer name, support email, privacy policy URL).
-2. Decide on the Cute Cubes font: find the author's licence terms, or swap in an OFL font (the game falls back to VT323 if the file is removed).
+2. ~~Font licence~~ Done: Pixelify Sans (OFL) replaced Cute Cubes.
 3. Store accounts and forms: Google Play Console and Apple Developer accounts, the Data safety / App Privacy questionnaires (answers in `docs/store/`), screenshots from real builds, and the signed builds themselves (see `docs/MOBILE_BUILD.md`; this machine has no Android SDK or Xcode).
 4. Confirm your friends are happy having their first names in the game (L9).

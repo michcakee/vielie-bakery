@@ -1,4 +1,5 @@
 VT323: Copyright 2011, The VT323 Project Authors (peter.hull@oikoi.com)
+Pixelify Sans: Copyright 2023 The Pixelify Sans Project Authors (https://github.com/eifetx/Pixelify-Sans)
 Be Vietnam Pro: Copyright 2021 The Be Vietnam Pro Project Authors (https://github.com/bettergui/BeVietnamPro)
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.

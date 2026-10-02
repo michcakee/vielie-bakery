@@ -11,10 +11,10 @@
 | Bundle / package ID | `com.michcakee.vieliebakery` |
 | Category | Games → Simulation (secondary: Education) |
 | Price | Free. No ads, no in-app purchases |
-| Developer name | **TODO** |
-| Support email | **TODO** |
+| Developer name | My-Vien Nguyen |
+| Support email | myvientrannguyen@gmail.com |
 | Website | https://michcakee.github.io/vielie-bakery/ |
-| Privacy policy URL | **TODO**: publish `PRIVACY_POLICY.md` and link it here |
+| Privacy policy URL | https://github.com/michcakee/vielie-bakery/blob/main/docs/store/PRIVACY_POLICY.md|
 
 ## Short description (Google Play, 80 chars)
 

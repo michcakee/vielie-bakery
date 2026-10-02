@@ -1,16 +1,40 @@
 /* VT323 and Be Vietnam Pro, SIL Open Font License 1.1. Self-hosted so the game works offline. */
 
-/* Cute Cubes by Archer Waynwood, from FontGet (listed there as free for personal and commercial use;
-   the download carried no licence file of its own). The game's display face. */
+/* Pixelify Sans by Stefie Justprince, SIL Open Font License 1.1 (see OFL.txt). The display face. */
 @font-face {
-  font-family: 'Cute Cubes';
+  font-family: 'Pixelify Sans';
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('./CuteCubes.ttf') format('truetype');
+  src: url('./PixelifySans-400-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Pixelify Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./PixelifySans-400-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Pixelify Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('./PixelifySans-700-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Pixelify Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('./PixelifySans-700-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 /* Kawaii Cubes (Hipfonts, paid): if the licensed file is ever added as KawaiiCubes.woff2 or .ttf,
-   it takes precedence over Cute Cubes. */
+   it takes precedence over Pixelify Sans. */
 @font-face {
   font-family: 'Kawaii Cubes';
   font-style: normal;

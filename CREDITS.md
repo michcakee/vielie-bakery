@@ -17,7 +17,7 @@ Everything in Viet Bake Shop, with where it came from and its licence. "UNKNOWN"
 | --- | --- | --- | --- |
 | Be Vietnam Pro | Lam Bao, Tony Le and contributors | https://fonts.google.com/specimen/Be+Vietnam+Pro | SIL Open Font License 1.1 (`public/fonts/OFL.txt`) |
 | VT323 | Peter Hull | https://fonts.google.com/specimen/VT323 | SIL Open Font License 1.1 (`public/fonts/OFL.txt`) |
-| Cute Cubes | Archer Waynwood | https://www.fontget.com/font/cute-cubes/ | **UNKNOWN**: the page says "Free for Personal and Commercial Use", but the download contains no licence file |
+| Pixelify Sans | Stefie Justprince | https://fonts.google.com/specimen/Pixelify+Sans | SIL Open Font License 1.1 (`public/fonts/OFL.txt`) |
 
 ## Code libraries
 

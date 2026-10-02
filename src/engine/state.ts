@@ -369,7 +369,7 @@ function finishDay(s: GameState): GameState {
       ...s.lifetime,
       profit: s.lifetime.profit + profit,
       donated: s.lifetime.donated + t.donatedUnits,
-      zeroWasteDays: s.lifetime.zeroWasteDays + (t.wasteUnits === 0 && made > 0 ? 1 : 0),
+      zeroWasteDays: s.lifetime.zeroWasteDays + (t.wasteUnits === 0 && made > 0 && t.served >= 10 && t.donatedUnits <= made * 0.25 ? 1 : 0),
     },
     leftoverPlan: {},
   };

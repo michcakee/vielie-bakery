@@ -20,7 +20,7 @@ export const LAYOUT = {
   counter: { x: 112, y: 104, w: 100, h: 20 },
   case: { x: 114, y: 84, w: 64, h: 20 },
   register: { x: 194, y: 92, w: 14, h: 12 },
-  player: { x: 180, feet: 114 },
+  player: { x: 180, feet: 106 },
   helper: { x: 172, feet: 90 },
   queueY: 131,
   queueX: [150, 134, 118, 102],
@@ -62,8 +62,8 @@ function sprite(ctx: CanvasRenderingContext2D, name: string, x: number, y: numbe
 }
 
 /** Encaustic "gạch bông" floor tile, 8×8. */
-const TILE = ['crrcrcrc'.replace(/r/g, 't'), 'tcccccct', 'cctyytcc', 'rctyytcr', 'rctyytcr', 'cctyytcc', 'tcccccct', 'ctcrrctc'];
-const TILE_COLORS: Record<string, string> = { c: '#f6ead2', t: '#5c9c94', r: '#c2453d', y: '#f2c35a' };
+const TILE = ['cccttccc', 'cyccccyc', 'ccrccrcc', 'tccyycct', 'tccyycct', 'ccrccrcc', 'cyccccyc', 'cccttccc'];
+const TILE_COLORS: Record<string, string> = { c: '#f3e4c4', t: '#8dbdb2', r: '#df8a80', y: '#efcb78' };
 
 export function drawStreet(ctx: CanvasRenderingContext2D, o: SceneOpts) {
   const { x, y, w, h } = LAYOUT.window;
@@ -259,8 +259,9 @@ export function drawCounter(ctx: CanvasRenderingContext2D, o: SceneOpts) {
   }
   const S = LAYOUT.case;
   rect(ctx, S.x, S.y, S.w, S.h, PAL.ink);
-  rect(ctx, S.x + 1, S.y + 1, S.w - 2, S.h - 2, o.upgrades.includes('display') ? 'rgba(230,246,250,0.55)' : 'rgba(255,246,226,0.5)');
-  rect(ctx, S.x + 1, S.y + 10, S.w - 2, 1, 'rgba(59,42,37,0.4)');
+  rect(ctx, S.x + 1, S.y + 1, S.w - 2, S.h - 2, o.upgrades.includes('display') ? '#e4f3f4' : '#f7ecd6');
+  rect(ctx, S.x + 1, S.y + S.h - 4, S.w - 2, 3, PAL.crust);
+  for (let i = 0; i < 4; i++) rect(ctx, S.x + 4 + i * 2, S.y + 2 + i, 1, 4, 'rgba(255,255,255,0.9)');
   if (o.upgrades.includes('display')) rect(ctx, S.x + 1, S.y + 1, S.w - 2, 1, PAL.mango);
   const R = LAYOUT.register;
   box(ctx, R.x, R.y, R.w, R.h, PAL.teal);

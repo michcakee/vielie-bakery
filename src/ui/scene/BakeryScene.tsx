@@ -94,6 +94,7 @@ export function BakeryScene({ onCustomer, baking = false, caption }: Props) {
 
   const placed = placeCustomers(s);
   const open = s.phase === 'service';
+  const ovenOn = baking || (s.phase === 'morning' && s.traysToday > 0);
   const trays = (Object.keys(s.display) as ProductId[]).filter((p) => s.display[p].qty > 0).slice(0, 4);
   const menu = onMenu(s);
   const clock = s.service?.clock ?? 0;
@@ -161,7 +162,7 @@ export function BakeryScene({ onCustomer, baking = false, caption }: Props) {
         )}
 
         {/* oven and coffee */}
-        <div className={`oven-fire ${baking ? 'hot' : ''} ${open || baking ? 'on' : ''}`} style={{ left: LAYOUT.oven.x + 6, top: LAYOUT.oven.y + 15, width: LAYOUT.oven.w - 12, height: 18 }} />
+        <div className={`oven-fire ${baking ? 'hot' : ''} ${open || ovenOn ? 'on' : ''}`} style={{ left: LAYOUT.oven.x + 6, top: LAYOUT.oven.y + 15, width: LAYOUT.oven.w - 12, height: 18 }} />
         {(open || baking) && !reduced && (
           <div className="steam" style={{ left: LAYOUT.coffee.x + 4, top: LAYOUT.coffee.y - 16 }}>
             <i />
@@ -169,7 +170,7 @@ export function BakeryScene({ onCustomer, baking = false, caption }: Props) {
             <i />
           </div>
         )}
-        {(open || baking) && !reduced && (
+        {(open || ovenOn) && !reduced && (
           <div className="steam chimney" style={{ left: LAYOUT.oven.x + 15, top: LAYOUT.oven.y - 22 }}>
             <i />
             <i />

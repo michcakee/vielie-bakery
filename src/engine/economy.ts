@@ -213,7 +213,7 @@ export function makeable(s: Pick<GameState, 'pantry' | 'baguettes'>, p: ProductI
 
 export function rent(s: GameState): number {
   const rooms = s.equipment.reduce((t, e) => t + (UPGRADES[e.kind].rent ?? 0), 0);
-  return (LOCATIONS[s.location].rent + rooms) * s.macro.rentIndex;
+  return (LOCATIONS[s.location].rent + rooms) * s.macro.rentIndex * DIFFICULTY[s.difficulty].costMult;
 }
 
 export function wages(s: GameState, branch: number | null = null): number {
@@ -223,13 +223,13 @@ export function wages(s: GameState, branch: number | null = null): number {
 export function utilities(s: GameState, trays: number): number {
   const equip = s.equipment.reduce((t, e) => t + (UPGRADES[e.kind].utilities ?? 0), 0);
   const raw = ECON.costs.utilitiesBase + ECON.costs.utilitiesPerTray * trays + equip;
-  return raw * (has(s, 'solar') ? 0.4 : 1) * s.macro.priceIndex;
+  return raw * (has(s, 'solar') ? 0.4 : 1) * s.macro.priceIndex * DIFFICULTY[s.difficulty].costMult;
 }
 
 export const energyCost = utilities;
 
 export function maintenance(s: GameState): number {
-  return s.equipment.reduce((t, e) => t + (UPGRADES[e.kind].maintenance ?? 0), 0) * s.macro.priceIndex;
+  return s.equipment.reduce((t, e) => t + (UPGRADES[e.kind].maintenance ?? 0), 0) * s.macro.priceIndex * DIFFICULTY[s.difficulty].costMult;
 }
 
 export function depreciationPerDay(cost: number, years: number): number {
@@ -465,6 +465,19 @@ export function expectedWalkIns(s: GameState): number {
   if (effectActive(s, 'stall')) n *= 1.35;
   if (isTet(s.day) && s.decor.includes('hoaMai')) n *= 1.05;
   return n + campaignBoost(s);
+}
+
+/** How many regulars the neighbourhood can support (foot traffic × ECON.demand.loyalCapDays). */
+export function loyalCap(s: GameState): number {
+  return Math.max(20, marketTraffic(s) * ECON.demand.loyalCapDays);
+}
+
+export const loyalTotal = (s: Pick<GameState, 'loyal'>) => Object.values(s.loyal).reduce((t, n) => t + (n ?? 0), 0);
+
+/** Daily share of regulars who drift away; higher when yesterday's customers were unhappy. */
+export function loyalChurnRate(s: GameState): number {
+  const sat = s.history[s.history.length - 1]?.satisfaction ?? 0.8;
+  return (ECON.demand.loyalChurn + ECON.demand.loyalChurnUnhappy * Math.max(0, 0.75 - sat)) * DIFFICULTY[s.difficulty].churnMult;
 }
 
 /** Loyal customers who come back on a typical day. */

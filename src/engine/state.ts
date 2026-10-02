@@ -38,6 +38,7 @@ import {
   trayCapacity,
   utilities,
   wages,
+  loyalChurnRate,
 } from './economy';
 import { EVENTS, eventFor, refreshKinds } from './events';
 import { bondCapacity, borrowingLimit, creditLimit, creditLineRate, investorTerms, makeLoan, quoteLoan, valuation } from './finance';
@@ -831,6 +832,18 @@ function startDay(s: GameState): GameState {
     next = toast({ ...next, equipment, upgrades: refreshKinds(equipment) }, 'info', 'Repaired', 'Your equipment is working again.');
   }
   next = { ...next, effects: next.effects.filter((e) => e.until >= day) };
+
+  // Regulars drift away: a steady trickle, faster after a bad day.
+  if (day > 1) {
+    const churn = loyalChurnRate(s);
+    const r = rngFor(s.seed, day, 913);
+    const loyal = { ...next.loyal };
+    for (const k of Object.keys(loyal) as (keyof typeof loyal)[]) {
+      const n = loyal[k] ?? 0;
+      loyal[k] = Math.max(0, n - Math.floor(n * churn + r()));
+    }
+    next = { ...next, loyal };
+  }
 
   next = receiveDeliveries(next);
   if (has(next, 'garden')) next = addToPantry(next, 'veg', 6, 0, 92, 100);

@@ -27,6 +27,8 @@ import {
   segmentMix,
   sigmaFor,
   willingToPay,
+  loyalCap,
+  loyalTotal,
 } from './economy';
 import { bump } from './helpers';
 import { randomLook } from './look';
@@ -337,7 +339,7 @@ export function serve(s: GameState, visitId: number, process?: number, by: strin
   const hearts = { ...next.hearts };
   if (named) hearts[v.who] = Math.min(5, (hearts[v.who] ?? 0) + (mood === 'love' ? 0.5 : mood === 'happy' ? 0.25 : 0));
   const loyal = { ...next.loyal };
-  if (!v.loyal && !named && sat >= 0.5 && rand() < SEGMENTS[v.segment].loyalty * (sat - 0.4) * 0.6) loyal[v.segment] = (loyal[v.segment] ?? 0) + 1;
+  if (!v.loyal && !named && sat >= 0.5 && rand() < SEGMENTS[v.segment].loyalty * (sat - 0.4) * 0.6 * Math.max(0, 1 - loyalTotal(next) / loyalCap(next))) loyal[v.segment] = (loyal[v.segment] ?? 0) + 1;
   const visitsByRegular = named ? { ...next.visitsByRegular, [v.who]: (next.visitsByRegular[v.who] ?? 0) + 1 } : next.visitsByRegular;
   const lifetime = {
     ...next.lifetime,

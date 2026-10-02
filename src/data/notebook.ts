@@ -22,7 +22,7 @@ export const NOTEBOOK: Record<string, { term: string; friendly: string; text: st
   interest: { term: 'Interest', friendly: 'The cost of borrowing', text: 'A loan gives you money now. You pay back more than you borrowed.' },
   debt: { term: 'Debt', friendly: 'Money you owe', text: 'Borrowing can help you grow faster, but the payments come every day, good sales or not.' },
   investment: { term: 'Investment', friendly: 'Spending to earn more later', text: 'An oven isn\'t a cost of today. It\'s something you own that helps you earn for many days.' },
-  loyalty: { term: 'Customer loyalty', friendly: 'Regulars', text: 'Happy customers come back, pay a little more and ignore rivals’ sales. Each one is worth far more than a single visit.' },
+  loyalty: { term: 'Customer loyalty', friendly: 'Regulars', text: 'Happy customers come back, pay a little more and ignore rivals’ sales. But regulars drift away every day (churn), faster after slow service or sold-out shelves, and a street only has so many people to win.' },
   cac: { term: 'Customer acquisition cost', friendly: 'Cost per new customer', text: 'Marketing spend ÷ new customers it brought. Worth it only if each customer earns you more than that.' },
   marketingROI: { term: 'Return on marketing', friendly: 'Did the ad pay?', text: '(Extra contribution from new customers − what the campaign cost) ÷ the cost.' },
   equity: { term: 'Owner’s equity', friendly: 'What the owners have in it', text: 'Assets minus debts: money put in plus profits kept in the business.' },

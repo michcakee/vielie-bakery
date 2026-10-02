@@ -9,6 +9,7 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "test": "vitest run",
+    "balance": "vitest run tests/balance",
     "typecheck": "tsc --noEmit",
     "icons": "node scripts/make-icons.mjs",
     "mobile:sync": "npm run build && cap sync",

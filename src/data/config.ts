@@ -43,6 +43,12 @@ export const ECON = {
     weekend: 1.18,
     friday: 1.06,
     lastCallShare: 0.15,
+    /** Share of regulars who drift away each day (moving, habits, a rival's opening offer). ~1/70 days. */
+    loyalChurn: 0.014,
+    /** Extra daily churn per point of satisfaction below 0.75 (slow service, sold out, too pricey). */
+    loyalChurnUnhappy: 0.06,
+    /** A neighbourhood only has so many potential regulars: about this many days of foot traffic. */
+    loyalCapDays: 4,
     ecoShare: 0.18,
     greenWeekEcoShare: 0.45,
     /** Logit weights for choosing between bakeries. */
@@ -108,7 +114,8 @@ export const ECON = {
   },
 
   valuation: {
-    baseMultiple: 3,
+    /** Small owner-run shops sell for ~2–3× earnings, since the profit includes the owner's own unpaid work. */
+    baseMultiple: 2.5,
     growthWeight: 4,
     reputationWeight: 0.6,
     regimeAdj: { normal: 0, boom: 0.6, recession: -0.6, inflation: -0.3 },
@@ -160,6 +167,10 @@ export const DIFFICULTY: Record<
     loanSpread: number;
     bailouts: number;
     patience: number;
+    /** Multiplies rent, utilities and maintenance. */
+    costMult: number;
+    /** Multiplies how fast regulars drift away. */
+    churnMult: number;
   }
 > = {
   easy: {
@@ -174,6 +185,8 @@ export const DIFFICULTY: Record<
     loanSpread: -0.01,
     bailouts: 2,
     patience: 1.25,
+    costMult: 0.85,
+    churnMult: 0.7,
   },
   normal: {
     name: 'Normal',
@@ -187,6 +200,8 @@ export const DIFFICULTY: Record<
     loanSpread: 0,
     bailouts: 1,
     patience: 1,
+    costMult: 1,
+    churnMult: 1,
   },
   hard: {
     name: 'Hard',
@@ -200,6 +215,8 @@ export const DIFFICULTY: Record<
     loanSpread: 0.02,
     bailouts: 0,
     patience: 0.9,
+    costMult: 1.15,
+    churnMult: 1.35,
   },
   expert: {
     name: 'Expert',
@@ -213,5 +230,7 @@ export const DIFFICULTY: Record<
     loanSpread: 0.035,
     bailouts: 0,
     patience: 0.82,
+    costMult: 1.3,
+    churnMult: 1.7,
   },
 };

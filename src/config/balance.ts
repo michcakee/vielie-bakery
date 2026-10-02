@@ -285,6 +285,16 @@ export const SOLAR_ENERGY_SAVING = 0.55;
 
 // ----------------------------------------------------------------- debt
 
+/** Forward contracts (commodity futures, simplified). */
+export const FUTURES = {
+  /** Price premium over today's market price for the certainty of a fixed price. */
+  premium: 0.04,
+  /** Number of daily deliveries in one contract. */
+  days: 7,
+  /** Largest daily delivery, in purchase steps of each ingredient. */
+  maxSteps: 12,
+} as const;
+
 export const LOAN = {
   apr: 0.14,
   maxPrincipal: 6000,

@@ -1,4 +1,5 @@
 import {
+  FUTURES,
   GAME_LENGTH_DAYS,
   INGREDIENTS,
   INGREDIENT_ORDER,
@@ -69,6 +70,7 @@ export function createNewGame(seed = newSeed()): GameState {
     history: [],
     lastResult: null,
     decisions: [],
+    contracts: [],
     learned: [],
     tutorialDone: false,
     sandbox: false,
@@ -89,6 +91,7 @@ export type Action =
   | { type: 'buyInvestment'; id: InvestmentId }
   | { type: 'borrow'; amount: number }
   | { type: 'repay'; amount: number }
+  | { type: 'signContract'; ingredient: IngredientId; qtyPerDay: number }
   | { type: 'bake' }
   | { type: 'continue' }
   | { type: 'learn'; concept: ConceptId }
@@ -156,17 +159,51 @@ function buy(state: GameState, id: IngredientId, qty: number): GameState {
   };
 }
 
+/** Price a forward contract would lock in today. */
+export function contractPrice(state: GameState, id: IngredientId): number {
+  return ingredientBuyPrice(state, state.market, id) * (1 + FUTURES.premium);
+}
+
+export function activeContract(state: GameState, id: IngredientId) {
+  // A contract whose last delivery was today no longer blocks a new one starting tomorrow.
+  return (state.contracts ?? []).find((c) => c.ingredient === id && c.endDay > state.day);
+}
+
+/** Contracted deliveries arrive each morning and are paid for at the locked price. */
+function deliverContracts(state: GameState): GameState {
+  const contracts = state.contracts ?? [];
+  if (!contracts.some((c) => c.startDay <= state.day && c.endDay >= state.day)) return state;
+  let s = state;
+  const next = contracts.map((c) => {
+    if (c.startDay > s.day || c.endDay < s.day) return c;
+    const cost = c.qtyPerDay * c.price;
+    const stock = s.ingredients[c.ingredient];
+    const qty = stock.qty + c.qtyPerDay;
+    const fromCash = Math.min(cost, s.cash);
+    s = {
+      ...s,
+      cash: s.cash - fromCash,
+      // A contract is an obligation: if cash is short, the bank covers it as overdraft.
+      overdraft: s.overdraft + (cost - fromCash),
+      ingredients: { ...s.ingredients, [c.ingredient]: { qty, avgCost: (stock.qty * stock.avgCost + cost) / qty } },
+    };
+    const spot = ingredientBuyPrice(s, s.market, c.ingredient);
+    return { ...c, delivered: c.delivered + c.qtyPerDay, gain: c.gain + (spot - c.price) * c.qtyPerDay };
+  });
+  return { ...s, contracts: next };
+}
+
 function advanceDay(state: GameState): GameState {
   const day = state.day + 1;
   const market = generateMarket(state.seed, day, state.market);
-  return {
+  const s = deliverContracts({
     ...state,
     day,
     phase: 'morning',
     market,
     marketHistory: [...state.marketHistory, market],
-    cashAtDayStart: state.cash,
-  };
+  });
+  return { ...s, cashAtDayStart: s.cash };
 }
 
 /** Record price changes and trigger concept unlocks after a day is run. */
@@ -266,6 +303,23 @@ export function gameReducer(state: GameState, action: Action): GameState {
         loan: state.loan - toLoan,
       };
       return addDecision(s, 'repay', `Repaid $${(toOverdraft + toLoan).toLocaleString('en-US', { maximumFractionDigits: 0 })} of debt`);
+    }
+    case 'signContract': {
+      const step = INGREDIENTS[action.ingredient].step;
+      const qtyPerDay = Math.round(action.qtyPerDay / step) * step;
+      if (state.phase !== 'morning' || !isUnlocked(state, 'pricing') || qtyPerDay <= 0 || qtyPerDay > step * FUTURES.maxSteps + 1e-9) return state;
+      if (activeContract(state, action.ingredient)) return state;
+      const price = contractPrice(state, action.ingredient);
+      const startDay = state.day + 1;
+      const endDay = Math.min(GAME_LENGTH_DAYS, state.day + FUTURES.days);
+      if (startDay > endDay) return state;
+      let s: GameState = {
+        ...state,
+        contracts: [...(state.contracts ?? []), { ingredient: action.ingredient, qtyPerDay, price, signedDay: state.day, startDay, endDay, gain: 0, delivered: 0 }],
+      };
+      const unit = INGREDIENTS[action.ingredient].unit;
+      s = addDecision(s, 'contract', `Locked ${qtyPerDay} ${unit} of ${INGREDIENTS[action.ingredient].name.toLowerCase()} a day at $${price.toFixed(2)}/${unit}, days ${startDay}–${endDay}`);
+      return learn(s, 'hedging');
     }
     case 'bake': {
       const next = runDay(state);

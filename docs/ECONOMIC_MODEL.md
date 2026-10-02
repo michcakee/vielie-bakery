@@ -170,6 +170,17 @@ These are deliberately **simple** measures: no discounting, no maintenance, and 
 
 The efficient oven usually has the highest return because capacity is the binding constraint. That is a real business insight (investing in a bottleneck pays most), not a balancing accident. The tests check that a loan-financed oven increases end-of-season equity.
 
+### Forward contracts (hedging)
+
+From day 8 the player can sign one forward contract per ingredient: a fixed daily delivery for the next 7 days at **today's market price + 4%**. Deliveries arrive each morning and are paid for at the locked price regardless of the market (if cash is short, the bank covers the gap as overdraft, because a contract is an obligation).
+
+```
+locked price = today's price × 1.04
+hedge gain   = Σ (market price on delivery day − locked price) × quantity delivered
+```
+
+Because prices mean-revert, the expected gain is slightly negative (the premium is the cost of certainty). Contracts pay off when the player locks a cheap day or an event shocks the market (dairy shortage: butter ×1.6). Deliveries move cash into inventory and never touch profit directly; profit only changes through the cost of the ingredients when they are used. The tests check that the balance sheet still balances with contracts running.
+
 ---
 
 ## 5. Debt and interest

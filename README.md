@@ -30,7 +30,7 @@ Most people learn economics as definitions and diagrams. Vielie Bakery takes the
 | Week | Theme | Unlocks |
 |---|---|---|
 | 1 | Learning the ovens | Production, ingredients, packaging |
-| 2 | Pricing and demand | Price changes |
+| 2 | Pricing and demand | Price changes, forward contracts |
 | 3 | Investment and finance | Equipment, bank loans |
 | 4 | Competition and sustainability | Crumb & Co. opens next door; local sourcing |
 
@@ -52,6 +52,7 @@ Most people learn economics as definitions and diagrams. Vielie Bakery takes the
 | Revenue, gross, operating and net profit, margin | Daily receipt, income statement |
 | Break-even | Projected before baking; calculated from your last 7 days |
 | Liquidity | Overdraft at 36% APR if cash runs out; cash runway |
+| Hedging | Forward contracts lock ingredient prices for a week, at a 4% premium |
 | Debt and interest | 14% APR loans with daily interest |
 | Investment, ROI, payback, depreciation | Equipment capitalized and depreciated over 5 years |
 | Competition | Rival bakery takes share when you price above it |

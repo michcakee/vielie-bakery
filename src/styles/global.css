@@ -2236,3 +2236,31 @@ button {
   animation-iteration-count: 1 !important;
   transition-duration: 0.001ms !important;
 }
+
+/* ------------------------------------------------------ forward contracts */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.contracts .nowrap {
+  white-space: nowrap;
+}
+.contracts .stepper {
+  max-width: 150px;
+}
+.contracts td.pos,
+.contracts-total.pos {
+  color: var(--herb);
+}
+.contracts td.neg,
+.contracts-total.neg {
+  color: var(--berry);
+}
+.contracts-total {
+  margin-top: 10px;
+  font-weight: 600;
+}

@@ -22,7 +22,8 @@ export type ConceptId =
   | 'breakEven'
   | 'inventory'
   | 'depreciation'
-  | 'supplyDemand';
+  | 'supplyDemand'
+  | 'hedging';
 
 export type ByProduct<T> = Record<ProductId, T>;
 export type ByIngredient<T> = Record<IngredientId, T>;
@@ -132,9 +133,23 @@ export interface DayResult {
   notes: string[];
 }
 
+/** A forward contract: a fixed daily delivery of one ingredient at a price agreed in advance. */
+export interface ForwardContract {
+  ingredient: IngredientId;
+  qtyPerDay: number;
+  price: number;
+  signedDay: number;
+  /** First and last delivery days (inclusive). */
+  startDay: number;
+  endDay: number;
+  /** Running total of (market price − locked price) × quantity delivered. Positive = the hedge paid off. */
+  gain: number;
+  delivered: number;
+}
+
 export interface Decision {
   day: number;
-  kind: 'price' | 'investment' | 'loan' | 'repay' | 'packaging' | 'sourcing';
+  kind: 'price' | 'investment' | 'loan' | 'repay' | 'packaging' | 'sourcing' | 'contract';
   text: string;
 }
 
@@ -165,6 +180,7 @@ export interface GameState {
   history: DayResult[];
   lastResult: DayResult | null;
   decisions: Decision[];
+  contracts: ForwardContract[];
   learned: ConceptId[];
   tutorialDone: boolean;
   sandbox: boolean;

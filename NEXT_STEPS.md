@@ -6,7 +6,9 @@
 - Economic engine (`src/game/`) is pure TypeScript, deterministic per seed, with all parameters in `src/config/balance.ts`.
 - Views: Today (planner), Market (newspaper), Finances (income statement, balance sheet, break-even, charts, bank), Equipment & green, Notebook, Settings.
 - Persistence in localStorage with validation; reduced-motion toggle; "unlock everything" sandbox mode.
-- 39 Vitest tests (demand model, accounting identities, guards against impossible actions, investments, insights, persistence, full-season progression).
+- Animated storefront (drifting clouds, sun arc driven by baking progress, chimney smoke, customers walking in, birds, stars).
+- Forward contracts (Market tab, day 8+): lock an ingredient price for 7 daily deliveries at a 4% premium.
+- 43 Vitest tests (demand model, accounting identities, guards against impossible actions, investments, insights, persistence, full-season progression).
 - GitHub Pages workflow (`.github/workflows/deploy.yml`), README, `docs/ECONOMIC_MODEL.md`, MIT license.
 
 ## Verified in this session
@@ -29,6 +31,8 @@
 3. **Product substitution:** customers who find an empty shelf buy a substitute some of the time. This makes stockouts more nuanced.
 4. **Accessibility audit:** keyboard-only playthrough, screen-reader labels on the product table, contrast check of the muted text on paper.
 5. **NPV view for investments:** add a discount-rate slider beside simple payback to teach time value of money.
+6. **Supplier stocks** (day 15): shares in a flour mill, dairy and berry farm whose prices move with events, paying weekly dividends. Pairs with forward contracts to teach diversification.
+7. **Contract results in the weekly report:** an insight on whether the week's hedges paid off.
 
 ## Known issues / rough edges
 

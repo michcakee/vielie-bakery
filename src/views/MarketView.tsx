@@ -1,11 +1,15 @@
-import { COMPETITOR, INGREDIENTS, INGREDIENT_ORDER, PRODUCTS, PRODUCT_ORDER, UNLOCKS, WEATHER, WEEKDAYS, WEEKDAY_TRAFFIC } from '../config/balance';
+import { useState } from 'react';
+import { COMPETITOR, FUTURES, GAME_LENGTH_DAYS, INGREDIENTS, INGREDIENT_ORDER, PRODUCTS, PRODUCT_ORDER, UNLOCKS, WEATHER, WEEKDAYS, WEEKDAY_TRAFFIC } from '../config/balance';
 import { Sparkline } from '../components/Charts';
 import { useGame } from '../components/GameContext';
 import { ProductArt } from '../components/ProductArt';
+import { Stepper } from '../components/Stepper';
 import { Term } from '../components/Term';
 import { competitorPrice, competitorShare, demandBreakdown, ingredientBuyPrice, weekdayIndex } from '../game/economy';
 import { getEvent } from '../game/events';
-import { money2, pct } from '../lib/format';
+import { activeContract, contractPrice, isUnlocked } from '../game/state';
+import type { IngredientId } from '../game/types';
+import { money2, pct, signedMoney } from '../lib/format';
 
 export function MarketView() {
   const { state } = useGame();
@@ -117,6 +121,8 @@ export function MarketView() {
         </table>
       </section>
 
+      <ContractsPanel />
+
       <section className="paper-band">
         <h4>Competition</h4>
         {m.competitorActive ? (
@@ -151,5 +157,106 @@ export function MarketView() {
         )}
       </section>
     </article>
+  );
+}
+
+/** Show matcha per 100 g like the rest of the game; other ingredients per their own unit. */
+const perUnit = (id: IngredientId, price: number) => (id === 'matcha' ? `${money2(price * 100)} / 100 g` : `${money2(price)} / ${INGREDIENTS[id].unit}`);
+
+function ContractsPanel() {
+  const { state, dispatch } = useGame();
+  const [qty, setQty] = useState<Record<IngredientId, number>>(
+    () => Object.fromEntries(INGREDIENT_ORDER.map((id) => [id, INGREDIENTS[id].step * 2])) as Record<IngredientId, number>,
+  );
+  const unlocked = isUnlocked(state, 'pricing');
+  const canSign = unlocked && state.phase === 'morning' && state.day < GAME_LENGTH_DAYS;
+  const contracts = state.contracts ?? [];
+  const settled = contracts.filter((c) => c.delivered > 0);
+  const net = settled.reduce((t, c) => t + c.gain, 0);
+
+  return (
+    <section className="paper-band contracts" aria-labelledby="contracts-title">
+      <h4 id="contracts-title">Forward contracts</h4>
+      <p className="paper-note">
+        Lock today&apos;s price, plus a {pct(FUTURES.premium, 0)} premium, for a fixed delivery every morning for the next {FUTURES.days} days. You pay on
+        delivery whatever the market does. That is <Term concept="hedging">hedging</Term>: a small, certain cost to avoid a large, uncertain one.
+      </p>
+      {!unlocked ? (
+        <p className="paper-note">The supplier offers contracts from day {UNLOCKS.pricing}.</p>
+      ) : (
+        <table className="paper-table">
+          <thead>
+            <tr>
+              <th scope="col">Ingredient</th>
+              <th scope="col">Locked price</th>
+              <th scope="col">Per day</th>
+              <th scope="col">
+                <span className="sr-only">Action or status</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {INGREDIENT_ORDER.map((id) => {
+              const cfg = INGREDIENTS[id];
+              const live = activeContract(state, id);
+              const price = contractPrice(state, id);
+              const unitLabel = cfg.unit;
+              if (live) {
+                const left = live.endDay - Math.max(state.day, live.startDay - 1);
+                return (
+                  <tr key={id}>
+                    <th scope="row">{cfg.name}</th>
+                    <td className="nowrap">{perUnit(id, live.price)}</td>
+                    <td>
+                      {live.qtyPerDay} {unitLabel}
+                    </td>
+                    <td className={live.delivered === 0 ? '' : live.gain >= 0 ? 'pos' : 'neg'}>
+                      {live.delivered === 0
+                        ? `Signed. First delivery tomorrow, ${left} in all.`
+                        : `${left} ${left === 1 ? 'delivery' : 'deliveries'} left · ${signedMoney(live.gain)} vs market`}
+                    </td>
+                  </tr>
+                );
+              }
+              const cost = qty[id] * price * Math.min(FUTURES.days, GAME_LENGTH_DAYS - state.day);
+              return (
+                <tr key={id}>
+                  <th scope="row">{cfg.name}</th>
+                  <td className="nowrap">{perUnit(id, price)}</td>
+                  <td>
+                    <Stepper
+                      value={qty[id]}
+                      step={cfg.step}
+                      min={cfg.step}
+                      max={cfg.step * FUTURES.maxSteps}
+                      label={`${cfg.name} per day`}
+                      format={(v) => `${v} ${unitLabel}`}
+                      onChange={(v) => setQty({ ...qty, [id]: v })}
+                      disabled={!canSign}
+                    />
+                  </td>
+                  <td>
+                    <button
+                      type="button"
+                      className="btn btn-small"
+                      disabled={!canSign}
+                      onClick={() => dispatch({ type: 'signContract', ingredient: id, qtyPerDay: qty[id] })}
+                      title={`Commits you to about ${money2(cost)} over the contract`}
+                    >
+                      Lock price
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      )}
+      {settled.length > 0 && (
+        <p className={`paper-note contracts-total ${net >= 0 ? 'pos' : 'neg'}`}>
+          So far your contracts have {net >= 0 ? 'saved' : 'cost'} {money2(Math.abs(net))} compared with buying at the market price each day.
+        </p>
+      )}
+    </section>
   );
 }

@@ -105,6 +105,12 @@ export const CONCEPTS: Record<ConceptId, Concept> = {
     short: 'Prices and sales are set by how much people want something and how much is available.',
     example: 'A dairy shortage cuts the supply of butter, so its price rises. A festival raises demand for everything.',
   },
+  hedging: {
+    id: 'hedging',
+    term: 'Hedging',
+    short: 'Paying a little now to remove the risk of a big price move later. A forward contract fixes the price of a future purchase.',
+    example: 'Locking butter at $8.84/kg for a week costs 4% extra on a normal week, but saves a lot if a dairy shortage pushes the market to $13.',
+  },
 };
 
 export const CONCEPT_ORDER: ConceptId[] = [
@@ -124,4 +130,5 @@ export const CONCEPT_ORDER: ConceptId[] = [
   'roi',
   'depreciation',
   'externality',
+  'hedging',
 ];

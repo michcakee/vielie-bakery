@@ -115,3 +115,56 @@ Each step is one change, played for at least a day before the next.
 - From level 2, about one day in three someone walks in with a **big order** (three trays' worth, two drinks, or a whole cake), has extra patience and budget, and leaves a bonus tip of 40% of the bill on top of the graded tip. Tagged "big order · big tip" in the queue, with their own order lines.
 
 *Numbers to playtest*: special ×1.5 from day 3; big-order chance 0.35/day, qty 3, budget ×1.5, patience ×1.4, bonus tip 40%.
+
+---
+
+## Phase 1 audit (task brief, Part 1): stack, builds, status
+
+**Stack.** React 18 + TypeScript (strict), Vite 5, Vitest. The simulation is a pure, seeded reducer (`src/engine`) over one `GameState`; the UI (`src/ui`) only dispatches actions. Pixel art is drawn in code (`src/ui/pixel`), audio is synthesised in code (`src/ui/audio.ts`). No backend.
+
+**State and saves.** `localStorage`: three save slots (`vielie-bakery-v3-slot-N`), each with a rolling backup, plus a prefs key. The save format is versioned (`version: 3`) with migration from v2 and in-place filling of content added later. Written after every action. Save codes (deflate + base64) and a player-initiated "email me a restore link" (opens the player's own mail app via `mailto:`; the game sends nothing).
+
+**Builds.** Web: `vite build` → `dist/`, published by GitHub Actions to GitHub Pages (HTTPS), installable PWA with a same-origin-only service worker. Mobile: the same `dist/` copied by Capacitor 7 into `android/` and `ios/` (not yet compiled on a machine with the SDKs).
+
+**Gameplay status against Part 2.** Plan items 1–5 above are done (see the change log): juice, grading, regulars with badges and a critic, day structure with an end-of-day summary (the pre-existing report, now with best order and the next-unlock tease), unlock schedule in config, daily special and special orders. Also already present: upgrades that shift the bottleneck (ovens vs. hands, storage vs. bulk; decor has small mechanical bonuses) and versioned auto-save. Remaining from the brief: story beats at day milestones (Phase 3, item 8). Bà's scripted first month exists; nothing fires at later milestones.
+
+**Day length.** A hand-played day is about 2 minutes of service plus the morning, 3–5 minutes in all; a delegated day is instant.
+
+## Legal gaps (task brief, Part 3)
+
+### Data that leaves the device
+
+None initiated by the game. The only outbound paths are started by the player and carry only what they chose:
+
+| Path | Where | What | Notes |
+| --- | --- | --- | --- |
+| `mailto:` restore link (Settings) | the player's own mail app | the save code, to an address the player typed | the address is **stored in local prefs** (`prefs.email`); see L1 |
+| Clipboard (Settings → copy save code) | the device clipboard | the save code | local only |
+| Service worker (`public/sw.js`) | same origin only | caches the app shell | `fetch` of the game's own files; no third-party requests |
+
+No `fetch`, XHR, WebSocket or beacon to any other host. No analytics, ads, crash reporting, accounts, logins, purchases, chat or leaderboards. Fonts are self-hosted (no Google Fonts requests). Capacitor plugins used: App (back button), StatusBar, SplashScreen; none make network calls.
+
+### Gaps, ranked
+
+| # | Gap | Rule | Fix (Phase 2) |
+| --- | --- | --- | --- |
+| L1 | Settings stores an **email address** in local prefs for the restore link | §0 no emails; §1 no personal information | Stop storing it: ask for the address only when the button is pressed, or drop the feature and keep save codes |
+| L2 | A product is named **"Gress oreos"** (Oreo is a Mondelez brand); the schedule tease repeats it | §3 no real brand names | Rename to "Gress sandwich cookies" (the id can stay). Needs your OK since you named it |
+| L3 | No `privacy.html`, no `terms.html`, no Credits screen; Settings has no links to them | §4 required pages | Draft both with `[OWNER: fill in]` placeholders, add a Credits screen, link all three from Settings; reachable from web and app |
+| L4 | "Reset bakery" wipes **one slot**; there is no single "delete all my data" (all slots, backups, prefs) | §4 delete-data button | Add "Delete all my data" that clears every game key |
+| L5 | **Flash rate**: the assembly sparkle twinkles at 2.5 flashes/s and the five-star variant at 4 flashes/s | §5 no more than 3 flashes/s | Slow both below 3/s (they already stop under reduced motion) |
+| L6 | Cute Cubes font: the download had **no licence file**; "free for personal and commercial use" is only FontGet's page label | §3 check the licence file, not the website | Keep as UNKNOWN until the author's terms are found; the fallback is OFL VT323 |
+| L7 | The Android manifest requests `INTERNET` (Capacitor's template default; the game never uses it) | §1 keep the surface tiny | Remove it from the manifest; Capacitor serves from a local scheme |
+| L8 | All in-game text, pixel art and audio are **AI-generated** (Claude, with the owner) | §7 list AI-generated content | Listed in CREDITS.md |
+| L9 | Staff applicants use the owner's friends' **real first names** (Vy, Sang, Hieu, Yen Vy, Phuong Khanh, Vien) | §3 no real people's names | The owner's deliberate choice, first names only; keep, noted here |
+| L10 | Accessibility not formally checked: contrast of muted text on cream, labels on icon buttons, and the new grade card | §5 | Contrast and label pass in Phase 2 |
+
+Already fine: no secrets in the repo (`.gitignore` excludes `.env` and `.env.*`); HTTPS on GitHub Pages; mute and reduced-motion toggles exist; the store drafts say no data is collected, which matches the code; no purchases; keyboard play works (number keys, Space, Escape, Tab focus traps in modals).
+
+### Brand and character sweep
+
+Grepped for common brands and characters (Oreo, Nutella, Starbucks, Coca-Cola, Pepsi, Disney, Pokémon, Sanrio, Papa's, Good Pizza, Nestlé, Highlands, Phúc Long, Trung Nguyên, Cộng, Gong Cha, Grab, Shopee, Facebook, Instagram, TikTok, YouTube). Only hit: "oreos" (L2). Rival bakeries (Bánh Mì Cô Tư, Tiệm Bánh Hồng Phát, Saigon Express, Boba & Bánh, Metro Café, Riverside Pâtisserie, SweetMart Bakery, Chè Chị Bảy) and the neighbourhoods are invented. The regulars are fictional.
+
+## Assets to replace
+
+None required: all art and audio are original code. Optional: a licensed display font in place of Cute Cubes if its terms can't be confirmed (L6).

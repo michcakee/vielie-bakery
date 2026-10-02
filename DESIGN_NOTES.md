@@ -219,3 +219,58 @@ None: all art and audio are original code, and every font is OFL.
 2. ~~Font licence~~ Done: Pixelify Sans (OFL) replaced Cute Cubes.
 3. Store accounts and forms: Google Play Console and Apple Developer accounts, the Data safety / App Privacy questionnaires (answers in `docs/store/`), screenshots from real builds, and the signed builds themselves (see `docs/MOBILE_BUILD.md`; this machine has no Android SDK or Xcode).
 4. Confirm your friends are happy having their first names in the game (L9).
+
+
+---
+
+## Visual upgrade brief: Phase 0 audit (report only)
+
+### Stack and rendering
+React 18 + TypeScript + Vite; one codebase for web (GitHub Pages, PWA) and mobile (Capacitor shells, same `dist/`). The bakery scene is a **240×135 logical stage**: three `<canvas>` layers painted by code (`src/ui/pixel/scene.ts`: room, street through the window, counter) plus DOM sprites on top (`<img>` from code-generated PNGs via `spriteURL`, people as `<span>` with a generated sprite-sheet background). The whole stage is scaled with a CSS `transform: scale()` whose factor is **`containerWidth / 240`, fractional** (`useStageScale` in `BakeryScene.tsx`), so pixels are uneven at most widths even though `image-rendering: pixelated` is set. The title street is a separate 240×135 canvas (`Exterior.tsx`) stretched to its container the same way. All UI around the stage is ordinary DOM/CSS. No engine.
+
+### Current art (all drawn in code, no image files except the generated icons)
+| Set | Size | Count | Pixel art? |
+| --- | --- | --- | --- |
+| Food and ingredient sprites | 16 wide × 9–13 tall (most 16×12) | 37 | Yes, hand-drawn character grids |
+| Small icons (coin, heart, star, gear, weather, UI) | 8×8, 8×7, 8×6, 8×5 | 40 | Yes |
+| People (customers, staff, owner) | 12×19 (+ hair/accessory layers), 2 walk frames | generated per look | Yes |
+| Decor and props (plant, lanterns, moto, birdcage, fan, medals) | 6×7 to 18×11 | 11 | Yes |
+| Room, counter, oven, equipment, tables, street, title street | procedural rects on the 240×135 canvases | – | Yes, but no outlines/shading rules |
+| App icons and splash | rendered from the bánh mì sprite | – | Yes |
+
+Mismatches: items are 16 wide but 9–13 tall (no fixed cell); icons mix 8×8 and 8×7/8×6/8×5; people are 12×19, which is neither 16 nor 32; the canvas furniture uses pure `--ink` (#3b2a25) outlines on sprites but no outlines on most props; shading is mostly flat with occasional `rgba` overlays (gradients forbidden by the brief). Light source isn't consistent. Text glyphs standing in for sprites: `★ ☆` (quality stars in the Market), `✦` (assembly sparkles in CSS), `→` (arrows in copy), `‹ ›` (look editor), `✓`. No emoji.
+
+### Screens and interactive elements
+Loading · Title (street canvas, Continue / New game) · New game (slot ×3, scenario ×6, difficulty ×4, Start, Back) · Setup (look editor arrows ×12, name, location picker, "That's me") · Intro lines · **Game**: HUD (quests, settings, 5 stats, level meter), stage, 9 tabs (Today, Kitchen, Market, Staff, Customers, Growth, Finances, Analytics, Eco; phone shows 4 + More sheet), Service panel (pause, speed, last call, hand over, skip, close, order list, assembly step buttons, stock strip), Closing (keep/donate/bin per item), Day report, Weekly review (goal picker), Event card (choices), Quest book, Settings (toggles, text size, save code, legal links, reset, delete all), Privacy/Terms (iframe), Credits, Ending modal. Roughly 200 buttons across the panels (price steppers, buy buttons, hire/fire/train, loans, campaigns, equipment, decor, menu toggles, plan steppers).
+
+### Text
+`Be Vietnam Pro` (OFL) for body and labels; `VT323` (OFL) for the pixel voice (70 CSS rules: buttons, menu board, speech bubbles, stat figures); `Pixelify Sans` (OFL) on headings, the wordmark, HUD name, tab labels and numbers (uppercased); one `ui-monospace` rule (save code box). The brief's advice matches: move the 70 VT323 uses to Pixelify Sans and retire VT323. Vietnamese letters: Pixelify Sans lacks them, so diacritics in headings fall back to VT323 today.
+
+### Game events visuals can react to (already exist as actions, fx or toasts)
+`open` (doors), `bake` (tray in; oven mini-game `process`), tray out of the oven (`bakedToday` changes; quality known), `serve` (grade, mood, tip; fx `coin`, `heart`, `sparkle`), customer leaves (`sad`/`slow`/`pricey` fx), `lastCall`, `closeEarly`/`finishDay`, `nextDay`, level-up toast, unlock toast, quest/achievement toasts, badge won, critic impressed, special order arrives, story beat, loan/purchase (cash change), weekly goal met. Missing hooks: "burnt" as a distinct state (today a pale/dark/burnt tray only lowers quality), oven "ding" when a bake finishes on a team day, and a per-ingredient "added" event (assembly steps are UI-only).
+
+### Problems
+1. **Fractional stage scaling** (biggest): the stage scales to the container, so at 390 px wide it's 1.625×; sprite pixels alternate 1 and 2 device pixels. Fix: integer scale in device pixels, letterbox the rest.
+2. People, stage props and DOM `<img>` sprites are positioned at fractional coordinates after scaling (no rounding).
+3. No fixed sprite cells, no outline/light rules, so new props (tables, lamps) don't match the sprite sheet's look.
+4. Tap targets: price steppers are 38 px, look-editor arrows 36 px, the stock-strip chips and the tab bar's hit areas are under 48 px; buttons are fine.
+5. Palette: the UI uses cream/mint tokens (14 CSS variables) but `styles.css` still carries 94 raw hex colours, and the scene painter has its own `PAL` and `ROOM` objects; three sources of colour.
+6. Colour contrast was fixed in Phase 2, but the brief's palette (pastel-16) would need re-checking: `--ink #58525a` on `--cream #eeede3` is 5.1:1 (OK); pastel-on-pastel labels would not be.
+7. Unicode glyphs for stars and sparkles render in whatever font is available (inconsistent on Android vs iOS).
+8. Audio is synthesised (no files), which is fine; pitch jitter and mute exist; no separate music/SFX volume.
+
+### Recommendation: base sprite size
+Keep a **16 px base unit**: pad every item/ingredient/icon to a **16×16** cell (small icons stay 8×8 as half-cells); redraw people at **16×24** (two cells tall), not 32×32: the stage is only 135 px high and a 32 px character would be a quarter of the room, and the queue of four at the counter wouldn't fit. Furniture on the canvas snaps to 16-px multiples. Global scale: an **integer device-pixel scale** chosen per viewport (3× on a 1080-wide phone, 4× on desktop), with the stage letterboxed on a wallpaper pattern. That keeps every existing sprite usable (they're already ≤16 wide) and only requires padding, outline and light-direction cleanup rather than redrawing from scratch.
+
+### §11: where the systems live (for Phases 6–9)
+Money, prices, costs, inventory, customers, time, staff, rivals and the macroeconomy are already **one pure, seeded simulation module** (`src/engine/`, 18 files) over a single `GameState`, with every parameter in `src/data/config.ts` (`ECON`, `DIFFICULTY`) and content in `src/data/*.ts`. Saves are versioned (`version: 3`) with migration. Nothing economic is hard-coded in UI components: the UI calls engine selectors (`willingToPay`, `acceptance`, `demandCurve`, `breakEven`, `forecast`, `nextUnlock`, `gradeOrder`…). Tests already prove accounting identities, elasticity behaviour, rival undercutting, capacity limits and bankruptcy (106 tests). Of the brief's §13 concept list, the mechanics for 1–3, 5–7, 9–11, 13, 14, 16 and 17 exist; missing are day-old discounting with spoilage (4; today unsold trays keep or bin), consumer-surplus display (8), price discrimination/bundles (12), comparative advantage/trade (15), size anchoring (18), the Predict → Notice → Name → Transfer loop (the notebook has plain-language entries but no predictions or player-data graphs), difficulty presets named Sprinkle/Pro (four exist: Easy–Expert), and the Test Kitchen replay (determinism already allows it: same seed, same day).
+
+### Phase 0 summary line
+```
+Phase 0 – done (report only)
+Changed: DESIGN_NOTES.md (this section)
+New assets: none
+Hooks added to game logic: none
+Known issues: fractional stage scaling; no fixed sprite cells; 3 colour sources; a few sub-48px targets; unicode star/sparkle glyphs
+Next step proposed: Phase 1 (palette tokens as the single colour source, Pixelify Sans everywhere, integer device-pixel stage scaling with letterbox) after your go-ahead; the brief's pastel-16 palette would replace the cream/mint/yellow scheme you chose this week, so confirm which palette wins before I start
+```

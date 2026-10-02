@@ -31,7 +31,7 @@ const TABS: { id: Tab; label: string; icon: ReactNode }[] = [
   { id: 'settings', label: 'Settings', icon: <Settings size={16} aria-hidden="true" /> },
 ];
 
-const BAKE_MS = 1500;
+const BAKE_MS = 3000;
 
 export default function App() {
   const [screen, setScreen] = useState<'title' | 'game'>('title');

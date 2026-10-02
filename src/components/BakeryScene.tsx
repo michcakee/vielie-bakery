@@ -31,8 +31,14 @@ const MAX_ICONS = 9;
 export function BakeryScene({ mode, weather, shelf, progress = 1, customers, owned, greenScore, competitor, chalk }: Props) {
   const [skyTop, skyBottom] = SKY[mode][weather];
   const lit = mode !== 'morning';
-  const crowd = Math.min(9, Math.round(customers / 22));
+  const crowd = Math.min(mode === 'baking' ? 4 : 9, Math.round(customers / 22));
   const plants = greenScore >= 70 ? 3 : greenScore >= 50 ? 2 : greenScore >= 30 ? 1 : 0;
+  // Sun arcs east → west through the trading day; baking progress drives it.
+  const t = mode === 'morning' ? 0.12 : mode === 'baking' ? 0.12 + 0.76 * progress : 0.9;
+  const sunX = 30 + 340 * t;
+  const sunY = 34 - 20 * Math.sin(Math.PI * t);
+  const cloudCount = weather === 'sunny' ? 2 : weather === 'cloudy' ? 4 : 5;
+  const walkers = mode === 'baking' ? Math.min(6, Math.max(2, Math.round(customers / 30))) : 0;
   const label = `Vielie Bakery storefront, ${mode === 'evening' ? 'after closing' : mode === 'baking' ? 'ovens on' : 'morning'}, ${weather}. Shelves: ${PRODUCT_ORDER.map((p) => `${shelf[p]} ${PRODUCTS[p].shortName}`).join(', ')}.`;
 
   return (
@@ -57,13 +63,47 @@ export function BakeryScene({ mode, weather, shelf, progress = 1, customers, own
       </defs>
 
       <rect width="400" height="320" fill="url(#sky)" />
-      {weather === 'sunny' && mode !== 'evening' && <circle cx="342" cy="48" r="22" fill="#F7C65B" opacity=".9" />}
+      {mode === 'evening' && (
+        <g className="stars" fill="#F4EBD0">
+          {[
+            [40, 22],
+            [96, 14],
+            [150, 30],
+            [214, 12],
+            [262, 34],
+            [318, 18],
+            [380, 28],
+          ].map(([x, y], i) => (
+            <circle key={i} cx={x} cy={y} r={i % 3 === 0 ? 1.4 : 1} style={{ animationDelay: `${i * 0.37}s` }} />
+          ))}
+        </g>
+      )}
+      {mode !== 'evening' && weather !== 'rainy' && (
+        <g className="sun" transform={`translate(${sunX} ${sunY})`}>
+          <g className="sun-rays" stroke="#F7C65B" strokeWidth="2.4" strokeLinecap="round" opacity={weather === 'sunny' ? 0.8 : 0.4}>
+            {Array.from({ length: 8 }).map((_, i) => (
+              <line key={i} x1="0" y1="-23" x2="0" y2="-29" transform={`rotate(${i * 45})`} />
+            ))}
+          </g>
+          <circle r="17" fill="#F7C65B" opacity={weather === 'sunny' ? 0.95 : 0.6} />
+        </g>
+      )}
       {mode === 'evening' && <circle cx="350" cy="44" r="12" fill="#F4EBD0" opacity=".85" />}
-      {weather !== 'sunny' && (
-        <g fill="#FBF7EC" opacity=".75">
-          <ellipse cx="80" cy="44" rx="40" ry="12" />
-          <ellipse cx="110" cy="36" rx="26" ry="12" />
-          <ellipse cx="300" cy="60" rx="36" ry="10" />
+      <g fill="#FBF7EC" opacity={weather === 'sunny' ? 0.6 : 0.8}>
+        {Array.from({ length: cloudCount }).map((_, i) => (
+          <g key={i} className="cloud" style={{ animationDuration: `${46 + i * 13}s`, animationDelay: `${-i * 17}s` }}>
+            <g transform={`translate(0 ${18 + ((i * 23) % 44)}) scale(${0.7 + (i % 3) * 0.2})`}>
+              <ellipse cx="0" cy="8" rx="38" ry="11" />
+              <ellipse cx="22" cy="0" rx="22" ry="11" />
+              <ellipse cx="-14" cy="2" rx="16" ry="9" />
+            </g>
+          </g>
+        ))}
+      </g>
+      {mode !== 'evening' && weather === 'sunny' && (
+        <g className="birds" fill="none" stroke="#2A2622" strokeWidth="1.3" strokeLinecap="round">
+          <path className="bird" d="M0 0q4 -4 8 0q4 -4 8 0" />
+          <path className="bird" d="M20 -10q3 -3 6 0q3 -3 6 0" style={{ animationDelay: '-0.4s' }} />
         </g>
       )}
 
@@ -74,6 +114,17 @@ export function BakeryScene({ mode, weather, shelf, progress = 1, customers, own
           <rect x="336" y="132" width="70" height="20" fill="#7A2A3A" />
           <text x="370" y="146" textAnchor="middle" className="scene-small">Crumb &amp; Co.</text>
           <rect x="346" y="168" width="44" height="60" fill="#E8E1D1" stroke="#8E8370" />
+        </g>
+      )}
+
+      {/* Chimney: smoke rises while the ovens run */}
+      <rect x="276" y="22" width="20" height="34" fill="#8C5A26" stroke="#2A2622" strokeWidth="2" />
+      <rect x="272" y="18" width="28" height="7" fill="#5C3A17" stroke="#2A2622" strokeWidth="2" />
+      {mode === 'baking' && (
+        <g className="smoke" fill="#EDE6D6">
+          {[0, 1, 2, 3].map((i) => (
+            <circle key={i} cx="286" cy="14" r="7" style={{ animationDelay: `${i * 0.6}s` }} />
+          ))}
         </g>
       )}
 
@@ -180,6 +231,23 @@ export function BakeryScene({ mode, weather, shelf, progress = 1, customers, own
               <circle cx="0" cy="-30" r="5.5" fill={tone} />
               <path d="M-7 0v-14c0-6 3-10 7-10s7 4 7 10V0z" fill={tone} />
               {weather === 'rainy' && <path d="M-11 -34q11 -12 22 0z" fill="#1F3D2C" />}
+            </g>
+          );
+        })}
+      </g>
+
+      {/* Customers walking in while the shop is open */}
+      <g className="walkers">
+        {Array.from({ length: walkers }).map((_, i) => {
+          const tone = ['#7A2A3A', '#1F3D2C', '#B87430', '#5B544B', '#2A2622', '#4F7D2D'][i % 6];
+          return (
+            <g key={i} className="walker" style={{ animationDelay: `${-(i * 2.6) / walkers}s` }}>
+              <g transform="translate(0 290)" className="walker-body">
+                <circle cx="0" cy="-30" r="5" fill={tone} />
+                <path d="M-6 0v-13c0-6 3-9 6-9s6 3 6 9V0z" fill={tone} />
+                <rect x="5" y="-14" width="6" height="7" rx="1" fill="#E9DFC8" stroke="#2A2622" strokeWidth=".8" />
+                {weather === 'rainy' && <path d="M-10 -33q10 -11 20 0z" fill="#1F3D2C" />}
+              </g>
             </g>
           );
         })}

@@ -512,14 +512,116 @@ button {
 .scene-baking .tray-item {
   animation: pop 0.35s ease-out both;
 }
+.person {
+  animation: bob 2.8s ease-in-out infinite;
+}
 .scene-baking .person {
-  animation: bob 1.4s ease-in-out infinite;
+  animation-duration: 1.4s;
 }
 .scene-baking .oven-glow {
   animation: glow 1s ease-in-out infinite alternate;
 }
 .rain line {
   animation: rain 0.9s linear infinite;
+}
+.sun-rays {
+  animation: spin 40s linear infinite;
+}
+.cloud {
+  animation: drift 50s linear infinite;
+}
+.birds {
+  animation: fly 26s linear infinite;
+}
+.bird {
+  animation: flap 0.8s ease-in-out infinite alternate;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.smoke circle {
+  animation: smoke 2.4s ease-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+}
+.stars circle {
+  animation: twinkle 2.6s ease-in-out infinite alternate;
+}
+.walker {
+  animation: walk 2.6s linear infinite;
+  opacity: 0;
+}
+.walker-body {
+  animation: step 0.45s ease-in-out infinite alternate;
+}
+@keyframes spin {
+  to {
+    rotate: 360deg;
+  }
+}
+@keyframes drift {
+  from {
+    transform: translateX(-80px);
+  }
+  to {
+    transform: translateX(480px);
+  }
+}
+@keyframes fly {
+  from {
+    transform: translate(-40px, 70px);
+  }
+  to {
+    transform: translate(440px, 20px);
+  }
+}
+@keyframes flap {
+  to {
+    scale: 1 0.4;
+  }
+}
+@keyframes smoke {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.5);
+  }
+  20% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(18px, -34px) scale(1.8);
+  }
+}
+@keyframes twinkle {
+  from {
+    opacity: 0.25;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes walk {
+  0% {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  8% {
+    opacity: 1;
+  }
+  88% {
+    opacity: 1;
+    transform: translateX(286px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(292px);
+  }
+}
+@keyframes step {
+  to {
+    translate: 0 -1.5px;
+  }
 }
 @keyframes pop {
   from {
@@ -2113,6 +2215,18 @@ button {
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
+  }
+}
+:root[data-motion='reduced'] .walkers,
+:root[data-motion='reduced'] .smoke,
+:root[data-motion='reduced'] .birds {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .walkers,
+  .smoke,
+  .birds {
+    display: none;
   }
 }
 :root[data-motion='reduced'] *,

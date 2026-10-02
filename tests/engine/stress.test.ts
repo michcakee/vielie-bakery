@@ -297,3 +297,28 @@ describe('regulars: badges and the critic', () => {
     check(later);
   });
 });
+
+describe('first-week unlock schedule and the next goal', () => {
+  it('something new arrives on its scheduled day, and the next unlock is always known', async () => {
+    const { nextUnlock } = await import('../../src/engine/progression');
+    let s = createNewGame(21);
+    expect(morning(s).unlocked).not.toContain('gressCupcake'); // level 1, but scheduled for the morning of day 2
+    s = autoDay(s); // day 1 → the morning of day 2
+    expect(s.unlocked).toContain('gressCupcake');
+    const n1 = nextUnlock(s);
+    expect(n1.pct).toBeGreaterThanOrEqual(0);
+    expect(n1.pct).toBeLessThanOrEqual(1);
+    expect(n1.text.length).toBeGreaterThan(0);
+    for (let d = 0; d < 5; d++) s = autoDay(s); // through day 6
+    expect(s.day).toBeGreaterThanOrEqual(6);
+    expect(s.unlocked).toContain('gressCupcake');
+    expect(s.unlocked).toContain('traTac');
+    expect(s.unlockedRegulars).toContain('mai');
+    expect(s.decor).toContain('stringLights');
+    for (let d = 0; d < 10; d++) s = autoDay(s);
+    expect(s.unlocked).toContain('gressOreo');
+    const late = nextUnlock(s);
+    expect(late.text).toMatch(/Level|everything/);
+    check(s);
+  });
+});

@@ -566,6 +566,8 @@ export interface GameState {
   hearts: Record<string, number>;
   /** Loyalty badges per regular: 1 bronze, 2 silver, 3 gold. Never lost. Optional so older saves load. */
   badges?: Record<string, number>;
+  /** Regulars unlocked by the first-week schedule ahead of their level. */
+  unlockedRegulars?: string[];
   visitsByRegular: Record<string, number>;
   quests: string[];
   questProgress: Record<string, number>;

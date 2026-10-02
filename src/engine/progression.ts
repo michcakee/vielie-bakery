@@ -1,7 +1,8 @@
-import { DECOR, LEVELS, PRODUCTS, PRODUCT_ORDER, UPGRADES } from '../data/catalog';
+import { DECOR, LEVELS, PRODUCTS, PRODUCT_ORDER, UNLOCK_SCHEDULE, UPGRADES } from '../data/catalog';
+import { REGULARS } from '../data/people';
 import { move } from './accounting';
 import { GOALS } from '../data/world';
-import { ecoScore, levelOf } from './economy';
+import { ecoScore, levelOf, levelProgress } from './economy';
 import { valuation } from './finance';
 import { toast } from './helpers';
 import type { DecorId, GameState, ProductId } from './types';
@@ -167,6 +168,45 @@ export function goalProgress(s: GameState): { pct: number; text: string } {
   }
 }
 
+/** Morning of a scheduled day: hand out the recipe, neighbour or gift. */
+export function applySchedule(s: GameState): GameState {
+  let next = s;
+  for (const u of UNLOCK_SCHEDULE) {
+    if (u.day !== s.day) continue;
+    if (u.kind === 'recipe') {
+      const p = u.id as ProductId;
+      if (next.unlocked.includes(p)) continue;
+      next = toast({ ...next, unlocked: [...next.unlocked, p], menu: [...next.menu, p] }, 'unlock', 'NEW RECIPE!!', `${PRODUCTS[p].name}: ${PRODUCTS[p].en}`);
+    } else if (u.kind === 'regular') {
+      const r = REGULARS.find((x) => x.id === u.id);
+      if (!r || next.unlockedRegulars?.includes(u.id)) continue;
+      next = toast({ ...next, unlockedRegulars: [...(next.unlockedRegulars ?? []), u.id] }, 'unlock', `${r.name} heard about you`, `${r.role}. ${r.behavior}`);
+    } else if (u.kind === 'decor') {
+      const d = u.id as DecorId;
+      if (next.decor.includes(d)) continue;
+      next = toast({ ...next, decor: [...next.decor, d] }, 'unlock', `A gift from Bà: ${DECOR[d].name}`, `${DECOR[d].bonus}. It's already up in the shop.`);
+    }
+  }
+  return next;
+}
+
+/** What the player is working toward right now, for the Today card and the day report. */
+export function nextUnlock(s: GameState): { text: string; pct: number; when: string; tomorrow: boolean } {
+  const upcoming = UNLOCK_SCHEDULE.find((u) => u.day > s.day);
+  if (upcoming) {
+    const prev = [...UNLOCK_SCHEDULE].reverse().find((u) => u.day <= s.day)?.day ?? 1;
+    const days = upcoming.day - s.day;
+    return { text: upcoming.tease, pct: Math.max(0, Math.min(1, (s.day - prev) / Math.max(1, upcoming.day - prev))), when: days === 1 ? 'tomorrow' : `in ${days} days`, tomorrow: days === 1 };
+  }
+  const lp = levelProgress(s.xp);
+  const nextLevel = LEVELS[lp.level];
+  if (!nextLevel) return { text: 'You’ve unlocked everything there is to unlock.', pct: 1, when: '', tomorrow: false };
+  const recipes = PRODUCT_ORDER.filter((p) => PRODUCTS[p].level === nextLevel.level && !PRODUCTS[p].season).map((p) => PRODUCTS[p].name);
+  const gear = Object.values(UPGRADES).filter((u) => u.level === nextLevel.level).map((u) => u.name);
+  const what = [...recipes.slice(0, 2), ...gear.slice(0, 1)].join(', ');
+  return { text: `Level ${nextLevel.level}${what ? `: ${what}` : ''}`, pct: lp.into / lp.span, when: `${Math.max(0, Math.round(lp.span - lp.into))} XP to go`, tomorrow: false };
+}
+
 export function checkProgress(s: GameState): GameState {
   let next = s;
   if (next.phase !== 'service' && next.goalReached === undefined && GOALS[next.goal] && goalProgress(next).pct >= 1) {
@@ -190,7 +230,9 @@ export function checkProgress(s: GameState): GameState {
 export function applyLevelUnlocks(s: GameState): GameState {
   const level = levelOf(s.xp);
   let next = s;
-  const newly: ProductId[] = PRODUCT_ORDER.filter((p) => p !== 'mutDua' && PRODUCTS[p].level <= level && !next.unlocked.includes(p));
+  // Scheduled recipes wait for their day, so the first fortnight keeps its rhythm.
+  const waiting = new Set(UNLOCK_SCHEDULE.filter((u) => u.kind === 'recipe' && u.day > s.day).map((u) => u.id));
+  const newly: ProductId[] = PRODUCT_ORDER.filter((p) => p !== 'mutDua' && PRODUCTS[p].level <= level && !next.unlocked.includes(p) && !waiting.has(p));
   if (newly.length) {
     next = { ...next, unlocked: [...next.unlocked, ...newly], menu: [...next.menu, ...newly.filter((p) => !PRODUCTS[p].season && !PRODUCTS[p].equipment)] };
     for (const p of newly) next = toast(next, 'unlock', 'NEW RECIPE!!', `${PRODUCTS[p].name}: ${PRODUCTS[p].en}${PRODUCTS[p].equipment ? ` (needs a ${UPGRADES[PRODUCTS[p].equipment!].name.toLowerCase()})` : ''}`);

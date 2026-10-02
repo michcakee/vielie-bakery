@@ -4244,3 +4244,22 @@ h3,
   border-radius: 3px;
   vertical-align: middle;
 }
+
+/* ---------- next unlock ---------- */
+.next-up-text {
+  display: block;
+  margin-bottom: 6px;
+  font-family: var(--cube);
+  text-transform: uppercase;
+  font-size: 18px;
+  color: var(--forest);
+}
+.report-next {
+  display: grid;
+  gap: 6px;
+  margin: 8px 0 12px;
+  padding: 8px 10px;
+  background: var(--paper-2);
+  border: 2px dashed var(--ink);
+  border-radius: var(--r);
+}

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { LEVELS, PRODUCTS, WEATHER } from '../data/catalog';
 import { EVENTS } from '../engine/events';
-import { ACHIEVEMENTS, activeQuests, goalMet, QUESTS, WEEKLY_GOALS } from '../engine/progression';
+import { ACHIEVEMENTS, activeQuests, goalMet, nextUnlock, QUESTS, WEEKLY_GOALS } from '../engine/progression';
 import { keepsOvernight } from '../engine/service';
 import type { LeftoverChoice, ProductId } from '../engine/types';
 import { money, money2, pct, signedMoney } from '../lib/format';
@@ -268,6 +268,19 @@ export function DayReport() {
       <p className="small tomorrow">
         Tomorrow: <b>{WEATHER[s.market.tomorrow].name}</b>. {WEATHER[s.market.tomorrow].tip}
       </p>
+      {(() => {
+        const n = nextUnlock(s);
+        return (
+          <div className="report-next">
+            <span className="small">
+              {n.tomorrow ? 'Tomorrow: ' : 'Next up: '}
+              <b>{n.text}</b>
+              {!n.tomorrow && n.when && ` (${n.when})`}
+            </span>
+            <Meter value={n.pct} tone="xp" label={`Progress to the next unlock: ${Math.round(n.pct * 100)}%`} />
+          </div>
+        );
+      })()}
       <Btn kind="go" className="big" onClick={() => dispatch({ type: 'nextDay' })} sfx="pop">
         {s.day % 7 === 0 ? 'See the week' : 'Sleep. Tomorrow is a new day'}
       </Btn>

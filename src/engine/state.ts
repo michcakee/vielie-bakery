@@ -47,7 +47,7 @@ import { bump, decide, learn, spend, toast } from './helpers';
 import { hireValue, makeEmployee, marketWage, quitters, updateMorale, weeklyApplicants } from './labor';
 import { createMacro, dailyMacro, monthlyMacro } from './macro';
 import { generateMarket } from './market';
-import { checkProgress, goalMet, WEEKLY_GOALS } from './progression';
+import { applySchedule, checkProgress, goalMet, WEEKLY_GOALS } from './progression';
 import { businessTip, recap } from './report';
 import { newSeed, rngFor } from './rng';
 import { endService, fastForward, keepsOvernight, openShop, serve, setLastCall, tick } from './service';
@@ -824,6 +824,7 @@ function startDay(s: GameState): GameState {
   next.market = generateMarket(next.seed, day, s.market, { priceIndex: next.macro.priceIndex, volatility: DIFFICULTY[next.difficulty].priceVolatility, effects: next.effects });
   next.today = { ...emptyDay(day, next.market.weather), community: next.community, reputation: next.reputation };
 
+  next = applySchedule(next);
   if (isMonthStart(day)) next = startOfMonth(next);
   // Repairs that were waiting.
   for (const e of next.effects.filter((x) => x.id === 'repairDue' && x.until < day)) {

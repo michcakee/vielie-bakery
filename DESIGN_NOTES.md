@@ -97,3 +97,13 @@ Each step is one change, played for at least a day before the next.
 - New achievement: Golden regular.
 
 *Numbers to playtest*: hearts per badge 5; visit boost 0.12/badge; critic strictness +6, tip ×2, reputation +1.5 / −1; critic frequency 0.3.
+
+### 4. A next goal always on screen
+
+*What changed*
+- `UNLOCK_SCHEDULE` (in `catalog.ts`): something new on days 2, 3, 4, 5, 6, 8, 10 and 13, rotating recipe → neighbour → recipe → decor gift → recipe → neighbour → recipe → recipe. Scheduled recipes wait for their day even when the level would allow them; scheduled neighbours arrive ahead of their level. After day 13, levels take over as before.
+- `nextUnlock()` names the next thing and how close it is: the scheduled item and the days to it, or the next level with its first recipes and equipment and the XP to go.
+- Today has a **Next up** card with that text and a progress bar, always visible.
+- The day report ends with the tease: "Tomorrow: New recipe: Trà tắc", or "Next up: … (in 3 days)" with the bar.
+
+*Numbers to playtest*: the schedule days; whether day-gating Gress cupcake to day 2 feels like a reward or a wait.

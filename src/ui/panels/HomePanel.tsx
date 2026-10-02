@@ -5,7 +5,7 @@ import { incomeStatement, inventoryValue } from '../../engine/accounting';
 import { dateLabel, festivalsOn, FESTIVALS } from '../../engine/calendar';
 import { activeRivals, businessStage, canBakeTray, effectActive, makeable, onMenu, rent, trayCapacity } from '../../engine/economy';
 import { REGIMES } from '../../engine/macro';
-import { activeQuests, WEEKLY_GOALS } from '../../engine/progression';
+import { activeQuests, WEEKLY_GOALS, nextUnlock } from '../../engine/progression';
 import type { GameState } from '../../engine/types';
 import { money, money2, signedMoney } from '../../lib/format';
 import { Spark } from '../charts';
@@ -141,6 +141,7 @@ export function HomePanel({ goTo, onOpen, onRunDay }: { goTo: (t: Tab) => void; 
       </Card>
 
       <Coach goTo={goTo} />
+      <NextUp />
 
       {firstDay ? (
         <Card className="ba-note" title="A note from Bà" icon="note">
@@ -235,6 +236,18 @@ export function HomePanel({ goTo, onOpen, onRunDay }: { goTo: (t: Tab) => void; 
         {s.deliveries.length ? ` · ${s.deliveries.length} deliveries on the way (${s.deliveries.map((d) => INGREDIENTS[d.ingredient].name.toLowerCase()).join(', ')})` : ''}. Fixed costs today: about {money2(rent(s))} rent.
       </p>
     </div>
+  );
+}
+
+/** Always on screen: the next thing you'll unlock and how close it is. */
+function NextUp() {
+  const { state: s } = useGame();
+  const n = nextUnlock(s);
+  return (
+    <Card className="next-up" title="Next up" icon="spark" aside={<span className="small muted">{n.when}</span>}>
+      <b className="next-up-text">{n.text}</b>
+      <Meter value={n.pct} tone="xp" label={`Progress to the next unlock: ${Math.round(n.pct * 100)}%`} />
+    </Card>
   );
 }
 

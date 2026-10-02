@@ -159,7 +159,7 @@ export function buildSchedule(s: GameState): Visit[] {
   const level = levelOf(s.xp);
   const inherited = s.scenario === 'family' || s.scenario === 'community' || s.scenario === 'recession';
   for (const r of REGULARS) {
-    if (r.level > level || (s.day === 1 && r.id !== 'minh')) continue;
+    if ((r.level > level && !s.unlockedRegulars?.includes(r.id)) || (s.day === 1 && r.id !== 'minh')) continue;
     if (s.day === 1 && r.id === 'linh') continue;
     if (!inherited && (s.visitsByRegular[r.id] ?? 0) === 0 && s.history.length < 5) continue;
     const hearts = s.hearts[r.id] ?? 0;

@@ -94,7 +94,6 @@ One build serves everything. `vite build` → `dist/`, which GitHub Pages serves
 
 ## Known technical debt (v3)
 
-- The v1 simulator (`src/game`, `src/views`, `src/components`, `src/config`, `tests/*.test.ts`) is unused but still compiled and tested. It's tagged `v1-economics-sim` and can be deleted.
-- `BakeryPanel.tsx` and `MoneyPanel.tsx` are superseded by the Home and Finances panels and are no longer rendered.
+- The v1 simulator and the retired v2 Bakery and Money panels were deleted in v3.0.0; the v1 code is still available at the `v1-economics-sim` git tag.
 - `state.ts` is large (the reducer plus the day lifecycle). Splitting the day lifecycle into its own module would make it easier to read.
 - The test suite takes about two minutes because of the long playthroughs; they could move to a nightly job if CI time matters.

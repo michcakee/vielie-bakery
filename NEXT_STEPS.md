@@ -13,7 +13,7 @@ Version 3 expands the v2 pixel-art bakery into a business sandbox, following the
 - **Phase 7:** Capacitor Android and iOS projects, generated icons and splashes, PWA offline support, self-hosted fonts, Android back button, safe areas.
 - **Phase 8:** stress, exploit and fuzz tests; input validation; a balance pass (see [docs/BALANCING.md](docs/BALANCING.md)); mobile layout fixes.
 
-**Tests:** 141 passing (`npm test`), plus the opt-in balance survey (`npm run balance`).
+**Tests:** 98 passing (`npm test`), plus the opt-in balance survey (`npm run balance`).
 
 ## Verified
 
@@ -34,6 +34,5 @@ Version 3 expands the v2 pixel-art bakery into a business sandbox, following the
 2. **Playtest a full first year by hand** and tune the first month: is it clear what to do after the story events end?
 3. **An "active player" balance bot** that hires, raises prices when sold out and buys a second oven, to measure the skill ceiling (and to catch any dominant strategy).
 4. **Owner's pay.** Show "profit after paying yourself a market wage" so solo-owner profits read realistically.
-5. **Delete dead code:** the v1 simulator (tagged `v1-economics-sim`), `BakeryPanel.tsx` and `MoneyPanel.tsx`.
-6. **Store assets:** screenshots from real builds, final listing copy, and the privacy policy published at a URL (drafts in [docs/store/](docs/store/)).
-7. **Cloud save** (optional), only if a backend is ever added, and only with consent.
+5. **Store assets:** screenshots from real builds, final listing copy, and the privacy policy published at a URL (drafts in [docs/store/](docs/store/)).
+6. **Cloud save** (optional), only if a backend is ever added, and only with consent.

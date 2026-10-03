@@ -271,7 +271,10 @@ export function applyLevelUnlocks(s: GameState): GameState {
   if (level > prevLevel) {
     next = { ...next, questProgress: { ...next.questProgress, level } };
     const shop = [...(featureOn(next, 'growth.equipment') ? Object.values(UPGRADES).filter((u) => u.level === level).map((u) => u.name) : []), ...(featureOn(next, 'growth.decor') ? Object.values(DECOR).filter((d) => d.level === level).map((d) => d.name) : [])];
-    next = toast(next, 'level', `LEVEL ${level}: ${LEVELS[level - 1].name}`, shop.length ? `New in the shop: ${shop.slice(0, 4).join(', ')}` : LEVELS[level - 1].en);
+    // Every level comes with a gift from Bà, so each one feels worth reaching.
+    const gift = 100 * level;
+    next = move(next, 'cashOperatingOther', gift, { otherIncome: gift });
+    next = toast(next, 'level', `LEVEL ${level}: ${LEVELS[level - 1].name}`, `Bà sends $${gift} to celebrate!${shop.length ? ` New in the shop: ${shop.slice(0, 3).join(', ')}` : ''}`);
   }
   return next;
 }

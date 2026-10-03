@@ -171,7 +171,7 @@ describe('long-term goals and endings', () => {
       expect(g.text.length).toBeGreaterThan(0);
     }
     // 'survive' needs two years; jump the clock to check it's detected.
-    s = autoDay({ ...s, goal: 'survive', day: 721 });
+    s = autoDay({ ...s, goal: 'survive', day: 721, goalReached: undefined });
     expect(s.goalReached).toBeGreaterThan(720);
     const reached = s.goalReached;
     s = autoDay(s);

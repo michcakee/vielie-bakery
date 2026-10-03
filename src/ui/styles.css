@@ -650,7 +650,7 @@ kbd {
   left: 50%;
   top: 0;
   width: 240px;
-  height: 135px;
+  height: 168px;
   transform-origin: 0 0;
 }
 .stage > * {
@@ -660,7 +660,18 @@ kbd {
   left: 0;
   top: 0;
   width: 240px;
-  height: 135px;
+  height: 168px;
+}
+/* A plane holds people who can overlap each other: whoever stands lower on the floor is drawn in front. */
+.stage .plane {
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  isolation: isolate;
+}
+.stage .plane > * {
+  position: absolute;
 }
 .street {
   overflow: hidden;
@@ -673,28 +684,28 @@ kbd {
   top: 0;
   bottom: 0;
   width: 2px;
-  background: var(--matcha);
+  background: var(--pine);
   z-index: 5;
   pointer-events: none;
 }
 .mover {
   position: absolute;
-  bottom: 9px;
+  bottom: 1px;
   left: -24px;
   line-height: 0;
 }
 /* People on the street are across the road, so they're smaller than people in the shop.
    The scale sits on the sprite, not the mover, because the mover's walk animation owns `transform`. */
 .mover.walker .person-sprite {
-  transform: scale(0.5);
+  transform: scale(0.36);
   transform-origin: bottom center;
 }
 .mover.moto {
-  bottom: 6px;
+  bottom: 1px;
   animation: drive 9s linear infinite;
 }
 .mover.moto.m2 {
-  bottom: 2px;
+  bottom: -2px;
   animation-duration: 6.5s;
   animation-delay: -3s;
 }
@@ -705,8 +716,8 @@ kbd {
   transform: scaleX(-1);
 }
 .mover.walker {
-  /* feet on the far pavement (window row 43 of 50), small because they're across the road */
-  bottom: 6px;
+  /* feet on the far pavement, small because they're across the road */
+  bottom: 7px;
   animation: drive 22s linear infinite;
   animation-delay: -8s;
 }
@@ -721,12 +732,12 @@ kbd {
     transform: translateX(0);
   }
   to {
-    transform: translateX(92px);
+    transform: translateX(74px);
   }
 }
 @keyframes drive-back {
   from {
-    transform: translateX(92px);
+    transform: translateX(74px);
   }
   to {
     transform: translateX(0);
@@ -734,10 +745,10 @@ kbd {
 }
 @keyframes cross {
   from {
-    transform: translate(70px, 0);
+    transform: translate(52px, 0);
   }
   to {
-    transform: translate(26px, -6px);
+    transform: translate(22px, -2px);
     opacity: 0.4;
   }
 }
@@ -758,14 +769,15 @@ kbd {
 .person-sprite {
   display: inline-block;
   background-repeat: no-repeat;
-  background-position: 0 0;
+  /* The row (front or back view) is set inline; the walk cycle only steps sideways. */
+  background-position-x: 0;
 }
 .person-sprite.is-walking {
   animation: step 0.36s steps(1) infinite;
 }
 @keyframes step {
   50% {
-    background-position: var(--step) 0;
+    background-position-x: var(--step);
   }
 }
 .bob {
@@ -818,7 +830,25 @@ kbd {
 }
 .cust {
   line-height: 0;
-  transition: left 140ms linear;
+  transition: left 140ms linear, top 140ms linear;
+}
+/* Sitting down: the chair hides their legs. */
+.cust.seated .person-sprite {
+  clip-path: inset(0 0 5px 0);
+}
+.bubble.dine {
+  cursor: default;
+  padding: 0 1px;
+}
+/* The songbird cage hangs from a short cord. */
+.cage::before {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: -4px;
+  width: 1px;
+  height: 4px;
+  background: var(--ink);
 }
 .cust.leaving {
   opacity: 0.85;
@@ -930,7 +960,6 @@ kbd {
 }
 /* Only the glow; the lamp itself is drawn on the room canvas. */
 .lamp {
-  top: 21px;
   width: 1px;
   height: 1px;
   pointer-events: none;
@@ -2984,7 +3013,7 @@ textarea {
 .ext-walker .person-sprite {
   aspect-ratio: 16 / 24;
   height: auto !important;
-  background-size: 200% 100% !important;
+  background-size: 200% 200% !important;
   /* The sprite is sized in %, so the walk frame must step by a frame width in %, not the inline px. */
   --step: 100% !important;
 }
@@ -4835,7 +4864,7 @@ html[data-motion='reduced'] .bell-bounce {
 /* ---------- Phase 5: ambient life ---------- */
 /* a cat crosses the window every so often (long cycle, mostly idle off-screen) */
 .mover.cat {
-  bottom: 4px;
+  bottom: 0;
   animation: cat-walk 48s linear infinite;
   animation-delay: -10s;
 }
@@ -4845,7 +4874,7 @@ html[data-motion='reduced'] .bell-bounce {
     transform: translateX(-16px);
   }
   100% {
-    transform: translateX(96px);
+    transform: translateX(76px);
   }
 }
 .mover.cat img {
@@ -5531,11 +5560,10 @@ html[data-motion='reduced'] .title-logo span {
   position: relative;
 }
 .paint-btn {
-  position: absolute;
-  left: 10px;
-  bottom: 12px;
-  z-index: 4;
-  display: inline-flex;
+  /* Sits under the picture, so it never covers the room. */
+  margin: 8px 0 0 auto;
+  width: max-content;
+  display: flex;
   gap: 4px;
   align-items: center;
   min-height: 36px;

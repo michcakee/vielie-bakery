@@ -213,7 +213,7 @@ On Android, the back button closes windows and sheets, then returns to Today.
 - **Special requests.** From day 5, some customers ask for a twist: "No chili", "Extra herbs" or "In a hurry". The ticket shows what they want and the ingredient to leave out is crossed off. Get it exactly right (or be quick for a hurry order) for a bonus tip.
 - **Daily challenge.** Each morning from day 3 there is one small task, such as "Sell 5 bánh flan" or "Nobody gives up waiting today". Finish it for +20 XP and a few dollars in the tip jar.
 - **Staff personalities.** Every worker has one: Lightning hands (faster, a bit messier), Careful (slower, better), Sunshine (customers tip more) or Early bird (extra fast before lunch). You can see it before you hire, and they chat in the shop.
-- **Paint and arrange.** Tap **Paint** on the shop picture in the morning to choose the wall colour and pattern, the floor and the counter, and to move your plants and the songbird cage. It is free.
+- **Paint and arrange.** Tap **Paint** under the shop picture in the morning to choose the wall colour and pattern, the floor and the counter, and to move your plants and the songbird cage. It is free.
 - **The Lantern Festival.** Around day 36 a story begins: a big bakery chain wants Bà’s shop, and the lane will vote for its favourite bakery. Each chapter is one card with a choice. Kind choices and 2-star days win lane hearts; 16 hearts wins the Golden Whisk.
 - **Collection book.** The book button at the top now has a **Collection** page: neighbours you have met, recipes and medals, story chapters, moments and decorations.
 - **New looks.** Characters are drawn in a cuter style, with pigtails, pastel hair colours, a bow, headphones and heart clips to choose from.

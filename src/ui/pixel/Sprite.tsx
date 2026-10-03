@@ -28,8 +28,8 @@ export function Sprite({ name, scale = 2, label, className, style }: Props) {
   );
 }
 
-/** A character, drawn from a two-frame sheet; `walking` alternates frames. */
-export function Person({ look, scale = 2, walking = false, className, style, label }: { look: Look; scale?: number; walking?: boolean; className?: string; style?: CSSProperties; label?: string }) {
+/** A character, drawn from a sprite sheet; `walking` alternates frames and `back` shows them from behind. */
+export function Person({ look, scale = 2, walking = false, back = false, className, style, label }: { look: Look; scale?: number; walking?: boolean; back?: boolean; className?: string; style?: CSSProperties; label?: string }) {
   const s = personSheet(look);
   return (
     <span
@@ -41,7 +41,8 @@ export function Person({ look, scale = 2, walking = false, className, style, lab
         width: PERSON_W * scale,
         height: s.h * scale,
         backgroundImage: s.url ? `url(${s.url})` : undefined,
-        backgroundSize: `${PERSON_W * 2 * scale}px ${s.h * scale}px`,
+        backgroundSize: `${PERSON_W * 2 * scale}px ${s.h * 2 * scale}px`,
+        backgroundPositionY: back ? -s.h * scale : 0,
         ['--step' as string]: `${-PERSON_W * scale}px`,
         ...style,
       }}

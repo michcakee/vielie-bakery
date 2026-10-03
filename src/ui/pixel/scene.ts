@@ -1,34 +1,47 @@
 import type { DecorId, ShopStyle, UpgradeId, Weather } from '../../engine/types';
 import { PAL } from './palette';
-import { paint } from './render';
-import { SPRITES } from './sprites';
-import { SPRITE_COLORS } from './palette';
 
+/**
+ * The shop, seen from above at an angle (like a cozy RPG room): a back wall with the window,
+ * bread shelves, menu board and oven; a service counter with the glass case across the middle;
+ * the queue in front of the register; gingham tables and the cat mat by the door at the bottom.
+ */
 export const STAGE_W = 240;
-export const STAGE_H = 135;
+export const STAGE_H = 168;
 
-/** Fixed layout of the room, in stage pixels. */
+/** Fixed layout of the room, in stage pixels. People are placed by their feet. */
 export const LAYOUT = {
-  floorY: 96,
-  door: { x: 4, y: 50, w: 24, h: 46 },
-  window: { x: 32, y: 16, w: 64, h: 54 },
-  board: { x: 102, y: 12, w: 48, h: 34 },
-  shelf: { x: 102, y: 52, w: 48 },
-  fridge: { x: 152, y: 58, w: 13, h: 38 },
-  coffee: { x: 166, y: 78, w: 32, h: 18 },
-  oven: { x: 201, y: 38, w: 36, h: 58 },
-  counter: { x: 112, y: 104, w: 100, h: 20 },
-  case: { x: 114, y: 84, w: 64, h: 20 },
-  register: { x: 194, y: 92, w: 14, h: 12 },
-  player: { x: 184, feet: 106 },
-  helper: { x: 172, feet: 90 },
-  queueY: 131,
-  queueX: [146, 127, 108, 89],
-  doorX: 10,
+  floorY: 42,
+  bottomY: 162,
+  /** The way in: a gap in the bottom wall. */
+  door: { x: 14, w: 30 },
+  window: { x: 8, y: 8, w: 46, h: 30 },
+  bookcase: { x: 58, y: 8, w: 26, h: 48 },
+  board: { x: 96, y: 8, w: 48, h: 28 },
+  backCounter: { x: 92, y: 43, w: 82 },
+  coffee: { x: 150, y: 43 },
+  fridge: { x: 175, y: 14, w: 15, h: 43 },
+  oven: { x: 193, y: 10, w: 39, h: 47 },
+  /** Service counter: a top face 10 deep, then a front 20 tall. */
+  counter: { x: 56, y: 66, w: 136 },
+  case: { x: 58, y: 75, w: 72, h: 21 },
+  register: { x: 148, y: 57, w: 14, h: 12 },
+  player: { x: 168, feet: 74 },
+  /** Staff stand here, behind the counter. */
+  staffFeet: 74,
+  queueY: 122,
+  queueX: [138, 162, 186, 210],
+  /** Just inside the door, and the row people walk along below the queue. */
+  entry: { x: 21, y: 131 },
+  tables: [72, 130],
+  cornerTable: 190,
+  tableY: 136,
+  seatY: 157,
 };
 
 /** Left edge of each pendant lamp's shade; its glow centres on lx + 4. */
-export const LAMPS_X = [12, 160];
+export const LAMPS_X = [84, 178];
+export const LAMP_GLOW_Y = 11;
 
 export type Light = 0 | 1 | 2 | 3 | 4;
 
@@ -40,7 +53,7 @@ export interface SceneOpts {
   tet: boolean;
   competitor: boolean;
   style?: ShopStyle;
-  /** The Lantern Festival prize on the wall. */
+  /** The Lantern Festival prize, on the back counter. */
   prize?: 'won' | 'second';
 }
 
@@ -55,21 +68,38 @@ export const WALLS = [
 ];
 export const PATTERNS = ['Stripes', 'Plain', 'Dots', 'Checks'];
 export const FLOORS = [
-  { name: 'Wood', a: '#d9a76a', b: '#d9a76a', line: '#a87545', tiles: false },
-  { name: 'Cream tiles', a: '#f4ead0', b: '#e6d9b4', line: '#cdbd94', tiles: true },
-  { name: 'Terracotta', a: '#e0a57c', b: '#cf8d68', line: '#a8664a', tiles: true },
-  { name: 'Dark wood', a: '#b98363', b: '#b98363', line: '#7e5a48', tiles: false },
+  { name: 'Cream tiles', a: '#f6ecd2', b: '#f0e3c0', line: '#e3d3a8', tiles: true },
+  { name: 'Wood', a: '#dcae74', b: '#dcae74', line: '#b98352', tiles: false },
+  { name: 'Terracotta', a: '#e0a57c', b: '#d69870', line: '#b9795a', tiles: true },
+  { name: 'Dark wood', a: '#b98363', b: '#b98363', line: '#8f6249', tiles: false },
 ];
 export const COUNTERS = [
   { name: 'Wood and green', body: '#d9b07a', top: '#4f7d46' },
   { name: 'Pink', body: '#f8e1e8', top: '#d97a62' },
-  { name: 'Blue', body: '#e1e8f5', top: '#b8cfd6' },
+  { name: 'Blue', body: '#e1e8f5', top: '#8fb0bd' },
   { name: 'Wood', body: '#e0b072', top: '#a87545' },
 ];
-/** Where movable decorations can go (stage px, left edge). */
-export const FLOOR_SPOTS = [28, 58, 88];
-export const CAGE_SPOTS = [1, 176, 227];
+/** Where movable decorations can go (stage px, top-left of the sprite). */
+export const FLOOR_SPOTS = [
+  { x: 8, y: 58 },
+  { x: 46, y: 146 },
+  { x: 8, y: 92 },
+];
+export const CAGE_SPOTS = [
+  { x: 8, y: 44 },
+  { x: 222, y: 60 },
+  { x: 8, y: 78 },
+];
 const at = <T,>(list: T[], i: number | undefined): T => list[(i ?? 0) % list.length] ?? list[0];
+
+/** Where diners sit: the chairs either side of each table (cell-left x, feet y). */
+export function seats(corner: boolean): { x: number; y: number }[] {
+  const tables = corner ? [...LAYOUT.tables, LAYOUT.cornerTable] : LAYOUT.tables;
+  return tables.flatMap((tx) => [
+    { x: tx - 15, y: LAYOUT.seatY },
+    { x: tx + 25, y: LAYOUT.seatY },
+  ]);
+}
 
 /** Sky through the window by weather, for dawn, morning, midday, golden hour and night. */
 const SKY: Record<Weather, string[]> = {
@@ -80,21 +110,157 @@ const SKY: Record<Weather, string[]> = {
   cool: ['#f2ead8', '#d9e8e6', '#d3e5e6', '#ebcb98', '#3e4a36'],
 };
 
+const C = {
+  wallCap: '#4f7d46',
+  wallCapHi: '#6f9e58',
+  wallEdge: '#3e5f38',
+  base: '#c4d3a2',
+  baseLine: '#a3b97f',
+  frame: '#4f7d46',
+  wood: '#b98352',
+  woodLight: '#d9b07a',
+  woodPale: '#e8c897',
+  woodDark: '#a87545',
+  woodDeep: '#7a5434',
+  leaf: '#6f9e58',
+  leafDark: '#4f7d46',
+  pot: '#c98a5a',
+  lamp: '#f4dc8c',
+  cream: '#f7f0dc',
+  chalk: '#3f5a3a',
+};
+
 function rect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, c: string) {
   ctx.fillStyle = c;
   ctx.fillRect(x, y, w, h);
 }
 
-function box(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, fill: string, line = PAL.ink) {
+function box(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, fill: string, line: string = PAL.ink) {
   rect(ctx, x, y, w, h, line);
   rect(ctx, x + 1, y + 1, w - 2, h - 2, fill);
 }
 
-function sprite(ctx: CanvasRenderingContext2D, name: string, x: number, y: number) {
-  const rows = SPRITES[name];
-  if (rows) paint(ctx, [rows], SPRITE_COLORS, x, y);
+// ---------------------------------------------------------------- small props
+
+/** A loaf, a baguette or a round bun on a shelf, sitting on `y`. */
+function loaf(ctx: CanvasRenderingContext2D, x: number, y: number, kind: number) {
+  const crust = ['#c98a4a', '#d9a05a', '#b8763c'][kind % 3];
+  const top = ['#e7b56d', '#efc27a', '#d79552'][kind % 3];
+  if (kind % 3 === 1) {
+    rect(ctx, x, y - 2, 9, 2, crust);
+    rect(ctx, x + 1, y - 3, 7, 1, top);
+    for (const sx of [2, 5]) rect(ctx, x + sx, y - 3, 1, 1, '#f7e2b5');
+  } else {
+    rect(ctx, x, y - 3, 6, 3, crust);
+    rect(ctx, x + 1, y - 5, 4, 2, top);
+    rect(ctx, x + 2, y - 5, 1, 1, '#f7e2b5');
+  }
 }
 
+/** A plant in a terracotta pot, standing on `y`. */
+function pottedPlant(ctx: CanvasRenderingContext2D, x: number, y: number, size = 1) {
+  rect(ctx, x, y - 4, 5, 4, C.pot);
+  rect(ctx, x - 1, y - 5, 7, 1, C.woodDeep);
+  const leaves = size === 1 ? [[1, -7], [0, -8], [3, -8], [4, -7], [2, -9]] : [[1, -7], [0, -9], [3, -9], [4, -7], [2, -11], [-1, -7], [5, -9], [1, -11], [3, -12], [-2, -10], [6, -11]];
+  for (const [lx, ly] of leaves) rect(ctx, x + lx, y + ly, 2, 2, (lx + ly) % 2 ? C.leaf : C.leafDark);
+}
+
+/** The shop cat, asleep on a green cushion. (x, y) is the cushion's top-left. */
+function shopCat(ctx: CanvasRenderingContext2D, x: number, y: number) {
+  rect(ctx, x, y + 8, 22, 4, C.leafDark);
+  rect(ctx, x + 1, y + 7, 20, 2, C.leaf);
+  const fur = '#f0b56e';
+  rect(ctx, x + 4, y + 1, 14, 6, fur);
+  rect(ctx, x + 5, y, 12, 1, fur);
+  rect(ctx, x + 4, y + 3, 4, 4, '#ffffff');
+  for (const sx of [9, 13]) rect(ctx, x + sx, y + 1, 2, 1, '#d48d48');
+  rect(ctx, x + 2, y + 2, 5, 4, fur);
+  rect(ctx, x + 2, y + 1, 1, 1, fur);
+  rect(ctx, x + 6, y + 1, 1, 1, fur);
+  rect(ctx, x + 3, y + 4, 1, 1, PAL.ink);
+  rect(ctx, x + 5, y + 4, 1, 1, PAL.ink);
+  rect(ctx, x + 16, y + 5, 5, 2, fur);
+  rect(ctx, x + 20, y + 4, 1, 1, '#d48d48');
+}
+
+/** The green doormat with a cat's face on it. */
+function catMat(ctx: CanvasRenderingContext2D, x: number, y: number) {
+  rect(ctx, x + 1, y, 29, 17, '#7fa36a');
+  rect(ctx, x, y + 1, 31, 15, '#7fa36a');
+  const edge = '#a9c78c';
+  rect(ctx, x + 2, y + 1, 27, 1, edge);
+  rect(ctx, x + 2, y + 15, 27, 1, edge);
+  rect(ctx, x + 1, y + 2, 1, 13, edge);
+  rect(ctx, x + 29, y + 2, 1, 13, edge);
+  const c = '#eef5de';
+  // ears
+  for (const [ex, ey, w] of [[9, 3, 2], [9, 4, 3], [20, 3, 2], [19, 4, 3]]) rect(ctx, x + ex, y + ey, w, 1, c);
+  // head
+  rect(ctx, x + 11, y + 5, 9, 1, c);
+  rect(ctx, x + 9, y + 5, 1, 7, c);
+  rect(ctx, x + 21, y + 5, 1, 7, c);
+  rect(ctx, x + 10, y + 12, 11, 1, c);
+  // eyes, nose, mouth, whiskers
+  rect(ctx, x + 12, y + 7, 1, 2, c);
+  rect(ctx, x + 18, y + 7, 1, 2, c);
+  rect(ctx, x + 15, y + 9, 1, 1, c);
+  rect(ctx, x + 14, y + 10, 1, 1, c);
+  rect(ctx, x + 16, y + 10, 1, 1, c);
+  for (const wy of [8, 10]) {
+    rect(ctx, x + 5, y + wy, 3, 1, c);
+    rect(ctx, x + 23, y + wy, 3, 1, c);
+  }
+}
+
+/** Green gingham: cream cloth with pale bands that go darker where they cross. */
+function gingham(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number) {
+  rect(ctx, x, y, w, h, '#f7efd8');
+  for (let i = 0; i < w; i += 4) rect(ctx, x + i, y, 2, h, '#cfe0b4');
+  for (let j = 0; j < h; j += 4) {
+    rect(ctx, x, y + j, w, 2, '#cfe0b4');
+    for (let i = 0; i < w; i += 4) rect(ctx, x + i, y + j, 2, 2, '#9dbf78');
+  }
+}
+
+/** A wooden chair seen from the front: slatted back, seat, legs. */
+function chair(ctx: CanvasRenderingContext2D, cx: number, y: number) {
+  rect(ctx, cx, y, 10, 8, C.wood);
+  rect(ctx, cx, y, 10, 1, C.woodLight);
+  rect(ctx, cx + 3, y + 2, 1, 5, C.woodDeep);
+  rect(ctx, cx + 6, y + 2, 1, 5, C.woodDeep);
+  rect(ctx, cx, y + 8, 10, 4, C.woodLight);
+  rect(ctx, cx, y + 12, 10, 1, C.woodDeep);
+  rect(ctx, cx, y + 13, 1, 5, C.woodDeep);
+  rect(ctx, cx + 9, y + 13, 1, 5, C.woodDeep);
+}
+
+/** A table for two under a gingham cloth, with a chair either side. `tx` is the table's left edge. */
+function cafeTable(ctx: CanvasRenderingContext2D, tx: number) {
+  const ty = LAYOUT.tableY;
+  chair(ctx, tx - 12, ty + 2);
+  chair(ctx, tx + 28, ty + 2);
+  gingham(ctx, tx - 1, ty, 28, 12);
+  // the cloth hangs over the front edge, a little in shadow
+  gingham(ctx, tx - 1, ty + 12, 28, 6);
+  rect(ctx, tx - 1, ty + 12, 28, 6, 'rgba(62,74,54,0.14)');
+  rect(ctx, tx - 1, ty + 12, 28, 1, 'rgba(62,74,54,0.18)');
+  rect(ctx, tx - 1, ty + 18, 28, 1, C.leaf);
+  rect(ctx, tx + 2, ty + 19, 2, 3, C.woodDeep);
+  rect(ctx, tx + 22, ty + 19, 2, 3, C.woodDeep);
+  // a vase of flowers, a plate and a cup
+  rect(ctx, tx + 11, ty - 2, 4, 5, '#ffffff');
+  rect(ctx, tx + 11, ty + 2, 4, 1, '#b8cfd6');
+  rect(ctx, tx + 10, ty - 5, 2, 3, C.leaf);
+  rect(ctx, tx + 14, ty - 6, 2, 4, C.leafDark);
+  rect(ctx, tx + 12, ty - 7, 2, 2, '#f4dc8c');
+  rect(ctx, tx + 9, ty - 6, 2, 2, '#efb6a0');
+  rect(ctx, tx + 3, ty + 5, 6, 3, '#ffffff');
+  rect(ctx, tx + 4, ty + 5, 4, 2, '#e7b56d');
+  rect(ctx, tx + 19, ty + 5, 4, 3, '#ffffff');
+  rect(ctx, tx + 20, ty + 5, 2, 1, '#8a5f3a');
+}
+
+// ---------------------------------------------------------------- the street outside
 
 export function drawStreet(ctx: CanvasRenderingContext2D, o: SceneOpts) {
   const { x, y, w, h } = LAYOUT.window;
@@ -102,393 +268,364 @@ export function drawStreet(ctx: CanvasRenderingContext2D, o: SceneOpts) {
   const iy = y + 2;
   const iw = w - 4;
   const ih = h - 4;
-  const sky = SKY[o.weather][o.light];
+  const night = o.light === 4;
   // Nothing outside may paint over the window frame.
   ctx.save();
   ctx.beginPath();
   ctx.rect(ix, iy, iw, ih);
   ctx.clip();
-  rect(ctx, ix, iy, iw, ih, sky);
-  if (o.light === 4) for (const [sx, sy] of [[ix + 6, iy + 4], [ix + 22, iy + 8], [ix + 40, iy + 3], [ix + 54, iy + 9]]) rect(ctx, sx, sy, 1, 1, '#f7f0dc');
-  // power lines
-  ctx.fillStyle = 'rgba(59,42,37,0.55)';
-  for (let i = 0; i < iw; i++) {
-    ctx.fillRect(ix + i, iy + 8 + Math.round(3 * Math.sin((i / iw) * Math.PI)), 1, 1);
-    ctx.fillRect(ix + i, iy + 11 + Math.round(4 * Math.sin((i / iw) * Math.PI)), 1, 1);
-  }
-  // building across the street
-  const bx = ix + 4;
-  const by = iy + 14;
-  rect(ctx, bx, by, 34, 26, o.light === 4 ? '#3e4a36' : '#dde7c4');
-  rect(ctx, bx, by, 34, 2, PAL.ink);
-  for (let i = 0; i < 3; i++) box(ctx, bx + 3 + i * 10, by + 4, 7, 6, o.light >= 3 ? '#eee3a8' : '#dde7c4');
-  // shop awning: flowers, or Cô Tư's bánh mì stand later in the year
-  const awn = o.competitor ? ['#a87545', '#f7f0dc'] : ['#4f7d46', '#f7f0dc'];
-  for (let i = 0; i < 34; i++) rect(ctx, bx + i, by + 13, 1, 3, awn[Math.floor(i / 3) % 2]);
-  rect(ctx, bx, by + 16, 34, 10, o.light === 4 ? '#3e4a36' : '#f7f0dc');
-  box(ctx, bx + 4, by + 18, 12, 8, '#3e4a36');
-  if (o.competitor) box(ctx, bx + 19, by + 18, 12, 7, '#e0b072');
-  else for (let i = 0; i < 4; i++) rect(ctx, bx + 19 + i * 3, by + 20, 2, 2, ['#d97a62', '#e0b072', '#f7f0dc', '#a87545'][i]);
-  // second building and a tree
-  rect(ctx, ix + 41, iy + 8, 18, 32, o.light === 4 ? '#3e4a36' : '#f7f0dc');
-  rect(ctx, ix + 41, iy + 8, 18, 2, PAL.ink);
-  for (let r = 0; r < 3; r++) for (let c = 0; c < 2; c++) box(ctx, ix + 43 + c * 8, iy + 12 + r * 9, 6, 6, o.light >= 3 ? '#eee3a8' : '#dde7c4');
-  rect(ctx, ix + 37, iy + 24, 3, 18, PAL.coffee);
-  for (const [tx, ty, r] of [[38, 18, 7], [33, 22, 5], [43, 22, 5]]) {
-    ctx.fillStyle = o.light === 4 ? '#3e4a36' : PAL.pandan;
+  rect(ctx, ix, iy, iw, ih, SKY[o.weather][o.light]);
+  if (night) for (const [sx, sy] of [[5, 2], [17, 4], [30, 1], [38, 5]]) rect(ctx, ix + sx, iy + sy, 1, 1, C.cream);
+  ctx.fillStyle = 'rgba(59,42,37,0.5)';
+  for (let i = 0; i < iw; i++) ctx.fillRect(ix + i, iy + 2 + Math.round(2 * Math.sin((i / iw) * Math.PI)), 1, 1);
+  // the shop across the street: flowers, or Cô Tư's bánh mì stand later in the year
+  const bx = ix + 2;
+  const by = iy + 5;
+  rect(ctx, bx, by, 20, 12, night ? '#3e4a36' : '#e3ebcf');
+  rect(ctx, bx, by, 20, 1, PAL.ink);
+  for (let i = 0; i < 2; i++) box(ctx, bx + 2 + i * 9, by + 2, 7, 4, o.light >= 3 ? '#eee3a8' : '#cfe6e4');
+  const awn = o.competitor ? ['#a87545', C.cream] : ['#4f7d46', C.cream];
+  for (let i = 0; i < 20; i++) rect(ctx, bx + i, by + 7, 1, 2, awn[Math.floor(i / 2) % 2]);
+  rect(ctx, bx, by + 9, 20, 3, night ? '#3e4a36' : C.cream);
+  rect(ctx, bx + 3, by + 9, 4, 3, '#3e4a36');
+  if (o.competitor) rect(ctx, bx + 10, by + 9, 8, 3, '#e0b072');
+  else for (let i = 0; i < 3; i++) rect(ctx, bx + 10 + i * 3, by + 10, 2, 2, ['#d97a62', '#f4dc8c', '#efb6a0'][i]);
+  // a second building and a tree
+  rect(ctx, ix + 31, iy + 3, 10, 14, night ? '#3e4a36' : C.cream);
+  rect(ctx, ix + 31, iy + 3, 10, 1, PAL.ink);
+  for (let r = 0; r < 3; r++) for (let c = 0; c < 2; c++) rect(ctx, ix + 33 + c * 4, iy + 5 + r * 4, 3, 3, o.light >= 3 ? '#eee3a8' : '#cfe6e4');
+  rect(ctx, ix + 25, iy + 10, 2, 7, C.woodDeep);
+  ctx.fillStyle = night ? '#3e4a36' : C.leaf;
+  for (const [tx, ty, r] of [[26, 8, 4], [23, 10, 3], [29, 10, 3]]) {
     ctx.beginPath();
     ctx.arc(ix + tx, iy + ty, r, 0, Math.PI * 2);
     ctx.fill();
   }
-  // sidewalk and road
-  rect(ctx, ix, iy + 40, iw, 3, '#e2d6b4');
-  rect(ctx, ix, iy + 43, iw, ih - 43, o.light === 4 ? '#3e4a36' : '#6b7560');
-  for (let i = 2; i < iw; i += 10) rect(ctx, ix + i, iy + 46, 5, 1, '#f2e2bd');
+  // pavement and road
+  rect(ctx, ix, iy + 17, iw, 2, '#e2d6b4');
+  rect(ctx, ix, iy + 19, iw, ih - 19, night ? '#3e4a36' : '#6b7560');
+  for (let i = 1; i < iw; i += 8) rect(ctx, ix + i, iy + 22, 4, 1, '#f2e2bd');
   if (o.decor.includes('bike')) {
-    rect(ctx, ix + 48, iy + 36, 12, 1, PAL.ink);
-    for (const wx of [ix + 48, ix + 58]) box(ctx, wx - 2, iy + 37, 5, 5, '#f7f0dc');
-    box(ctx, ix + 46, iy + 32, 6, 4, '#d97a62');
+    box(ctx, ix + 31, iy + 14, 4, 4, C.cream);
+    box(ctx, ix + 37, iy + 14, 4, 4, C.cream);
+    rect(ctx, ix + 33, iy + 14, 6, 1, PAL.ink);
+    rect(ctx, ix + 34, iy + 12, 3, 2, '#d97a62');
   }
   ctx.restore();
 }
 
-/** The room's palette: off-white, light green and pink, with a warm wooden floor. */
-const ROOM = {
-  cornice: '#4f7d46',
-  wall: '#f7efd8',
-  wallStripe: '#efe3c4',
-  trim: '#a87545',
-  dado: '#cfdcb0',
-  dadoPanel: '#dbe6c0',
-  dadoLine: '#b5c795',
-  lamp: '#f4dc8c',
-  plank: '#d9a76a',
-  plankLine: '#a87545',
-  plankHi: '#d9a76a',
-  table: '#f7efd8',
-  tableCheck: '#9dbf78',
-  tableRim: '#f7efd8',
-  tableLeg: '#7a5434',
-  chair: '#b98352',
-  chairLeg: '#7a5434',
-  counter: '#d9b07a',
-  counterTop: '#4f7d46',
-  counterPanel: '#d9b07a',
-  caseBase: '#d9b07a',
-  register: '#4f7d46',
-  frame: '#4f7d46',
-  sill: '#d9b07a',
-  door: '#7fa36a',
-  shelf: '#a87545',
-  shelfDark: '#7a5434',
-  leaf: '#6f9e58',
-  leafDark: '#4f7d46',
-  pot: '#c98a5a',
-};
+// ---------------------------------------------------------------- the room
 
-/** A little round café table with two chairs and a cake. (tx, ty) is the table's left/top. */
-function cafeTable(ctx: CanvasRenderingContext2D, tx: number, ty: number) {
-  // wooden chairs with a slatted back
-  for (const cx of [tx - 7, tx + 15]) {
-    rect(ctx, cx, ty - 6, 6, 8, ROOM.chair);
-    rect(ctx, cx, ty - 6, 6, 1, ROOM.chairLeg);
-    rect(ctx, cx + 2, ty - 5, 2, 5, ROOM.chairLeg);
-    rect(ctx, cx, ty + 2, 6, 1, ROOM.chairLeg);
-    rect(ctx, cx + 1, ty + 3, 1, 5, ROOM.chairLeg);
-    rect(ctx, cx + 4, ty + 3, 1, 5, ROOM.chairLeg);
-  }
-  // a green gingham tablecloth that hangs over the edge
-  rect(ctx, tx - 1, ty, 16, 7, ROOM.table);
-  for (let y = 0; y < 7; y += 2) for (let x = (y / 2) % 2 ? 1 : 0; x < 16; x += 2) rect(ctx, tx - 1 + x, ty + y, 1, 1, ROOM.tableCheck);
-  rect(ctx, tx - 1, ty + 6, 16, 1, ROOM.leafDark);
-  rect(ctx, tx + 6, ty + 7, 2, 5, ROOM.tableLeg);
-  rect(ctx, tx + 3, ty + 12, 8, 1, ROOM.tableLeg);
-  // a little vase of flowers and a cup
-  rect(ctx, tx + 2, ty - 3, 2, 3, '#f7efd8');
-  rect(ctx, tx + 1, ty - 5, 1, 2, ROOM.leaf);
-  rect(ctx, tx + 3, ty - 6, 1, 2, '#f4dc8c');
-  rect(ctx, tx + 2, ty - 5, 1, 1, '#efb6a0');
-  rect(ctx, tx + 9, ty - 2, 3, 2, '#ffffff');
-  rect(ctx, tx + 9, ty - 3, 3, 1, ROOM.shelfDark);
-}
-
-/** A loaf, a baguette or a round bun on a shelf, sitting on `y`. */
-function loaf(ctx: CanvasRenderingContext2D, x: number, y: number, kind: number) {
-  const crust = ['#c98a4a', '#d9a05a', '#b8763c'][kind % 3];
-  const top = ['#e7b56d', '#efc27a', '#d79552'][kind % 3];
-  if (kind % 3 === 1) {
-    // baguette lying down
-    rect(ctx, x, y - 2, 9, 2, crust);
-    rect(ctx, x + 1, y - 3, 7, 1, top);
-    for (const sx of [2, 5]) rect(ctx, x + sx, y - 3, 1, 1, '#f7e2b5');
-  } else {
-    rect(ctx, x, y - 3, 6, 3, crust);
-    rect(ctx, x + 1, y - 4, 4, 1, top);
-    rect(ctx, x + 1, y - 3, 4, 1, top);
-    rect(ctx, x + 2, y - 4, 1, 1, '#f7e2b5');
-  }
-}
-
-/** A plant in a terracotta pot, standing on `y`. */
-function pottedPlant(ctx: CanvasRenderingContext2D, x: number, y: number, size = 1) {
-  rect(ctx, x, y - 4, 5, 4, ROOM.pot);
-  rect(ctx, x - 1, y - 5, 7, 1, ROOM.shelfDark);
-  const leaves = size === 1 ? [[1, -7], [0, -8], [3, -8], [4, -7], [2, -9]] : [[1, -7], [0, -9], [3, -9], [4, -7], [2, -11], [-1, -7], [5, -9], [1, -11], [3, -12]];
-  for (const [lx, ly] of leaves) rect(ctx, x + lx, y + ly, 2, 2, (lx + ly) % 2 ? ROOM.leaf : ROOM.leafDark);
-}
-
-/** A hanging basket with trailing vines. */
-function hangingPlant(ctx: CanvasRenderingContext2D, x: number, drop: number) {
-  rect(ctx, x + 3, 7, 1, drop, ROOM.shelfDark);
-  const py = 7 + drop;
-  rect(ctx, x, py, 7, 4, ROOM.pot);
-  rect(ctx, x, py, 7, 1, ROOM.shelfDark);
-  for (const [lx, ly] of [[-1, -1], [1, -2], [4, -2], [6, -1], [2, -3]]) rect(ctx, x + lx, py + ly, 2, 2, ROOM.leaf);
-  // vines trail down either side
-  for (const [vx, len] of [[-1, 10], [1, 6], [5, 8], [7, 12]] as const)
-    for (let i = 0; i < len; i++) rect(ctx, x + vx + (i % 4 === 3 ? 1 : 0), py + 4 + i, 1, 1, i % 3 === 0 ? ROOM.leaf : ROOM.leafDark);
-}
-
+/** Floor, walls and everything that stands against the back wall. Drawn first, behind everyone. */
 export function drawRoom(ctx: CanvasRenderingContext2D, o: SceneOpts) {
   const L = LAYOUT;
-  // ceiling: a pink cornice; walls: off-white with faint pink stripes above a light-green wainscot
-  rect(ctx, 0, 0, STAGE_W, 6, ROOM.cornice);
-  rect(ctx, 0, 6, STAGE_W, 1, PAL.ink);
-  const wall = at(WALLS, o.style?.wall);
-  const pattern = (o.style?.pattern ?? 0) % PATTERNS.length;
-  rect(ctx, 0, 7, STAGE_W, 69, wall.c);
-  if (pattern === 0) for (let x = 1; x < STAGE_W; x += 6) rect(ctx, x, 7, 2, 69, wall.accent);
-  if (pattern === 2) for (let y = 11, r = 0; y < 74; y += 7, r++) for (let x = 3 + (r % 2 ? 4 : 0); x < STAGE_W; x += 8) rect(ctx, x, y, 2, 2, wall.accent);
-  if (pattern === 3) for (let y = 7, r = 0; y < 76; y += 8, r++) for (let x = (r % 2) * 8; x < STAGE_W; x += 16) rect(ctx, x, y, 8, Math.min(8, 76 - y), wall.accent);
-  rect(ctx, 0, 74, STAGE_W, 2, ROOM.trim);
-  rect(ctx, 0, 76, STAGE_W, 20, ROOM.dado);
-  for (let x = 4; x < STAGE_W; x += 24) {
-    rect(ctx, x, 79, 16, 14, ROOM.dadoPanel);
-    rect(ctx, x, 79, 16, 1, ROOM.dadoLine);
-    rect(ctx, x, 79, 1, 14, ROOM.dadoLine);
-  }
-  rect(ctx, 0, 75, STAGE_W, 1, PAL.ink);
-  // pendant lamps: one over the door, one between the menu and the oven, never over the glass
-  for (const lx of LAMPS_X) {
-    rect(ctx, lx + 4, 7, 1, 9, PAL.ink);
-    rect(ctx, lx, 16, 9, 1, PAL.ink);
-    rect(ctx, lx - 1, 17, 11, 4, ROOM.lamp);
-    rect(ctx, lx - 1, 21, 11, 1, PAL.ink);
-    rect(ctx, lx + 3, 22, 3, 1, '#f7f0dc');
-  }
-  // wooden floor: planks with staggered joints
+  const has = (u: UpgradeId) => o.upgrades.includes(u);
+  const owns = (d: DecorId) => o.decor.includes(d);
+
+  // floor
   const floor = at(FLOORS, o.style?.floor);
   rect(ctx, 0, L.floorY, STAGE_W, STAGE_H - L.floorY, floor.a);
   if (floor.tiles) {
-    for (let y = L.floorY, r = 0; y < STAGE_H; y += 8, r++) for (let x = r % 2 ? 12 : 0; x < STAGE_W; x += 24) rect(ctx, x, y, 12, 8, floor.b);
-    for (let y = L.floorY; y < STAGE_H; y += 8) rect(ctx, 0, y, STAGE_W, 1, floor.line);
+    for (let y = L.floorY, r = 0; y < STAGE_H; y += 12, r++) for (let x = 6 + (r % 2 ? 16 : 0); x < STAGE_W; x += 32) rect(ctx, x, y, 16, 12, floor.b);
+    for (let y = L.floorY; y < STAGE_H; y += 12) rect(ctx, 0, y, STAGE_W, 1, floor.line);
+    for (let x = 6; x < STAGE_W; x += 16) rect(ctx, x, L.floorY, 1, STAGE_H - L.floorY, floor.line);
   } else
-    for (let y = L.floorY; y < STAGE_H; y += 6) {
+    for (let y = L.floorY, r = 0; y < STAGE_H; y += 8, r++) {
       rect(ctx, 0, y, STAGE_W, 1, floor.line);
-      const off = ((y - L.floorY) / 6) % 2 ? 12 : 0;
-      for (let x = off; x < STAGE_W; x += 24) rect(ctx, x, y + 1, 1, 5, floor.line);
+      for (let x = 6 + (r % 2 ? 14 : 0); x < STAGE_W; x += 28) rect(ctx, x, y + 1, 1, 7, floor.line);
     }
-  rect(ctx, 0, L.floorY, STAGE_W, 1, PAL.ink);
-  // guest tables by the window: round pink tops, mint chairs, something sweet on each
-  for (const [tx, ty] of [[38, 108], [76, 108]] as const) cafeTable(ctx, tx, ty);
-
-  // loft railing
-  if (o.upgrades.includes('loft')) {
-    rect(ctx, 0, 6, STAGE_W, 3, PAL.crust);
-    for (let x = 2; x < STAGE_W; x += 6) rect(ctx, x, 9, 2, 5, PAL.coffee);
-    rect(ctx, 0, 14, STAGE_W, 2, PAL.crust);
+  // the open doorway, the cat mat inside it, and the runner where people queue
+  rect(ctx, L.door.x, L.bottomY, L.door.w, STAGE_H - L.bottomY, '#dcae74');
+  for (let x = L.door.x + 6; x < L.door.x + L.door.w; x += 8) rect(ctx, x, L.bottomY, 1, STAGE_H - L.bottomY, '#b98352');
+  catMat(ctx, L.door.x - 1, 143);
+  if (owns('rug')) {
+    rect(ctx, 134, 108, 96, 16, '#e7c58d');
+    for (let x = 137; x < 228; x += 6) rect(ctx, x, 111, 3, 10, '#c98a5a');
+    rect(ctx, 134, 108, 96, 1, C.woodDark);
+    rect(ctx, 134, 123, 96, 1, C.woodDark);
+    for (let x = 134; x < 230; x += 3) {
+      rect(ctx, x, 107, 1, 1, C.woodDark);
+      rect(ctx, x, 124, 1, 1, C.woodDark);
+    }
   }
 
-  // window
+  // back wall: paint, pattern, baseboard, and a soft shadow on the floor below it
+  const wall = at(WALLS, o.style?.wall);
+  const pattern = (o.style?.pattern ?? 0) % PATTERNS.length;
+  rect(ctx, 0, 4, STAGE_W, 35, wall.c);
+  if (pattern === 0) for (let x = 7; x < STAGE_W - 6; x += 6) rect(ctx, x, 4, 2, 35, wall.accent);
+  if (pattern === 2) for (let y = 7, r = 0; y < 37; y += 6, r++) for (let x = 8 + (r % 2 ? 4 : 0); x < STAGE_W - 6; x += 8) rect(ctx, x, y, 2, 2, wall.accent);
+  if (pattern === 3) for (let y = 4, r = 0; y < 39; y += 7, r++) for (let x = 6 + (r % 2) * 7; x < STAGE_W - 6; x += 14) rect(ctx, x, y, 7, Math.min(7, 39 - y), wall.accent);
+  rect(ctx, 0, 39, STAGE_W, 3, C.base);
+  rect(ctx, 0, 39, STAGE_W, 1, C.baseLine);
+  rect(ctx, 0, L.floorY, STAGE_W, 2, 'rgba(62,74,54,0.10)');
+  // the top of the wall, and the side walls running down the room
+  rect(ctx, 0, 0, STAGE_W, 4, C.wallCap);
+  rect(ctx, 0, 1, STAGE_W, 1, C.wallCapHi);
+  rect(ctx, 0, 4, STAGE_W, 1, 'rgba(62,74,54,0.22)');
+  for (const sx of [0, STAGE_W - 6]) rect(ctx, sx, 0, 6, STAGE_H, C.wallCap);
+  rect(ctx, 1, 0, 1, STAGE_H, C.wallCapHi);
+  rect(ctx, STAGE_W - 2, 0, 1, STAGE_H, C.wallCapHi);
+  rect(ctx, 5, 4, 1, STAGE_H - 4, C.wallEdge);
+  rect(ctx, STAGE_W - 6, 4, 1, STAGE_H - 4, C.wallEdge);
+  if (has('loft')) {
+    rect(ctx, 6, 0, STAGE_W - 12, 4, C.wood);
+    for (let x = 8; x < STAGE_W - 8; x += 5) rect(ctx, x, 1, 1, 3, C.woodDeep);
+  }
+
+  // window, with the street outside
   const W = L.window;
-  box(ctx, W.x, W.y, W.w, W.h, ROOM.frame);
+  box(ctx, W.x, W.y, W.w, W.h, C.frame, C.wallEdge);
   drawStreet(ctx, o);
-  // a little shine on each pane so it reads as glass
   ctx.fillStyle = 'rgba(255,255,255,0.45)';
   for (const px of [W.x + 4, W.x + W.w / 2 + 3])
-    for (let i = 0; i < 6; i++) {
-      ctx.fillRect(px + i, W.y + 9 - i, 1, 1);
-      ctx.fillRect(px + 3 + i, W.y + 12 - i, 1, 1);
+    for (let i = 0; i < 5; i++) {
+      ctx.fillRect(px + i, W.y + 8 - i, 1, 1);
+      ctx.fillRect(px + 3 + i, W.y + 10 - i, 1, 1);
     }
-  rect(ctx, W.x + W.w / 2 - 1, W.y, 2, W.h, ROOM.frame);
-  rect(ctx, W.x - 2, W.y + W.h, W.w + 4, 3, ROOM.sill);
-  if (o.upgrades.includes('garden'))
+  rect(ctx, W.x + W.w / 2 - 1, W.y + 1, 2, W.h - 2, C.frame);
+  rect(ctx, W.x - 1, W.y + W.h, W.w + 2, 3, C.woodLight);
+  rect(ctx, W.x - 1, W.y + W.h + 2, W.w + 2, 1, C.woodDark);
+  if (has('garden'))
     for (let i = 0; i < 4; i++) {
-      box(ctx, W.x + 4 + i * 15, W.y + W.h - 5, 8, 5, PAL.orangeDark);
-      rect(ctx, W.x + 5 + i * 15, W.y + W.h - 9, 6, 4, PAL.pandan);
+      box(ctx, W.x + 2 + i * 11, W.y + W.h - 4, 9, 5, C.pot, C.woodDeep);
+      rect(ctx, W.x + 3 + i * 11, W.y + W.h - 7, 7, 3, C.leaf);
+      rect(ctx, W.x + 4 + i * 11 + (i % 2) * 3, W.y + W.h - 8, 2, 2, ['#efb6a0', '#f4dc8c', '#d97a62', '#ffffff'][i]);
     }
+  else for (const px of [5, 20, 36]) pottedPlant(ctx, W.x + px, W.y + W.h);
 
-  // the Lantern Festival prize, on the wall above the door
-  if (o.prize) {
-    box(ctx, 5, 30, 22, 16, '#f7f0dc');
-    if (o.prize === 'won') {
-      rect(ctx, 15, 33, 2, 5, '#e3b23c');
-      for (const wx of [12, 15, 18]) rect(ctx, wx, 37, 2, 6, '#e3b23c');
-      rect(ctx, 12, 42, 8, 1, '#e3b23c');
-      rect(ctx, 22, 32, 2, 2, '#ffffff');
-    } else {
-      rect(ctx, 12, 33, 8, 7, PAL.pink);
-      rect(ctx, 14, 35, 4, 3, '#ffffff');
-      rect(ctx, 12, 40, 3, 4, PAL.pink);
-      rect(ctx, 17, 40, 3, 4, PAL.pink);
-    }
-  }
-
-  // door
-  const D = L.door;
-  box(ctx, D.x, D.y, D.w, D.h, ROOM.frame);
-  box(ctx, D.x + 3, D.y + 3, D.w - 6, 24, SKY[o.weather][o.light]);
-  rect(ctx, D.x + 3, D.y + 30, D.w - 6, D.h - 33, ROOM.door);
-  rect(ctx, D.x + D.w - 5, D.y + 30, 2, 2, PAL.mango);
-  box(ctx, D.x + 5, D.y + 8, 14, 7, PAL.cream);
-
-  // menu board and shelf
-  const B = L.board;
-  box(ctx, B.x - 2, B.y - 2, B.w + 4, B.h + 4, PAL.crust);
-  rect(ctx, B.x, B.y, B.w, B.h, '#3e4a36');
-  rect(ctx, L.shelf.x - 2, L.shelf.y, L.shelf.w + 4, 3, PAL.crust);
-  rect(ctx, L.shelf.x - 2, L.shelf.y + 3, L.shelf.w + 4, 1, PAL.ink);
-  const jars = [PAL.mango, PAL.pink, PAL.leaf, PAL.coffee, PAL.orange];
-  jars.forEach((c, i) => {
-    box(ctx, L.shelf.x + 2 + i * 9, L.shelf.y - 8, 7, 8, '#f7f0dc');
-    rect(ctx, L.shelf.x + 3 + i * 9, L.shelf.y - 5, 5, 4, c);
-    rect(ctx, L.shelf.x + 2 + i * 9, L.shelf.y - 9, 7, 2, PAL.crust);
+  // the bread bookcase
+  const B = L.bookcase;
+  rect(ctx, B.x, B.y - 2, B.w, 2, C.woodLight);
+  rect(ctx, B.x, B.y, B.w, B.h, C.woodDeep);
+  rect(ctx, B.x + 1, B.y + 1, B.w - 2, B.h - 2, '#946a45');
+  [B.y + 11, B.y + 23, B.y + 35, B.y + B.h - 3].forEach((sy, i) => {
+    rect(ctx, B.x + 1, sy, B.w - 2, 2, '#c9955f');
+    if (i < 3) rect(ctx, B.x + 1, sy + 2, B.w - 2, 1, C.woodDeep);
+    loaf(ctx, B.x + 3, sy, i);
+    loaf(ctx, B.x + 14, sy, i + 1);
   });
-  if (o.decor.includes('radio')) {
-    box(ctx, L.shelf.x + 30, L.shelf.y - 9, 14, 9, PAL.red);
-    rect(ctx, L.shelf.x + 32, L.shelf.y - 7, 5, 5, PAL.ink);
-    rect(ctx, L.shelf.x + 39, L.shelf.y - 7, 3, 2, PAL.cream);
-  }
 
-  // a wooden bread shelf on the back wall, full of the morning's loaves
-  for (const sy of [48, 62]) {
-    rect(ctx, 152, sy, 46, 2, ROOM.shelf);
-    rect(ctx, 152, sy + 2, 46, 1, ROOM.shelfDark);
-    rect(ctx, 154, sy + 3, 1, 3, ROOM.shelfDark);
-    rect(ctx, 195, sy + 3, 1, 3, ROOM.shelfDark);
-    for (let i = 0; i < 5; i++) loaf(ctx, 154 + i * 9, sy, i + sy);
-  }
-  if (!o.decor.includes('art')) for (const [hx, drop] of [[176, 10]] as const) hangingPlant(ctx, hx, drop);
-  hangingPlant(ctx, 226, 6);
-  if (!o.upgrades.includes('garden')) for (const px of [38, 62, 86]) pottedPlant(ctx, px, 70);
-  pottedPlant(ctx, 141, 52);
+  // the chalkboard menu (the words are drawn by the page, on top)
+  const M = L.board;
+  box(ctx, M.x - 2, M.y - 2, M.w + 4, M.h + 4, C.wood, C.woodDeep);
+  rect(ctx, M.x, M.y, M.w, M.h, C.chalk);
+  rect(ctx, M.x - 2, M.y + M.h + 2, M.w + 4, 1, C.woodDeep);
 
-  // lacquer art
-  if (o.decor.includes('art')) {
-    box(ctx, 158, 18, 32, 22, PAL.mango);
-    rect(ctx, 160, 20, 28, 18, '#3e4a36');
-    rect(ctx, 162, 30, 24, 6, PAL.redDark);
-    ctx.fillStyle = PAL.gold;
+  // above the coffee corner: a shelf of plants, or the lacquer painting
+  if (owns('art')) {
+    box(ctx, 150, 9, 21, 17, '#e0b072', C.woodDeep);
+    rect(ctx, 152, 11, 17, 13, '#3e4a36');
+    rect(ctx, 153, 18, 15, 5, '#7a3b2e');
+    ctx.fillStyle = '#f4dc8c';
     ctx.beginPath();
-    ctx.arc(181, 26, 3, 0, Math.PI * 2);
+    ctx.arc(165, 15, 2, 0, Math.PI * 2);
     ctx.fill();
-    rect(ctx, 166, 27, 2, 9, PAL.gold);
-    rect(ctx, 165, 27, 6, 1, PAL.gold);
+    rect(ctx, 156, 15, 1, 7, '#f4dc8c');
+    rect(ctx, 155, 15, 4, 1, '#f4dc8c');
+  } else {
+    rect(ctx, 149, 23, 23, 2, C.wood);
+    rect(ctx, 149, 25, 23, 1, C.woodDeep);
+    rect(ctx, 151, 26, 1, 2, C.woodDeep);
+    rect(ctx, 169, 26, 1, 2, C.woodDeep);
+    pottedPlant(ctx, 151, 23);
+    pottedPlant(ctx, 159, 23, 2);
+    pottedPlant(ctx, 166, 23);
   }
 
-  // fridge
-  if (o.upgrades.includes('fridge')) {
-    const F = L.fridge;
-    box(ctx, F.x, F.y, F.w, F.h, '#f7f0dc');
-    rect(ctx, F.x + 1, F.y + 13, F.w - 2, 1, PAL.ink);
-    rect(ctx, F.x + F.w - 4, F.y + 4, 1, 6, PAL.stoneDark);
-    rect(ctx, F.x + F.w - 4, F.y + 17, 1, 8, PAL.stoneDark);
+  // the back counter: jars, the radio, the festival prize, and the coffee corner
+  const K = L.backCounter;
+  rect(ctx, K.x, K.y, K.w, 6, C.woodPale);
+  rect(ctx, K.x, K.y, K.w, 1, '#f3dcb3');
+  rect(ctx, K.x, K.y + 6, K.w, 8, C.wood);
+  rect(ctx, K.x, K.y + 6, K.w, 1, C.woodDark);
+  for (let x = K.x + 2; x + 11 <= K.x + K.w; x += 13) {
+    rect(ctx, x, K.y + 8, 11, 5, '#c9955f');
+    rect(ctx, x + 5, K.y + 10, 1, 1, C.woodDeep);
   }
-
-  // coffee station
-  const C = L.coffee;
-  box(ctx, C.x, C.y, C.w, C.h, ROOM.counter);
-  rect(ctx, C.x + 1, C.y + 1, C.w - 2, 2, ROOM.counterTop);
-  for (let i = 0; i < 2; i++) box(ctx, C.x + 3 + i * 14, C.y + 6, 12, 10, '#a87545');
-  const phins = o.upgrades.includes('coffeeBar') ? 4 : 2;
+  rect(ctx, K.x, K.y + 13, K.w, 1, C.woodDeep);
+  rect(ctx, K.x, K.y, 1, 14, C.woodDeep);
+  rect(ctx, K.x + K.w - 1, K.y, 1, 14, C.woodDeep);
+  ['#f4dc8c', '#efb6a0', '#9dbf78', '#8a5f3a', '#e0b072'].forEach((c, i) => {
+    const jx = K.x + 3 + i * 9;
+    box(ctx, jx, K.y - 4, 7, 7, C.cream);
+    rect(ctx, jx + 1, K.y - 1, 5, 3, c);
+    rect(ctx, jx, K.y - 5, 7, 2, C.wood);
+  });
+  if (owns('radio')) {
+    box(ctx, K.x + 30, K.y - 6, 15, 9, '#d97a62');
+    rect(ctx, K.x + 32, K.y - 4, 5, 5, PAL.ink);
+    rect(ctx, K.x + 39, K.y - 4, 4, 2, C.cream);
+    rect(ctx, K.x + 42, K.y - 9, 1, 3, PAL.ink);
+  }
+  if (o.prize) {
+    const px = K.x + 47;
+    rect(ctx, px + 1, K.y + 1, 7, 2, C.woodDark);
+    if (o.prize === 'won') {
+      // the Golden Whisk
+      const gold = '#e3b23c';
+      rect(ctx, px + 4, K.y - 10, 1, 5, gold);
+      rect(ctx, px + 2, K.y - 5, 5, 1, gold);
+      for (const wx of [2, 4, 6]) rect(ctx, px + wx, K.y - 5, 1, 5, gold);
+      rect(ctx, px + 3, K.y, 3, 1, gold);
+      rect(ctx, px + 6, K.y - 9, 1, 1, '#ffffff');
+    } else {
+      rect(ctx, px + 2, K.y - 8, 5, 5, '#d97a62');
+      rect(ctx, px + 3, K.y - 7, 3, 3, '#ffffff');
+      rect(ctx, px + 2, K.y - 3, 2, 4, '#d97a62');
+      rect(ctx, px + 5, K.y - 3, 2, 4, '#d97a62');
+    }
+  }
+  const phins = has('coffeeBar') ? 4 : 2;
   for (let i = 0; i < phins; i++) {
-    const px = C.x + 3 + i * 7;
-    box(ctx, px, C.y - 9, 6, 4, '#e2d6b4');
-    box(ctx, px + 1, C.y - 5, 4, 5, '#f7f0dc');
-    rect(ctx, px + 2, C.y - 3, 2, 3, PAL.coffee);
+    // a phin: a little metal filter dripping into a glass
+    const px = L.coffee.x + i * 5;
+    rect(ctx, px, K.y - 7, 4, 1, '#8c9482');
+    rect(ctx, px, K.y - 6, 4, 3, '#cfd6c4');
+    rect(ctx, px, K.y - 3, 4, 6, '#ffffff');
+    rect(ctx, px, K.y, 4, 3, '#8a5f3a');
+    rect(ctx, px, K.y + 2, 4, 1, '#f4e2c0');
   }
-  box(ctx, C.x + C.w - 7, C.y - 7, 6, 7, PAL.red);
-  rect(ctx, C.x + C.w - 6, C.y - 5, 4, 2, PAL.coconut);
+  if (phins === 2) {
+    // the kettle
+    box(ctx, L.coffee.x + 13, K.y - 5, 8, 8, '#d97a62');
+    rect(ctx, L.coffee.x + 15, K.y - 7, 4, 2, PAL.ink);
+    rect(ctx, L.coffee.x + 11, K.y - 3, 2, 1, PAL.ink);
+  }
 
-  // oven
+  // the fridge (with a cat's face), or a plant on a stool where it will go
+  const F = L.fridge;
+  if (has('fridge')) {
+    rect(ctx, F.x, F.y - 2, F.w, 2, '#cfe0b4');
+    box(ctx, F.x, F.y, F.w, F.h, '#9dbf78', C.wallEdge);
+    rect(ctx, F.x + 1, F.y + 17, F.w - 2, 1, C.wallEdge);
+    rect(ctx, F.x + F.w - 3, F.y + 7, 1, 7, '#eef5de');
+    rect(ctx, F.x + F.w - 3, F.y + 22, 1, 9, '#eef5de');
+    for (const [fx, fy, w] of [[3, 4, 2], [8, 4, 2], [3, 5, 1], [9, 5, 1], [4, 8, 1], [8, 8, 1], [4, 9, 1], [8, 9, 1], [6, 11, 1], [5, 12, 1], [7, 12, 1]]) rect(ctx, F.x + fx, F.y + fy, w, 1, C.wallEdge);
+    rect(ctx, F.x + 1, F.y + F.h - 3, F.w - 2, 2, '#7fa36a');
+  } else {
+    rect(ctx, F.x + 1, 46, 13, 2, C.woodLight);
+    rect(ctx, F.x + 1, 48, 13, 1, C.woodDeep);
+    rect(ctx, F.x + 2, 49, 1, 8, C.woodDeep);
+    rect(ctx, F.x + 12, 49, 1, 8, C.woodDeep);
+    pottedPlant(ctx, F.x + 5, 46, 2);
+  }
+
+  // the oven: brick at first, then tile, then steel
   const O = L.oven;
-  box(ctx, O.x, O.y, O.w, O.h, o.upgrades.includes('oven3') ? '#aab39a' : o.upgrades.includes('oven2') ? '#e0b072' : '#a87545');
-  for (let y = O.y + 3; y < O.y + O.h - 2; y += 5) for (let x = O.x + 2 + ((y / 5) % 2) * 3; x < O.x + O.w - 3; x += 7) rect(ctx, x, y, 5, 1, 'rgba(59,42,37,0.25)');
-  box(ctx, O.x + 5, O.y + 14, O.w - 10, 20, '#3e4a36');
-  rect(ctx, O.x + 4, O.y + 36, O.w - 8, 2, PAL.ink);
-  for (let i = 0; i < 3; i++) box(ctx, O.x + 7 + i * 8, O.y + 41, 5, 5, PAL.stone);
-  rect(ctx, O.x + 4, O.y - 4, O.w - 8, 4, PAL.stoneDark);
-  rect(ctx, O.x + 12, O.y - 14, 10, 10, PAL.stoneDark);
-  rect(ctx, O.x + 12, O.y - 14, 10, 1, PAL.ink);
+  const brick = has('oven3') ? '#aab39a' : has('oven2') ? '#e0b072' : '#b8704a';
+  rect(ctx, O.x + 14, 0, 11, 5, '#8c9482');
+  rect(ctx, O.x + 11, 5, 17, O.y - 5, '#aab39a');
+  rect(ctx, O.x + 11, O.y - 1, 17, 1, PAL.ink);
+  rect(ctx, O.x, O.y - 2, O.w, 2, 'rgba(255,255,255,0.35)');
+  box(ctx, O.x, O.y, O.w, O.h, brick, '#5a3a2a');
+  for (let y = O.y + 3, r = 0; y < O.y + O.h - 2; y += 5, r++) for (let x = O.x + 2 + (r % 2) * 3; x < O.x + O.w - 6; x += 7) rect(ctx, x, y, 5, 1, 'rgba(59,42,37,0.22)');
+  box(ctx, O.x + 7, O.y + 13, O.w - 14, 21, '#2f2a26', '#3e2a22');
+  for (const [cx, cw] of [[O.x + 7, 2], [O.x + O.w - 9, 2]]) rect(ctx, cx, O.y + 13, cw, 1, brick);
+  rect(ctx, O.x + 7, O.y + 14, 1, 1, brick);
+  rect(ctx, O.x + O.w - 8, O.y + 14, 1, 1, brick);
+  rect(ctx, O.x + 5, O.y + 35, O.w - 10, 2, '#e2d6b4');
+  rect(ctx, O.x + 5, O.y + 37, O.w - 10, 1, PAL.ink);
+  for (let i = 0; i < 3; i++) box(ctx, O.x + 8 + i * 9, O.y + 40, 5, 4, C.cream);
 
-  if (o.upgrades.includes('compost')) {
-    box(ctx, 226, 84, 12, 12, PAL.pandan);
-    rect(ctx, 228, 88, 8, 1, PAL.forest);
+  // pendant lamps, hanging in front of the wall
+  for (const lx of LAMPS_X) {
+    rect(ctx, lx + 4, 4, 1, 3, PAL.ink);
+    rect(ctx, lx, 7, 9, 1, PAL.ink);
+    rect(ctx, lx - 1, 8, 11, 3, C.lamp);
+    rect(ctx, lx - 1, 11, 11, 1, PAL.ink);
+    rect(ctx, lx + 3, 12, 3, 1, '#fff7d6');
   }
-  // the coffee corner adds a third table; stools add a bench under the window
-  if (o.upgrades.includes('corner')) cafeTable(ctx, 100, 100);
-  if (o.decor.includes('stools')) {
-    box(ctx, 34, 98, 60, 3, ROOM.chair);
-    rect(ctx, 36, 101, 2, 4, ROOM.chairLeg);
-    rect(ctx, 90, 101, 2, 4, ROOM.chairLeg);
+
+  // a bench under the window, the compost bin, and the cat
+  if (owns('stools')) {
+    box(ctx, 14, 45, 38, 4, C.woodLight, C.woodDeep);
+    rect(ctx, 16, 49, 2, 5, C.woodDeep);
+    rect(ctx, 48, 49, 2, 5, C.woodDeep);
   }
-  if (o.decor.includes('rug')) {
-    rect(ctx, 86, 126, 76, 8, '#e0b072');
-    for (let x = 88; x < 160; x += 4) rect(ctx, x, 128, 2, 4, '#a87545');
-    rect(ctx, 86, 126, 76, 1, PAL.crust);
+  // a little table of bread baskets against the right wall
+  rect(ctx, 213, 62, 20, 9, C.woodPale);
+  rect(ctx, 213, 62, 20, 1, '#f3dcb3');
+  rect(ctx, 213, 71, 20, 8, C.wood);
+  rect(ctx, 213, 71, 20, 1, C.woodDark);
+  rect(ctx, 213, 79, 20, 1, C.woodDeep);
+  rect(ctx, 213, 62, 1, 18, C.woodDeep);
+  for (const bx of [215, 224]) {
+    rect(ctx, bx, 63, 8, 6, '#c9955f');
+    rect(ctx, bx, 68, 8, 1, C.woodDeep);
+    loaf(ctx, bx + 1, 67, bx);
+    rect(ctx, bx + 2, 60, 5, 2, '#e7b56d');
+    rect(ctx, bx + 3, 59, 3, 1, '#f7e2b5');
   }
+  if (has('compost')) {
+    box(ctx, 221, 129, 11, 11, C.leaf, C.wallEdge);
+    rect(ctx, 220, 128, 13, 2, C.leafDark);
+    rect(ctx, 225, 133, 3, 3, '#cfe0b4');
+  }
+  if (has('corner')) shopCat(ctx, 9, 106);
+  else shopCat(ctx, 208, 148);
 }
 
-/** The counter sits in front of the player but behind customers. */
+/** The service counter and glass case: in front of the staff, behind the customers. */
 export function drawCounter(ctx: CanvasRenderingContext2D, o: SceneOpts) {
   const K = LAYOUT.counter;
   const counter = at(COUNTERS, o.style?.counter);
-  box(ctx, K.x, K.y, K.w, K.h, counter.body);
-  rect(ctx, K.x - 2, K.y - 2, K.w + 4, 3, counter.top);
-  rect(ctx, K.x - 2, K.y - 2, K.w + 4, 1, PAL.ink);
-  for (let x = K.x + 4; x < K.x + K.w - 4; x += 12) {
-    rect(ctx, x, K.y + 4, 9, 11, counter.body);
-    rect(ctx, x, K.y + 4, 9, 1, ROOM.dadoLine);
-    rect(ctx, x, K.y + 4, 1, 11, ROOM.dadoLine);
-    rect(ctx, x + 3, K.y + 8, 3, 3, ROOM.trim);
+  // top face, then the front with its panels
+  rect(ctx, K.x, K.y, K.w, 10, counter.top);
+  rect(ctx, K.x, K.y, K.w, 1, 'rgba(255,255,255,0.35)');
+  rect(ctx, K.x, K.y + 10, K.w, 20, counter.body);
+  rect(ctx, K.x, K.y + 10, K.w, 1, 'rgba(62,74,54,0.3)');
+  for (let x = 133; x + 12 <= K.x + K.w - 2; x += 15) {
+    rect(ctx, x, K.y + 14, 12, 12, 'rgba(255,255,255,0.22)');
+    rect(ctx, x, K.y + 14, 12, 1, 'rgba(62,74,54,0.2)');
+    rect(ctx, x, K.y + 14, 1, 12, 'rgba(62,74,54,0.2)');
+    rect(ctx, x + 5, K.y + 19, 2, 2, counter.top);
   }
-  const S = LAYOUT.case;
-  // Glass you can see through: whoever works behind the case shows, a little misty.
-  ctx.clearRect(S.x + 1, S.y + 1, S.w - 2, S.h - 5);
-  rect(ctx, S.x, S.y, S.w, 1, PAL.ink);
-  rect(ctx, S.x, S.y, 1, S.h, PAL.ink);
-  rect(ctx, S.x + S.w - 1, S.y, 1, S.h, PAL.ink);
-  rect(ctx, S.x, S.y + S.h - 1, S.w, 1, PAL.ink);
-  rect(ctx, S.x + 1, S.y + 1, S.w - 2, S.h - 5, 'rgba(238,237,227,0.55)');
-  rect(ctx, S.x + 1, S.y + S.h - 4, S.w - 2, 3, ROOM.caseBase);
-  for (let i = 0; i < 4; i++) rect(ctx, S.x + 4 + i * 2, S.y + 2 + i, 1, 4, 'rgba(255,255,255,0.9)');
-  if (o.upgrades.includes('display')) rect(ctx, S.x + 1, S.y + 1, S.w - 2, 1, PAL.mango);
-  // the shop cat, asleep on a green cushion by the oven
-  rect(ctx, 215, 125, 22, 5, ROOM.leafDark);
-  rect(ctx, 216, 124, 20, 2, ROOM.leaf);
-  const fur = '#f0b56e';
-  rect(ctx, 219, 118, 14, 6, fur);
-  rect(ctx, 220, 117, 12, 1, fur);
-  rect(ctx, 219, 120, 4, 4, '#ffffff');
-  for (const sx of [224, 228]) rect(ctx, sx, 118, 2, 1, '#d48d48');
-  rect(ctx, 217, 119, 5, 4, fur);
-  rect(ctx, 217, 118, 1, 1, fur);
-  rect(ctx, 221, 118, 1, 1, fur);
-  rect(ctx, 218, 121, 1, 1, PAL.ink);
-  rect(ctx, 220, 121, 1, 1, PAL.ink);
-  rect(ctx, 231, 122, 5, 2, fur);
-  rect(ctx, 235, 121, 1, 1, '#d48d48');
+  rect(ctx, K.x, K.y + 29, K.w, 1, C.woodDeep);
+  rect(ctx, K.x, K.y, 1, 30, C.woodDeep);
+  rect(ctx, K.x + K.w - 1, K.y, 1, 30, C.woodDeep);
 
+  // the glass case: a glass top, and a glass front you can see the pastries through
+  const S = LAYOUT.case;
+  rect(ctx, S.x, K.y + 1, S.w, 8, '#eaf3e2');
+  rect(ctx, S.x, K.y + 1, S.w, 1, '#ffffff');
+  ctx.fillStyle = 'rgba(255,255,255,0.8)';
+  for (let i = 0; i < 6; i++) {
+    ctx.fillRect(S.x + 6 + i, K.y + 7 - i, 1, 1);
+    ctx.fillRect(S.x + 10 + i, K.y + 7 - i, 1, 1);
+    ctx.fillRect(S.x + 44 + i, K.y + 7 - i, 1, 1);
+  }
+  rect(ctx, S.x - 1, K.y, 1, 10, C.woodDeep);
+  rect(ctx, S.x + S.w, K.y, 1, 10, C.woodDeep);
+  box(ctx, S.x - 1, S.y, S.w + 2, S.h, '#fbf6e6', C.woodDeep);
+  rect(ctx, S.x, S.y + S.h - 4, S.w, 3, C.woodLight);
+  for (let i = 0; i < 4; i++) rect(ctx, S.x + 3 + i * 2, S.y + 2 + i, 1, 4, 'rgba(255,255,255,0.95)');
+  if (o.upgrades.includes('display')) rect(ctx, S.x, S.y + 1, S.w, 1, '#e3b23c');
+
+  // the register, and a vase of fresh flowers
   const R = LAYOUT.register;
-  box(ctx, R.x, R.y, R.w, R.h, ROOM.register);
-  rect(ctx, R.x + 2, R.y + 2, R.w - 4, 3, '#dde7c4');
-  rect(ctx, R.x + 2, R.y + 7, R.w - 4, 1, PAL.ink);
+  box(ctx, R.x, R.y, R.w, R.h, '#f2e2bd');
+  rect(ctx, R.x + 2, R.y + 2, R.w - 4, 3, '#9dbf78');
+  for (let i = 0; i < 3; i++) rect(ctx, R.x + 3 + i * 3, R.y + 6, 2, 1, C.woodDeep);
+  rect(ctx, R.x + 2, R.y + 8, R.w - 4, 1, PAL.ink);
   if (o.decor.includes('flowers')) {
-    box(ctx, 180, 96, 6, 8, '#dde7c4');
-    for (const [fx, fy, c] of [[179, 92, PAL.pink], [183, 90, PAL.mango], [186, 93, PAL.red]] as const) rect(ctx, fx, fy, 3, 3, c);
+    box(ctx, 183, 60, 6, 8, '#dde7c4');
+    for (const [fx, fy, c] of [[182, 56, '#efb6a0'], [185, 54, '#f4dc8c'], [188, 57, '#d97a62']] as const) rect(ctx, fx, fy, 3, 3, c);
+    rect(ctx, 184, 58, 1, 2, C.leaf);
+    rect(ctx, 187, 58, 1, 2, C.leaf);
   }
 }
 
-export function sceneSprite(ctx: CanvasRenderingContext2D, name: string, x: number, y: number) {
-  sprite(ctx, name, x, y);
+/** Tables, chairs and the wall nearest you: in front of the queue, behind anyone sitting down. */
+export function drawFront(ctx: CanvasRenderingContext2D, o: SceneOpts) {
+  const L = LAYOUT;
+  for (const tx of L.tables) cafeTable(ctx, tx);
+  if (o.upgrades.includes('corner')) cafeTable(ctx, L.cornerTable);
+  rect(ctx, 0, L.bottomY, STAGE_W, STAGE_H - L.bottomY, C.wallCap);
+  rect(ctx, 0, L.bottomY, STAGE_W, 1, C.wallEdge);
+  rect(ctx, 0, STAGE_H - 2, STAGE_W, 1, C.wallCapHi);
+  // the doorway stays open so you can see people come and go
+  ctx.clearRect(L.door.x, L.bottomY, L.door.w, STAGE_H - L.bottomY);
+  rect(ctx, L.door.x - 1, L.bottomY, 1, STAGE_H - L.bottomY, C.wallEdge);
+  rect(ctx, L.door.x + L.door.w, L.bottomY, 1, STAGE_H - L.bottomY, C.wallEdge);
 }

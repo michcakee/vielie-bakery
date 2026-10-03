@@ -88,12 +88,12 @@ const lookKey = (l: Look) => `${l.skin}.${l.hair}.${l.hairColor}.${l.shirt}.${l.
 export const PERSON_W = CHIBI_W;
 export const PERSON_H = CHIBI_H;
 
-/** Two-frame sprite sheet (stand/step) for a character, two cells side by side. */
+/** Sprite sheet for a character: stand and step side by side, front view on top and back view below. `h` is one cell. */
 export function personSheet(look: Look): { url: string; w: number; h: number } {
   const key = `person:${lookKey(look)}`;
   const hit = cache.get(key);
   if (hit) return hit;
-  const made = makeCanvas(PERSON_W * 2, PERSON_H);
+  const made = makeCanvas(PERSON_W * 2, PERSON_H * 2);
   if (!made) return { url: '', w: PERSON_W * 2, h: PERSON_H };
   paintChibi(made[1], look);
   const out = { url: made[0].toDataURL(), w: PERSON_W * 2, h: PERSON_H };

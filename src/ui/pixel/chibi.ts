@@ -114,7 +114,9 @@ const STYLES: HairStyle[] = [
   },
 ];
 
-function accessory(g: Grid, id: number) {
+function accessory(g: Grid, id: number, back = false) {
+  // From behind, things worn on the face or the fringe can't be seen.
+  if (back && (id === 1 || id === 8)) return;
   switch (id) {
     case 1: {
       // Glasses: thin frames round both eyes and a bridge
@@ -161,7 +163,7 @@ function accessory(g: Grid, id: number) {
     case 5: {
       // Headscarf with a knot under the chin side
       const c = '#d7625a';
-      g.ellipse(CX, 11, 10.6, 9, c, 'acc', (x, y) => y <= 10 || x <= 3 || x >= 20);
+      g.ellipse(CX, 11, 10.6, 9, c, 'acc', (x, y) => back || y <= 10 || x <= 3 || x >= 20);
       for (const [x, y] of [[6, 5], [11, 4], [16, 6], [8, 8], [14, 8]]) g.set(x, y, '#f7c9c2', 'acc');
       break;
     }
@@ -196,7 +198,7 @@ function accessory(g: Grid, id: number) {
   }
 }
 
-function drawPerson(look: Look, step: boolean): Grid {
+function drawPerson(look: Look, step: boolean, back = false): Grid {
   const g = new Grid();
   const skin = SKINS[look.skin % SKINS.length];
   const skinShade = SKIN_SHADE[look.skin % SKIN_SHADE.length];
@@ -207,9 +209,11 @@ function drawPerson(look: Look, step: boolean): Grid {
   const eye = EYES[EYE_FOR_HAIR[look.hairColor % EYE_FOR_HAIR.length]];
   const style = STYLES[look.hair % STYLES.length];
 
-  // 1. hair that hangs behind the body
-  style.back?.(g, hair);
-  g.ellipse(CX, style.cy, style.rx, style.ry, hair, 'hair');
+  // 1. hair that hangs behind the body (seen from the front)
+  if (!back) {
+    style.back?.(g, hair);
+    g.ellipse(CX, style.cy, style.rx, style.ry, hair, 'hair');
+  }
 
   // 2. body: neck, shirt with a collar, arms and hands, apron, skirt, legs, shoes
   g.rect(10, 22, 13, 23, skinShade, 'skin');
@@ -217,27 +221,38 @@ function drawPerson(look: Look, step: boolean): Grid {
   g.rect(6, 24, 17, 28, shirt, 'cloth');
   g.rect(8, 29, 15, 30, shirt, 'cloth');
   g.rect(15, 25, 15, 30, mix(shirt, INK, 0.16), 'cloth');
-  g.row(23, 11, 12, skin, 'skin');
-  g.set(10, 23, '#ffffff', 'cloth');
-  g.set(13, 23, '#ffffff', 'cloth');
-  g.set(11, 24, '#ffffff', 'cloth');
-  g.set(12, 24, '#ffffff', 'cloth');
-  for (const y of [26, 28]) g.set(11, y, mix(shirt, '#ffffff', 0.55), 'cloth');
+  if (!back) {
+    g.row(23, 11, 12, skin, 'skin');
+    g.set(10, 23, '#ffffff', 'cloth');
+    g.set(13, 23, '#ffffff', 'cloth');
+    g.set(11, 24, '#ffffff', 'cloth');
+    g.set(12, 24, '#ffffff', 'cloth');
+    for (const y of [26, 28]) g.set(11, y, mix(shirt, '#ffffff', 0.55), 'cloth');
+  } else g.row(23, 10, 13, '#ffffff', 'cloth');
   // arms hang at the sides; on the step frame one swings forward
   g.rect(5, 25, 6, 28, shirt, 'cloth');
   g.rect(17, 25, 18, 28, shirt, 'cloth');
   g.rect(5, step ? 28 : 29, 6, step ? 29 : 30, skin, 'skin');
   g.rect(17, 29, 18, step ? 29 : 30, skin, 'skin');
-  if (apron) {
+  if (apron && !back) {
     g.set(9, 24, apron, 'apron');
     g.set(14, 24, apron, 'apron');
     g.rect(9, 25, 14, 31, apron, 'apron');
     g.rect(10, 28, 13, 29, mix(apron, INK, 0.2), 'apron');
     g.row(31, 9, 14, mix(apron, INK, 0.14), 'apron');
   }
+  if (apron && back) {
+    // from behind: the neck strap, the ties round the waist and their bow
+    g.set(9, 24, apron, 'apron');
+    g.set(14, 24, apron, 'apron');
+    g.row(28, 7, 16, apron, 'apron');
+    g.rect(10, 27, 13, 29, apron, 'apron');
+    g.rect(11, 28, 12, 28, mix(apron, INK, 0.25), 'apron');
+    g.rect(11, 30, 12, 31, apron, 'apron');
+  }
   g.row(31, 7, 16, bottoms, 'cloth');
   g.row(32, 7, 16, mix(bottoms, INK, 0.18), 'cloth');
-  if (apron) g.rect(9, 31, 14, 31, mix(apron, INK, 0.14), 'apron');
+  if (apron && !back) g.rect(9, 31, 14, 31, mix(apron, INK, 0.14), 'apron');
   const legs = step ? [[9, 33, 33], [13, 33, 34]] : [[9, 33, 34], [13, 33, 34]];
   for (const [x, y0, y1] of legs) {
     g.rect(x, y0, x + 1, y0, skin, 'leg');
@@ -245,32 +260,45 @@ function drawPerson(look: Look, step: boolean): Grid {
     g.rect(x - 1, y1 + 1, x + 1, y1 + 1, '#4a3b52', 'shoe');
   }
 
-  // 3. the face
-  g.ellipse(CX, 15.5, 7.7, 6.9, skin, 'skin');
-  g.set(3, 16, skin, 'skin');
-  g.set(20, 16, skin, 'skin');
-  // Big anime eyes: a dark lash line, a white shine, and an iris that gets lighter toward the bottom.
-  for (const x0 of [7, 14]) {
-    g.row(16, x0, x0 + 2, INK, 'eye');
-    g.set(x0, 17, '#ffffff', 'eye');
-    g.set(x0 + 1, 17, mix(eye, INK, 0.3), 'eye');
-    g.set(x0 + 2, 17, mix(eye, INK, 0.3), 'eye');
-    g.set(x0, 18, eye, 'eye');
-    g.set(x0 + 1, 18, eye, 'eye');
-    g.set(x0 + 2, 18, mix(eye, '#ffffff', 0.25), 'eye');
-    g.row(19, x0, x0 + 2, mix(eye, '#ffffff', 0.5), 'eye');
-  }
-  for (const x of [5, 6, 17, 18]) g.set(x, 20, mix(skin, '#f26d7d', 0.45), 'skin');
-  g.row(21, 11, 12, '#b5564d', 'skin');
+  if (back) {
+    // 3b. from behind the whole head is hair, and long hair falls over the back
+    g.ellipse(CX, 15.5, 7.7, 6.9, skinShade, 'skin');
+    g.ellipse(CX, style.cy, style.rx, style.ry, hair, 'hair');
+    for (let x = 4; x <= 19; x++) for (let y = 12; y <= 20; y++) if (g.get(x, y)?.r === 'skin') g.set(x, y, hair, 'hair');
+    style.back?.(g, hair);
+    style.extra?.(g, hair);
+    accessory(g, look.accessory, true);
+    // a few strands so it reads as hair, not a helmet
+    const strand = mix(hair, INK, 0.16);
+    for (const x of [7, 11, 16]) for (let y = 11; y <= 17; y++) if (g.get(x, y)?.c === hair) g.set(x, y, strand, 'hair');
+  } else {
+    // 3. the face
+    g.ellipse(CX, 15.5, 7.7, 6.9, skin, 'skin');
+    g.set(3, 16, skin, 'skin');
+    g.set(20, 16, skin, 'skin');
+    // Big anime eyes: a dark lash line, a white shine, and an iris that gets lighter toward the bottom.
+    for (const x0 of [7, 14]) {
+      g.row(16, x0, x0 + 2, INK, 'eye');
+      g.set(x0, 17, '#ffffff', 'eye');
+      g.set(x0 + 1, 17, mix(eye, INK, 0.3), 'eye');
+      g.set(x0 + 2, 17, mix(eye, INK, 0.3), 'eye');
+      g.set(x0, 18, eye, 'eye');
+      g.set(x0 + 1, 18, eye, 'eye');
+      g.set(x0 + 2, 18, mix(eye, '#ffffff', 0.25), 'eye');
+      g.row(19, x0, x0 + 2, mix(eye, '#ffffff', 0.5), 'eye');
+    }
+    for (const x of [5, 6, 17, 18]) g.set(x, 20, mix(skin, '#f26d7d', 0.45), 'skin');
+    g.row(21, 11, 12, '#b5564d', 'skin');
 
-  // 4. hair over the forehead, with the shadow it casts on the face
-  for (let x = 4; x <= 19; x++) {
-    const depth = style.fringe[x - 4];
-    for (let y = 6; y <= depth; y++) g.set(x, y, hair, 'hair');
-    if (g.get(x, depth + 1)?.r === 'skin') g.set(x, depth + 1, mix(skin, skinShade, 0.55), 'skin');
+    // 4. hair over the forehead, with the shadow it casts on the face
+    for (let x = 4; x <= 19; x++) {
+      const depth = style.fringe[x - 4];
+      for (let y = 6; y <= depth; y++) g.set(x, y, hair, 'hair');
+      if (g.get(x, depth + 1)?.r === 'skin') g.set(x, depth + 1, mix(skin, skinShade, 0.55), 'skin');
+    }
+    style.extra?.(g, hair);
+    accessory(g, look.accessory);
   }
-  style.extra?.(g, hair);
-  accessory(g, look.accessory);
 
   // 5. hair shading: a shine ring across the crown, darker toward the tips
   const shine = mix(hair, '#ffffff', 0.42);
@@ -301,16 +329,17 @@ function drawPerson(look: Look, step: boolean): Grid {
   return out;
 }
 
-/** Paint both frames (stand, step) side by side. */
+/** Paint the sheet: stand and step side by side, facing front on the top row and away on the bottom row. */
 export function paintChibi(ctx: CanvasRenderingContext2D, look: Look) {
-  for (const [i, step] of [false, true].entries()) {
-    const g = drawPerson(look, step);
-    for (let y = 0; y < CHIBI_H; y++)
-      for (let x = 0; x < CHIBI_W; x++) {
-        const p = g.get(x, y);
-        if (!p) continue;
-        ctx.fillStyle = p.c;
-        ctx.fillRect(i * CHIBI_W + x, y, 1, 1);
-      }
-  }
+  for (const [row, back] of [false, true].entries())
+    for (const [i, step] of [false, true].entries()) {
+      const g = drawPerson(look, step, back);
+      for (let y = 0; y < CHIBI_H; y++)
+        for (let x = 0; x < CHIBI_W; x++) {
+          const p = g.get(x, y);
+          if (!p) continue;
+          ctx.fillStyle = p.c;
+          ctx.fillRect(i * CHIBI_W + x, row * CHIBI_H + y, 1, 1);
+        }
+    }
 }

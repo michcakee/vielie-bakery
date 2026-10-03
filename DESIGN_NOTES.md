@@ -617,3 +617,10 @@ Kid bot after round 2 (seed 12):
 - **Lantern Festival arc** (`src/engine/arc.ts`): ten chapters from day 36, about three days apart, ending on day 61. Lane hearts come from choices and from 2-star days; 16 wins. Both endings give a prize on the wall, cash and XP, so nobody loses badly. Older saves past day 36 start it the next morning.
 - **Collection book** (`src/ui/Collection.tsx`): neighbours, recipes and medals, story chapters, events seen and decorations, with a total count.
 - **Characters** are now drawn by code (`src/ui/pixel/chibi.ts`) at 24×36, after the anime-sprite reference the owner picked: shapes go on a pixel grid, then passes add a hair shine ring and shadow, lines between hair, skin and clothes, and a dark outline. All new random streams are separate, so existing schedules and balance tests are unchanged.
+
+### The room, seen from above
+The shop scene is now a top-down room modelled on the owner’s reference picture (`src/ui/pixel/scene.ts`, `src/ui/scene/BakeryScene.tsx`): 240×168, with the window, bread bookcase, chalkboard, plant shelf, fridge and oven along the back wall; a service counter with the glass case across the middle; the queue in front of the register; and gingham tables, the cat mat and the open doorway at the bottom.
+- **Three canvases** give the depth: room, then staff, then counter, then the queue, then tables and the near wall, then diners. Within a layer, whoever stands lower on the floor is drawn in front.
+- **Customers** come in at the bottom-left, walk up to the queue and face the counter (characters have a back view now). Happy customers sometimes sit at a table for a while before leaving. This is display only: it reads the same visit data and changes no game numbers.
+- **Staff** stand along the counter; the barista and the baker face the coffee corner and the oven.
+- Every decoration and upgrade still shows, in a new place: the festival prize and radio on the back counter, the bench under the window, the runner rug under the queue, the compost bin by the right wall, and the neon sign in the window.

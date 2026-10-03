@@ -5619,3 +5619,16 @@ html[data-motion='reduced'] .title-logo span {
 .stage .staff {
   margin-left: -4px;
 }
+
+/* The More menu hangs under the whole controls row, so it stays on screen wherever the button wraps to. */
+.service-controls {
+  position: relative;
+}
+.svc-more {
+  position: static;
+}
+.svc-more-items {
+  left: 0;
+  right: auto;
+  max-width: 100%;
+}

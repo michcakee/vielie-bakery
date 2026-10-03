@@ -357,3 +357,144 @@ Tests: day-old discount, combo adds sales, sizes lift drink revenue, replaying t
 Known issues: trade between shops (the second half of concept 15) is taught, not simulated; the quiz at chapter ends (§13.8, optional) is not built; the Test Kitchen only varies price (batch size and menu are one-line additions)
 Next step proposed: a human playtest of the first fortnight; then retune concept pacing from the prediction-accuracy numbers in the Grown-up summary
 ```
+
+## Onboarding, Unlocks and Intro Quests: Phase A audit (report only, no code changed)
+
+Measured on a fresh Family Business game, day 1 morning, after the intro lines, in the browser pane (desktop 1200 px and phone 375 px). "Controls" = visible buttons, inputs, radios and links inside the tab panel; "numbers" = numeric tokens in the panel text.
+
+### A1. What a day-1 player sees
+
+| Tab (desktop order) | Cards | Controls casual | Controls business | Numbers casual / business | Phone scroll depth |
+|---|---|---|---|---|---|
+| Today | 6 (economy, Getting started, Next up, note from Bà, Open for business, Quests) | 6 | 6 | 30 / 34 | 2.7 screens |
+| Kitchen | 6 (forecast, oven, menu & prices, what's on the menu, production plan, recipe book) | 29 | 29 | 62 / 71 | 6 screens |
+| Market | 4 (news, storage, stock up, supply contracts) | 29 | 29 | 63 / 64 | 3.2 screens |
+| Staff | 4 (capacity, team, 11 applicants, roles) | 13 | 13 | 59 / 61 | (More menu) |
+| Customers | 3 (who comes in, rivals, marketing) | 13 | 13 | 55 / 55 | (More menu) |
+| Growth | 7 (stage, equipment, building, more shops, worth, decorate, you & your bakery) | 32 | 50 | 119 / 175 | (More menu) |
+| Finances | 7 casual (safety fund, loans, credit line, investors, bonds, co-op shares, notebook) + statements in business | 35 | 35 | 40 / 40 | 3 screens |
+| Analytics | 2 (analytics placeholder, 7-day forecast) | 2 | 2 | 68 / 68 | (More menu) |
+| Eco | 5 (score, sourcing, packaging, green upgrades, community) | 5 | 5 | 19 / 19 | (More menu) |
+| **Total** | **44 cards** | **164** | **182** | **515 / 587** | |
+
+Plus the HUD (quest button, settings button, 5 stats, level bar) and Settings (7 toggles, 3 slots, text size, delete data, about). On a phone the bar shows Today, Kitchen, Market, Finances and a More sheet with Staff, Customers, Growth, Analytics, Eco, Quests, Settings: 9 destinations are one or two taps away on day 1.
+
+Verdict: the day-1 surface is 164 controls and roughly 500 numbers across 44 cards. The casual/business toggle only removes 18 controls and 72 numbers (statements, ratios, the avatar editor rows). Nothing is hidden by progress except: marketing (level 2), investors and co-op shares (level 3 / 30 days), community bonds (community 50), more shops (level 4), the buy-out offer (day 60), the Test Kitchen (lesson or level 3), and locked recipes, upgrades and decor by level.
+
+### A2. Feature inventory (what exists, where it lives, which actions)
+
+| Feature | UI file | Engine actions | Day-1 visible? |
+|---|---|---|---|
+| Open the counter, serve orders, pause, speed, last call, hand over, skip, close early | `App.tsx`, `panels/ServicePanel.tsx` | `open`, `tick`, `serve`, `lastCall`, `handOver`, `skipToClose`, `closeEarly` | yes |
+| Autopilot / team day | `panels/HomePanel.tsx` | `runDay` (internally `autoBake`, `autoStock`, `buy`, `bake`, `openShop(true)`, `fastForward`, `finishDay`) | yes (button on day 1) |
+| Bake trays, quick bake, bake the plan | `panels/KitchenPanel.tsx` | `bake`, `autoBake` | yes |
+| Prices (±, demand meter, elasticity in business) | KitchenPanel `PriceRow` | `setPrice` | yes (3 products) |
+| Menu on/off toggles, category filter | KitchenPanel | `setMenu` | yes |
+| Production plan trays, auto-stock toggle | KitchenPanel | `setPlan`, `setAutoStock` | yes |
+| Recipe book (locked recipes listed) | KitchenPanel | none | yes |
+| Prediction card | KitchenPanel `PredictCard` | `predict` | after the first price change |
+| Combo and drink sizes toggles | KitchenPanel | `setCombo`, `setSizes` | yes |
+| Daily special | HomePanel | none (engine picks from day 3) | day 3 |
+| Market: 4 suppliers, pack sizes 1/5/10/20, stock up, auto-reorder, price lock, contracts | `panels/MarketPanel.tsx` | `buy`, `setReorder`, `clearReorder`, `lockPrice`, `signContract`, `cancelContract` | yes, all |
+| Staff: hire (11 applicants, the six friends first), fire, wage, train, assign | `panels/StaffPanel.tsx` | `hire`, `fire`, `setWage`, `train`, `assign` | yes |
+| Customers: segments, rivals, marketing campaigns | `panels/CustomersPanel.tsx` | `campaign` | yes (marketing at level 2) |
+| Growth: equipment, building, branches, worth and retire, decor, rename, avatar | `panels/BuildPanel.tsx` | `buyUpgrade`, `sellEquipment`, `openBranch`, `closeBranch`, `retire`, `buyDecor`, `rename`, `setLook` | yes |
+| Finances: plain words or statements, safety fund, savings rate, loans, credit line, investors, bonds, co-op shares, notebook | `panels/FinancesPanel.tsx` | `fund`, `savingsRate`, `takeLoan`, `repayLoan`, `repayCredit`, `raiseEquity`, `issueBond`, `trade`, `buyBack` | yes (mostly) |
+| Analytics: trends, product earnings, price experiments, forecast buy, why, journal, economy, Test Kitchen | `panels/AnalyticsPanel.tsx` | `buyForecast`, `runDay` and `setPrice` on a cloned state | yes (sparse until 7 days of history) |
+| Eco: score, sourcing, packaging, green upgrades, community | `panels/EcoPanel.tsx` | `setPackaging`, `buyUpgrade` | yes |
+| Closing: leftovers keep/donate/bin, report, next day | `overlays.tsx` | `leftover`, `finishDay`, `nextDay` | yes |
+| Events with choices | `overlays.tsx`, `engine/events.ts` | `resolveEvent` | from day 3 |
+| Quests, weekly goals, achievements, unlock schedule, story beats | `engine/progression.ts`, `data/story.ts`, HomePanel | `pickGoal`, `hint` | yes |
+| Settings: business view, relaxed pace, sound, music, translations, motion, break reminder, slots, delete data | `Settings.tsx` | `load`, `newGame` | yes |
+
+Progress state available for gating today: `s.day`, `s.history.length`, `levelOf(s.xp)`, `s.quests` (done ids), `s.questProgress`, `s.learned`, `s.hints`, `s.unlocked` (recipes), `s.unlockedRegulars`, `s.staff.length`, `s.lifetime.served`. There is no feature-unlock list in `GameState` yet.
+
+### A3. Overlap: guidance voices on days 1–10
+
+Fourteen separate voices can speak in the first ten days, with no shared priority:
+
+1. Intro lines overlay (day 1, once, `IntroLines` in `App.tsx`).
+2. "A note from Bà" card (day 1 only, HomePanel).
+3. "Getting started" coach card, 4 steps with Show me buttons (days 1–4 or until skipped).
+4. First-customer hint banner in service (`firstHint`, until the first serve).
+5. Quests card (3 active, always) and the HUD quest button with a count.
+6. "Next up" tease (every day from day 1: "New recipe: Gress cupcake, tomorrow").
+7. "Before you open" warnings with Go buttons (from day 2).
+8. Unlock toasts: recipe day 2, regular day 3, recipe day 4, decor gift day 5, recipe day 6, regular day 8, recipe day 10.
+9. Learned-concept toasts (notebook): inventory on the first buy, elasticity on the first price change, fixed cost on rent, then variable cost, margin, waste, forecasting, competition, inflation, scale, risk, surplus, comparative.
+10. Inline `Tip` concept chips (inventory, fixed cost, opportunity cost, marginal analysis, externality, hedge, dividend, supply contract, investment).
+11. Morning events for story scenarios: coffee rumour day 3, rainy season day 5, egg shortage day 8, catering day 10 (then 12, 14, 15, 17, 19, 21, 23, 30, 31, 33).
+12. Daily special card (from day 3).
+13. Grade cards, reaction lines, badges and tips during service; level-up toast with confetti (level 2 at 150 XP, usually day 2–3).
+14. Closing report, leftovers modal, prediction settle, weekly goal pick (day 1 and every 7 days).
+
+Collisions: the coach's "buy ingredients" step duplicates quest "Stock up" and the market warning; "Next up" and the unlock toast announce the same recipe twice (tease, then arrival); the day-3 coffee rumour event, the day-3 regular toast, the first daily special and the level-2 toast can all land on one morning; the Quests card lists "Oven on!" and "Price explorer" while the coach says the same thing in different words.
+
+### A4. Existing timing (first 35 days)
+
+| Day | What already happens |
+|---|---|
+| 1 | Intro, Bà's note, coach step 1, weekly goal pick, 11 applicants (six friends first), everything else open |
+| 2 | Gress cupcake recipe unlock; coach step 4 completes after 2 closed days |
+| 3 | Regular Mai; daily special starts; coffee rumour event; level 2 around here (marketing opens) |
+| 4 | Trà tắc recipe; coach card disappears |
+| 5 | String lights decor gift; rainy season event |
+| 6 | Light gress tea recipe |
+| 8 | Regular Chú Hùng; egg shortage event; new applicant pool (days 8, 15, 22, 29: `day % 7 === 1`) |
+| 10 | Bánh patê sô recipe; catering offer |
+| 12, 14, 15, 17, 19, 21, 23 | Green week, heatwave, competitor (old lane), fridge or fruit fest, festival, wholesale or influencer, Tết coming |
+| 13 | Gress sandwich cookies recipe |
+| 30, 31, 33 | Influencer, catering, premium sale; investors open after 30 days; month start pays rent ahead |
+| 45 | First story beat |
+
+Rent is paid at month start (`isMonthStart`), which can fall inside the first week depending on the start date; the coach mentions rent on day 1 either way.
+
+### A5. Engine coupling of autopilot and bot actions
+
+- `runDay` does not dispatch actions. It calls the internal functions `autoBake` then `autoStock` (which calls `buy(next, id, 'cho', packs)`) and `bake()` directly, then `openShop(true)`, `fastForward` (serves via the same `serve` path) and `finishDay`. UI-only gating would not stop the bot: gates must live in the engine, as `featureOn(s, id)` checks inside `autoStock`, `autoBake`, `receiveDeliveries` (reorder rules, deliveries, contracts) and in the reducer guards for each action.
+- `plan.autoStock` defaults on, and `autoStock` always buys from the wet market, so the autopilot ignores supplier choice and pack discounts. If "autopilot" unlocks before "suppliers", that is consistent.
+- `startDay` already runs every day regardless of unlocks: applicant refresh (`day % 7 === 1`), rival reactions, unlock schedule, loyal churn, specials, events. Hiding the Staff tab does not stop applicants from refreshing, and `weeklyApplicants` puts `FRIENDS` first each week until they are hired, so the six friends will still be first whenever the tab opens.
+- Reorder rules, contracts, loans, campaigns, investors and bonds only act if they exist in state, so locking their actions is enough: nothing accrues from a feature the player could never touch.
+- `UNLOCK_SCHEDULE` (recipes, regulars, decor) is a separate day-driven list in `data/catalog.ts` applied by `applySchedule`; a feature-unlock list should sit beside it, not replace it.
+- Old saves: `fillNewContent` in `engine/save.ts` is the place to mark every feature unlocked for any save with `day > 1`, so existing players lose nothing. The "Experienced baker" toggle can set the same full list at `newGame`.
+- Tests that call `createNewGame` and then dispatch deep actions on day 1 (stress, lessons, balance survey) will need the full-unlock flag or they become no-ops under gating.
+
+### A6. Proposed unlock plan (for sign-off)
+
+Ids are `FEATURE_UNLOCKS` entries; "trigger" is a quest or a day, whichever comes first unless marked "quest only". Chapter numbering matches the brief's Phases B–F.
+
+| Chapter | Feature id | What opens | Trigger | Intro quest |
+|---|---|---|---|---|
+| 1 Open the doors (days 1–3) | `core.open`, `core.serve` | Today tab, Mở cửa, service, closing report | day 1 | "First bánh mì" (exists) |
+| 1 | `kitchen.bake` | Kitchen tab, bake and quick bake for the 3 starter products | day 1 | "Oven on!" (exists) |
+| 1 | `market.wetMarket` | Market tab, wet market only, pack sizes 1 and 5 | day 1 | "Stock up" (exists) |
+| 1 | `kitchen.prices` | ± price and demand meter (no elasticity) | day 2 or quest "First bánh mì" | "Price explorer" (exists) |
+| 1 | `kitchen.recipeBook`, `kitchen.menu` | recipe book and on/off toggles | day 2 (with the Gress cupcake unlock) | new: "Put the cupcake on the menu" |
+| 1 | `finances.plain` | Finances tab, In plain words and notebook only | after the first closing (history ≥ 1) | "In the black" (exists) |
+| 2 Regulars and the special (days 3–5) | `today.special`, `today.predict` | daily special card, prediction card | day 3 | new: "Bake extra of the special" |
+| 2 | `market.packSizes` | 10 and 20 packs with discounts | quest "Smart shopper" or day 4 | exists |
+| 2 | `customers.whoComes` | Customers tab: segments and neighbours only | regular Mai (day 3) | new: "Serve Mai three times" |
+| 2 | `finances.safetyFund` | safety fund card | quest "In the black" or day 5 | "Rainy-day money" (exists) |
+| 3 The team (days 5–8) | `staff.hire` | Staff tab, applicants (friends first), capacity | day 5 or 40 customers served | "Not alone anymore" (exists) |
+| 3 | `kitchen.plan`, `today.teamDay` | production plan, auto-stock toggle, "Let the team run today" | first hire, quest only | new: "Let the team run a day" |
+| 3 | `staff.train`, `staff.wage`, `staff.assign` | training, wages, roles | second hire or day 10 | new: "Train a friend" |
+| 3 | `growth.decor` | Growth tab with Decorate only | day 5 (string lights gift) | "Make it yours" (exists) |
+| 4 Supply and money (days 8–14) | `market.autoReorder` | auto-reorder rules | three stock-ups or day 8 | new: "Set one reorder rule" |
+| 4 | `market.suppliers` | the other 3 suppliers | day 8 egg shortage event | new: "Buy from a second supplier" |
+| 4 | `market.contracts`, `market.priceLock` | contracts and locks | learned `inflation` or day 14 | new: "Sign a contract" |
+| 4 | `finances.loans` | bank loans | day 10 catering offer, or cash below 5 days of rent | new: "Borrow and repay" |
+| 4 | `growth.equipment`, `growth.building` | equipment and building | level 2 or day 10 | "Room to grow" (exists) |
+| 4 | `customers.marketing` | campaigns | level 2 (exists) | new: "Run one campaign" |
+| 5 Reading the numbers (days 12–20) | `analytics.basic` | Analytics tab: trends, products, why, journal | history ≥ 7 days | new: "Read one week" |
+| 5 | `finances.business` | business view toggle and statements | history ≥ 7 and the grown-up summary seen | none (optional) |
+| 5 | `eco.all` | Eco tab | day 12 green week event | "Green bakery" (exists) |
+| 5 | `kitchen.combo`, `kitchen.sizes` | combo and drink sizes | level 2 and day 15 | new: "Try a combo day" |
+| 5 | `analytics.testKitchen`, `analytics.forecastBuy` | Test Kitchen, buy from forecast | level 3 or lesson (exists) | exists |
+| 6 Owner (day 20+) | `finances.creditLine`, `finances.investors`, `finances.bonds`, `finances.shares` | existing gates (level 3, 30 days, community 50) | unchanged | "Investor" achievement |
+| 6 | `growth.branches`, `growth.retire` | more shops (level 4), buy-out (day 60) | unchanged | "Second shop" (exists) |
+
+Everything in the table is off at `newGame` unless "Experienced baker" is ticked, and fully on for any loaded save with `day > 1`. Day-1 surface under this plan: Today (3 cards, 3 controls), Kitchen (3 cards, about 8 controls), Market (2 cards, about 10 controls): roughly 20 controls instead of 164, and the phone bar shows 3 tabs with no More sheet until Chapter 2.
+
+### Phase A summary line
+
+Phase A – done (report only). Changed: DESIGN_NOTES.md. Unlocks added/changed: none (plan proposed above, 30 ids over 6 chapters). Tests: 113 passing, new: none. Known issues: autopilot bypasses actions so gating must be engine-side; tests and old saves need a full-unlock path; 14 overlapping guidance voices on days 1–10. Next step proposed: sign off the table, then Phase B builds `FEATURE_UNLOCKS`, `featureOn()`, the save migration and the Experienced-baker toggle with no content changes.

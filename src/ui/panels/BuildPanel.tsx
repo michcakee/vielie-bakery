@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { DECOR, DECOR_ORDER, LEVELS, STAGES, UPGRADES, UPGRADE_ORDER } from '../../data/catalog';
 import { GOALS, LOCATIONS, LOCATION_ORDER, SEGMENTS } from '../../data/world';
-import { activeRivals, businessStage, countOf, depreciationPerDay, levelOf, marketTraffic } from '../../engine/economy';
+import { activeRivals, businessStage, countOf, depreciationPerDay, levelOf, marketTraffic, rent } from '../../engine/economy';
 import { valuation } from '../../engine/finance';
 import { goalProgress } from '../../engine/progression';
 import { canShop } from '../../engine/state';
 import type { DecorId, LocationId, SegmentId, UpgradeId } from '../../engine/types';
 import { money, money2, pct } from '../../lib/format';
 import { useGame } from '../GameContext';
-import { Btn, Card, Tip } from '../kit';
+import { Btn, Card, ConfirmBtn, Tip } from '../kit';
 import { LookEditor } from '../LookEditor';
 import { Sprite } from '../pixel/Sprite';
 
@@ -216,9 +216,15 @@ export function BuildPanel() {
                   </span>
                 </div>
                 <div className="shop-act">
-                  <Btn kind="primary" disabled={!shopping || level < 4 || s.cash < cost} onClick={() => dispatch({ type: 'openBranch', location: id, name: branchName })}>
+                  <ConfirmBtn
+                    disabled={!shopping || level < 4 || s.cash < cost}
+                    title={`Open a shop in ${l.name}?`}
+                    lines={[`It costs ${money(cost)} today. You'd have ${money(s.cash - cost)} left.`, `Rent there is ${money(l.rent * 30 * s.macro.rentIndex)} every month, on top of your own shop.`, 'It needs its own team: a manager, a baker and counter staff.']}
+                    warn={s.cash - cost < (rent(s) + l.rent * s.macro.rentIndex) * 30 ? 'That would leave less than one month of rent in the drawer!' : null}
+                    onConfirm={() => dispatch({ type: 'openBranch', location: id, name: branchName })}
+                  >
                     Open ({money(cost)})
-                  </Btn>
+                  </ConfirmBtn>
                 </div>
               </li>
             );

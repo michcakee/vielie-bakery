@@ -667,6 +667,7 @@ function summarise(s: GameState, t: DayStats): DaySummary {
     lostSoldOut: t.lostSoldOut,
     lostPrice: t.lostPrice,
     lostSlow: t.lostSlow,
+    lostSlowKind: t.lostSlowKind,
     diverted: t.diverted,
     inventoryValue: round2(inventoryValue(s)),
     staff: s.staff.length,

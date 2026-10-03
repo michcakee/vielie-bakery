@@ -164,3 +164,42 @@ export function useTween(target: number, ms = 450, still = false): number {
   }, [target, ms, still]);
   return v;
 }
+
+/** A button that asks once before a big money decision, restating what it really costs in plain words. */
+export function ConfirmBtn({ children, title, lines, warn, onConfirm, disabled, kind = 'primary' }: { children: ReactNode; title: string; lines: ReactNode[]; warn?: string | null; onConfirm: () => void; disabled?: boolean; kind?: 'primary' | 'plain' | 'danger' }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <Btn kind={kind} disabled={disabled} onClick={() => setOpen(true)}>
+        {children}
+      </Btn>
+      {open && (
+        <div className="confirm-veil" onClick={() => setOpen(false)}>
+          <div className="confirm-sheet" role="dialog" aria-modal="true" aria-label={title} onClick={(e) => e.stopPropagation()}>
+            <h3>{title}</h3>
+            <ul>
+              {lines.map((l, i) => (
+                <li key={i}>{l}</li>
+              ))}
+            </ul>
+            {warn && <p className="warn">{warn}</p>}
+            <div className="btn-row">
+              <Btn kind="ghost" onClick={() => setOpen(false)}>
+                Not now
+              </Btn>
+              <Btn
+                kind={warn ? 'danger' : 'primary'}
+                onClick={() => {
+                  setOpen(false);
+                  onConfirm();
+                }}
+              >
+                Yes, do it
+              </Btn>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}

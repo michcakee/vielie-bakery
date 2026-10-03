@@ -43,7 +43,12 @@ function Spotlight({ anchor, onDone }: { anchor: string; onDone: () => void }) {
     let tries = 0;
     let raf = 0;
     const find = () => {
-      el = [...document.querySelectorAll<HTMLElement>(`[data-spot="${anchor}"]`)].find((e) => e.offsetParent !== null) ?? null;
+      el = [...document.querySelectorAll<HTMLElement>(`[data-spot="${anchor}"]`)].find((e) => e.offsetParent !== null && e.getBoundingClientRect().height > 0) ?? null;
+      // A whole card is too big to point at: point at the first thing in it you can actually tap.
+      if (el && el.getBoundingClientRect().height > window.innerHeight * 0.45) {
+        const inner = [...el.querySelectorAll<HTMLElement>('button:not([disabled]), input, select')].find((e) => e.offsetParent !== null);
+        if (inner) el = inner;
+      }
       if (!el) {
         if (tries++ < 60) raf = requestAnimationFrame(find);
         else onDone();
@@ -69,7 +74,7 @@ function Spotlight({ anchor, onDone }: { anchor: string; onDone: () => void }) {
     const tap = () => window.setTimeout(onDone, 0);
     window.addEventListener('keydown', key);
     const armed = window.setTimeout(() => window.addEventListener('pointerdown', tap, true), 250);
-    const auto = window.setTimeout(onDone, 9000);
+    const auto = window.setTimeout(onDone, 12000);
     return () => {
       cancelAnimationFrame(raf);
       cleanupPlace();

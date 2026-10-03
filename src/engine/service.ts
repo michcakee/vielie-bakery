@@ -229,6 +229,8 @@ function leave(s: GameState, v: Visit, mood: Mood, line: string): GameState {
   const loyal = { ...s.loyal };
   if (mood === 'slow') {
     t.lostSlow++;
+    const kind = PRODUCTS[v.wants].kind;
+    t.lostSlowKind = { ...t.lostSlowKind, [kind]: (t.lostSlowKind?.[kind] ?? 0) + 1 };
     rep = bump(rep, -0.08);
     if (v.who !== 'walkin') hearts[v.who] = Math.max(0, (hearts[v.who] ?? 0) - 0.5);
   } else if (mood === 'pricey') {

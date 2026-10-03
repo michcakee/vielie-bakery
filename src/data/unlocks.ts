@@ -217,7 +217,7 @@ export const FEATURES: FeatureDef[] = [
       who: 'Bà',
       vi: 'Một mình con làm không xuể đâu.',
       en: 'You can’t do it all alone.',
-      steps: [{ text: 'Hire one applicant.', tab: 'staff', spot: 'hire', done: (s) => s.staff.length > 0 || qp(s, 'hired') > 0 }],
+      steps: [{ text: 'Meet the applicants. Hire Bà’s pick if there is one.', tab: 'staff', spot: 'hire-btn', visit: true, done: (s) => s.staff.length > 0 || qp(s, 'hired') > 0 || seen(s, 'visit:staff.hire') }],
       after: 'A helper serves the customers you can’t reach. Pick one who makes what people wait for most.',
       xp: 25,
     },

@@ -64,6 +64,11 @@ function EmployeeRow({ e }: { e: Employee }) {
 export function StaffPanel() {
   const { state: s, dispatch, business, feature, fresh } = useGame();
   const [branch, setBranch] = useState<number | null>(null);
+  const [all, setAll] = useState(false);
+  // Best value first: what they add minus what they cost. Bà recommends the top one if it pays.
+  const ranked = [...s.applicants].map((a) => ({ a, v: hireValue(s, a.role, a.skill) })).sort((x, y) => y.v.addsValue - y.v.cost - (x.v.addsValue - x.v.cost));
+  const pick = ranked[0] && ranked[0].v.addsValue >= ranked[0].v.cost * 0.6 ? ranked[0].a.id : null;
+  const shown = all ? ranked : ranked.slice(0, 3);
   const team = s.staff;
   const ovens = ovenCapacity(s);
   const people = laborTrays(s);
@@ -137,14 +142,14 @@ export function StaffPanel() {
           <Empty icon="note">No one is looking for work this week. Check again on Monday.</Empty>
         ) : (
           <ul className="staff-list">
-            {s.applicants.map((a) => {
-              const v = hireValue(s, a.role, a.skill);
+            {shown.map(({ a, v }) => {
               return (
-                <li key={a.id} className="staff-row">
+                <li key={a.id} className={`staff-row ${a.id === pick ? 'bas-pick' : ''}`}>
                   <Person look={a.look} scale={3} />
                   <div className="staff-info">
                     <b>
                       {a.name} <span className="muted">· {ROLES[a.role].name}</span>
+                      {a.id === pick && <span className="special-tag">Bà’s pick</span>}
                     </b>
                     <span className="small">
                       Skill {Array.from({ length: a.skill }).map((_, i) => (<span key={i} className="star-on"><Sprite name="star" scale={2} /></span>))}
@@ -162,7 +167,7 @@ export function StaffPanel() {
                     </span>
                   </div>
                   <div className="staff-act">
-                    <Btn kind="primary" disabled={s.phase === 'service' || s.cash < hireFee} onClick={() => dispatch({ type: 'hire', applicantId: a.id, branch })}>
+                    <Btn kind={a.id === pick ? 'primary' : 'plain'} data-spot={a.id === pick || (!pick && a.id === shown[0]?.a.id) ? 'hire-btn' : undefined} disabled={s.phase === 'service' || s.cash < hireFee} onClick={() => dispatch({ type: 'hire', applicantId: a.id, branch })}>
                       Hire ({money(hireFee)} fee)
                     </Btn>
                   </div>
@@ -170,6 +175,12 @@ export function StaffPanel() {
               );
             })}
           </ul>
+        )}
+        {!pick && s.applicants.length > 0 && <p className="small">Bà says: “Nobody here would pay for themselves yet. Hire when lots of people give up waiting.”</p>}
+        {s.applicants.length > 3 && (
+          <button type="button" className="link-btn" onClick={() => setAll(!all)}>
+            {all ? 'Show fewer' : `Show all ${s.applicants.length} applicants`}
+          </button>
         )}
         <p className="small muted">
           Compare what each person adds with what they cost: that's <Tip concept="marginal">marginal analysis</Tip>.

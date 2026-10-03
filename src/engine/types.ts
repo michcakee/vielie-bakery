@@ -245,6 +245,8 @@ export interface DayStats {
   lostSoldOut: number;
   lostPrice: number;
   lostSlow: number;
+  /** Who gave up waiting, by what they wanted. */
+  lostSlowKind?: Partial<Record<'tray' | 'drink' | 'sandwich', number>>;
   diverted: number;
   divertedTo: Record<string, number>;
   regularsServed: number;
@@ -299,6 +301,8 @@ export interface DaySummary {
   lostSoldOut: number;
   lostPrice: number;
   lostSlow: number;
+  /** Who gave up waiting, by what they wanted. */
+  lostSlowKind?: Partial<Record<'tray' | 'drink' | 'sandwich', number>>;
   diverted: number;
   inventoryValue: number;
   staff: number;

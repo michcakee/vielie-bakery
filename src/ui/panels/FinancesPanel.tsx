@@ -11,7 +11,7 @@ import type { CoopId, DaySummary, ProductId } from '../../engine/types';
 import { money, money2, pct, signedMoney } from '../../lib/format';
 import { BarList } from '../charts';
 import { useGame } from '../GameContext';
-import { Btn, Card, Empty, Stepper, Tip } from '../kit';
+import { Btn, Card, ConfirmBtn, Empty, Stepper, Tip } from '../kit';
 
 type Range = 'today' | 'week' | 'month' | 'year' | 'all';
 const RANGES: { id: Range; label: string; days: number }[] = [
@@ -242,8 +242,9 @@ function BreakEvenCalc() {
 }
 
 function Financing() {
-  const { state: s, dispatch, feature, fresh } = useGame();
-  const [amount, setAmount] = useState(5000);
+  const { state: s, dispatch, feature, fresh, business } = useGame();
+  const monthlyProfit = s.history.slice(-30).reduce((t, h) => t + h.profit, 0);
+  const [amount, setAmount] = useState(2000);
   const [term, setTerm] = useState(12);
   const [equity, setEquity] = useState(10000);
   const [bond, setBond] = useState(2000);
@@ -290,11 +291,18 @@ function Financing() {
           </div>
         </div>
         <p className="small">
-          At <b>{(q.rate * 100).toFixed(1)}%</b> a year (the central bank's {(s.macro.rate * 100).toFixed(1)}% plus a risk margin): <b>{money2(q.payment)}</b> a month, <b>{money2(q.totalInterest)}</b> interest in total, {money(q.principal + q.totalInterest)} paid back.
+          You pay back <b>{money2(q.payment)} every month</b> for {term} months: {money(q.principal + q.totalInterest)} in total, which is <b>{money2(q.totalInterest)} extra</b>.
+          {business && <> Interest {(q.rate * 100).toFixed(1)}% a year (the central bank's {(s.macro.rate * 100).toFixed(1)}% plus a risk margin).</>}
         </p>
-        <Btn kind="primary" disabled={busy || limit < 500} onClick={() => dispatch({ type: 'takeLoan', principal: q.principal, term })}>
+        <ConfirmBtn
+          disabled={busy || limit < 500}
+          title={`Borrow ${money(q.principal)}?`}
+          lines={[`You get ${money(q.principal)} today.`, `You pay ${money2(q.payment)} every month for ${term} months.`, `That's ${money(q.principal + q.totalInterest)} in total: ${money(q.totalInterest)} more than you borrowed.`]}
+          warn={monthlyProfit < q.payment ? `Your bakery made about ${money(Math.max(0, monthlyProfit))} last month. That's less than the monthly payment!` : null}
+          onConfirm={() => dispatch({ type: 'takeLoan', principal: q.principal, term })}
+        >
           Take this loan
-        </Btn>
+        </ConfirmBtn>
         <p className="small muted">The bank will lend up to {money(limit)} more based on your sales and debts.</p>
       </Card>
       )}
@@ -331,9 +339,14 @@ function Financing() {
         ) : (
           <p className="small muted">Investors want to see at least a month of trading, and won't take more than half the business in total.</p>
         )}
-        <Btn kind="primary" disabled={busy || !terms} onClick={() => dispatch({ type: 'raiseEquity', amount: equity })}>
+        <ConfirmBtn
+          disabled={busy || !terms}
+          title={`Take ${money(equity)} from an investor?`}
+          lines={terms ? [`You get ${money(equity)} today and never pay it back.`, `But the investor owns ${pct(terms.stake, 1)} of your bakery from now on.`, `They get ${pct(terms.stake, 1)} of the profit every good month, forever (unless you buy them out).`] : []}
+          onConfirm={() => dispatch({ type: 'raiseEquity', amount: equity })}
+        >
           Accept the investment
-        </Btn>
+        </ConfirmBtn>
       </Card>
       )}
 

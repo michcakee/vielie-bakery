@@ -58,7 +58,6 @@ export function hireValue(s: GameState, role: RoleId, skill = 3): { cost: number
   const cost = marketWage(s, role, skill) * ECON.labor.hoursPerShift * (1 + ECON.labor.payrollOverhead);
   const prod = productivity({ skill, morale: 70, trainingUntil: 0 }, s.day);
   const recent = s.history.slice(-7);
-  const avgLost = recent.length ? recent.reduce((t, h) => t + h.lostSlow, 0) / recent.length : 0;
   const avgTicket = recent.length ? recent.reduce((t, h) => t + h.revenue, 0) / Math.max(1, recent.reduce((t, h) => t + h.served, 0)) : 5;
   const margin = 0.65;
   switch (role) {
@@ -69,8 +68,11 @@ export function hireValue(s: GameState, role: RoleId, skill = 3): { cost: number
     case 'cashier':
     case 'barista':
     case 'cook': {
-      const saved = Math.min(avgLost, 6 + 4 * prod);
-      return { cost, adds: `faster service: roughly ${saved.toFixed(0)} fewer people giving up each day`, addsValue: saved * avgTicket * margin };
+      const kind = role === 'cashier' ? 'tray' : role === 'barista' ? 'drink' : 'sandwich';
+      const lostKind = recent.length ? recent.reduce((t, h) => t + (h.lostSlowKind?.[kind] ?? (h.lostSlow / 3)), 0) / recent.length : 0;
+      const saved = Math.min(lostKind, 6 + 4 * prod);
+      const what = kind === 'tray' ? 'pastries' : kind === 'drink' ? 'drinks' : 'bánh mì';
+      return { cost, adds: saved < 0.5 ? `serves ${what}, but nobody waiting for ${what} gave up lately` : `serves ${what}: about ${saved.toFixed(0)} more happy customers a day`, addsValue: saved * avgTicket * margin };
     }
     case 'pastryChef':
       return { cost, adds: 'better trays (+quality, so higher prices hold) and a couple more trays a day', addsValue: 2 * 8 * avgTicket * 0.5 * margin + 20 };

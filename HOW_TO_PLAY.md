@@ -9,13 +9,15 @@ Welcome to the lane! Bà (grandma) is retiring, and her little Vietnamese bakery
 ## Quick start (your first five minutes)
 
 1. **New game.** Pick a save slot and tap **Start**: you get Bà's bakery on **Sprinkle**, the forgiving setting. **More options** has the other scenarios, the difficulties (**Normal** is realistic; **Pro** and **Expert** bite) and **Experienced baker**. The other scenarios open once you finish Bà's first week. Then pick your look and name your bakery.
-2. **Open the doors.** Bà left you baguettes, a tray of flan and enough for coffee. Tap **Mở cửa! Open**.
-3. **Serve Linh.** She asks *"Cho mình một bánh mì!"* (One bánh mì, please!). Tap her order, then the steps in order: **Cắt bánh → Chả lụa → Đồ chua → Rau thơm → Tương ớt.** On your first days the next step glows.
-4. **Keep serving.** Pastries are one tap (**Hand over**); bánh mì and drinks are **Make it**.
-5. **Close up.** At 7pm (or **Close up**), keep, donate or bin what's left, then read the day's report.
-6. **Tomorrow:** stock up in **Market**, bake in **Kitchen**, and open again.
+2. **Bake.** Bà's first lesson tells you what to do. The pastry case is empty, so go to **Kitchen** and bake a tray of bánh flan. Tap **Take it out** when the needle is in the golden zone (it's slow and wide on your first days), or use **Quick bake**.
+3. **Open the doors.** Back on **Today**, check **Today's goal** (three sales targets, one per star), then tap **Mở cửa!**
+4. **Serve.** Tap a customer's order. Bà hands out the pastries for you at first, so you make the bánh mì and drinks: tap the steps in order (**Cắt bánh → Chả lụa → Đồ chua → Rau thơm → Tương ớt**). The ingredients stay in the same spots every time, and the next one glows. Serve the worried faces first!
+5. **Watch the stars.** The star bar fills as you sell. Every star earns XP.
+6. **Close up.** Choose what to do with leftovers (donating makes the neighbours happy), then read the report: your stars, what you sold, what it cost, and one idea to try tomorrow.
 
-That's the core loop. Bà's first lesson on the Today tab walks you through it once.
+Lost? Tap **?** in the top bar any time. It shows where you are in the day and the one or two things to do right now, each with a **Show me** button.
+
+That's the core loop: bake, open, serve, close, beat your stars. Bà's first lesson on the Today tab walks you through it once.
 
 ### Everything else unlocks as you go
 
@@ -25,7 +27,7 @@ A new bakery starts with just **Today** and **Kitchen**. Every other part of the
 | --- | --- |
 | 2–3 | The wet market, then setting your own prices (with a guess about what will happen) |
 | 5–8 | Today's special, getting to know your regulars, more suppliers and bulk packs |
-| 10–14 | Why did this happen?, your first hire, then letting the team run a day |
+| 10–16 | The menu, why did this happen?, your first hire (Bà points out the best one), then letting the team run a day |
 | 15–22 | Money pages, the menu and recipe book, Eco, rivals, the safety fund, equipment, the baking plan, trends |
 | 23–35 | Contracts and price locks, training, combos and sizes, bank loans, marketing, the economy |
 | Later | Investors and bonds, the Test Kitchen, more shops |
@@ -40,12 +42,12 @@ Everything below is about turning one shop into a business.
 
 | | **Play the day** (Mở cửa!) | **Let the team run today** |
 | --- | --- | --- |
-| How | Real time, 7am–7pm, about 2 minutes | Instant |
+| How | Real time, 7am–7pm, about 3 minutes (2 at full speed) | Instant |
 | You | Serve customers, assemble orders, call last call | Make the decisions; your team (or the autopilot) serves |
 | Quality | Your skill: perfect assembly beats the autopilot | Depends on your staff's skill and morale |
 | Good for | Early days, busy festival days, fun | Long-term play, testing a strategy |
 
-You can switch mid-day: **Hand over the counter** lets the team take over while you keep watching, and **Skip to closing** finishes the day instantly.
+You can switch mid-day from the **More** button: **Let Bà help at the counter** lets Bà and the team serve everyone while you keep watching (you can still jump in), and **Skip to closing** finishes the day instantly. **Let the team run today** unlocks around day 15.
 
 ---
 
@@ -55,17 +57,17 @@ On a phone, the first four are in the bottom bar and the rest are under **More**
 
 | Tab | What it's for |
 | --- | --- |
-| **Today** | Dashboard: cash, sales, profit, customers, the economy, a coach with the next thing to do, and the day buttons |
-| **Kitchen** | The oven, your menu and prices (with a live demand meter), the production plan for team days, storage |
+| **Today** | Dashboard: cash, sales, customers, **today's 3-star goal**, the next thing to do, and the day buttons |
+| **Kitchen** | Four sections: **Bake** (the oven), **Prices** (with a live demand meter and a guess-what-happens card), **Menu** (what you sell, combos, the recipe book) and **Plan** (what the team bakes on team days) |
 | **Market** | Ingredient prices and news, four suppliers, bulk buying, supply contracts, reorder rules, price locks |
-| **Staff** | Applicants, hiring (with what each person would add vs. cost), wages, training, morale |
+| **Staff** | Applicants with **Bà's pick** (the helper who'd pay for themselves), wages, training, morale |
 | **Customers** | Who comes in (segments), regulars, rival bakeries, marketing campaigns and their results |
 | **Growth** | Equipment, rooms, decor, new locations, your long-term goal, and selling up |
-| **Finances** | Income statement, balance sheet, cash flow, loans, credit line, investors, bonds, safety fund |
+| **Money** | Income statement, balance sheet, cash flow, loans, credit line, investors, bonds, safety fund |
 | **Analytics** | "Why did this happen?", trends, break-even, which products earn the most, forecasts, decision journal |
 | **Eco** | Eco score, waste, packaging, sourcing, community |
 
-**Settings** (gear): business view (more numbers) or casual view, text size, sound, music, reduced motion, translations, save slots and save codes.
+Every tab starts with one line saying what it's for. **?** (top bar): what to do right now. **Settings** (gear): business view (more numbers) or casual view, text size, sound, music, reduced motion, translations, save slots and save codes.
 
 ---
 
@@ -119,7 +121,7 @@ Happy customers may become **regulars** who come back, pay a little more and ign
 Buying in bulk is cheaper (5 / 10 / 20 packs), but stock spoils and storage is limited; overflow spoils fast. **Contracts** lock a price for weeks; **price locks** freeze today's price for 7 days; **reorder rules** restock automatically on team days.
 
 ### Staff
-Eight roles: baker, cashier, barista, sandwich maker, pastry chef, delivery rider, manager, marketer. New applicants every Monday; more of them when unemployment is high. Pay below the going rate and morale falls; low morale means slower work and people quitting. Training makes someone better for as long as they stay.
+In a guided game Bà hands out pastries for you until you hire a cashier. Hire for what people give up waiting for: drinks need a barista, bánh mì a sandwich maker. The Staff tab marks **Bà's pick**, the applicant who'd bring in more than they cost. Eight roles: baker, cashier, barista, sandwich maker, pastry chef, delivery rider, manager, marketer. New applicants every Monday; more of them when unemployment is high. Pay below the going rate and morale falls; low morale means slower work and people quitting. Training makes someone better for as long as they stay.
 
 ### The economy
 The city moves through **steady times, booms, recessions and high inflation**. Booms bring spenders and pricier workers. Recessions bring careful shoppers, cheaper loans and more job seekers. Inflation makes everything dearer, so keep your prices in step. The Today tab tells you what the current economy means for you.
@@ -185,14 +187,23 @@ On Android, the back button closes windows and sheets, then returns to Today.
 
 ---
 
+## Stars, levels and rewards
+
+- **Every day has a 3-star goal**: three sales targets set from your recent days. One star is easy; three stars means beating your usual day. Stars pay 10 / 25 / 50 XP.
+- **XP** also comes from profit, quests, intro quests and good guesses on price changes.
+- **Levels** (8 of them) bring new recipes, one a morning, and a gift from Bà of $100 × the new level.
+- **Big decisions ask first.** Loans, investors and new shops show what they really cost every month before you say yes.
+
 ## Tips for a great first month
 
 1. **Bake baguettes every morning.** Bánh mì is the best seller.
-2. **Watch what's lost.** The report shows people who left because something was sold out, too pricey or too slow. Each one is a different fix.
-3. **Raise prices on what sells out.** If coffee is always gone by noon, it's too cheap (or you need a barista).
-4. **Check "Why did this happen?"** after a surprising week.
-5. **Keep a cash cushion.** Rent is due on the 1st of each month.
-6. **Hire for the bottleneck.** Analytics tells you whether ovens or people are limiting you.
-7. **Don't overbake.** Leftovers cost money: use last call, donate or bake less.
+2. **Aim for the stars.** Check today's goal before opening; bake enough and keep the line moving.
+3. **Watch what's lost.** The report shows people who left because something was sold out, too pricey or too slow. Each one is a different fix.
+4. **Raise prices on what sells out.** If coffee is always gone by noon, it's too cheap (or you need a barista).
+5. **Check "Why did this happen?"** after a surprising week.
+6. **Keep a cash cushion.** Rent for the whole month is paid on the 1st; Today counts down the last 5 days.
+7. **Hire for the bottleneck.** Analytics tells you whether ovens or people are limiting you.
+8. **Don't overbake.**
+9. **Try the report's idea.** "Try this tomorrow" points at something you haven't used yet. Leftovers cost money: use last call, donate or bake less.
 
 *Chúc một ngày tốt lành!* Have a lovely day at the bakery.

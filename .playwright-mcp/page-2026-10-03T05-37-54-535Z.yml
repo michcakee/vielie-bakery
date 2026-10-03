@@ -1,0 +1,19 @@
+- main [ref=e14]:
+  - generic [ref=e15]:
+    - heading "New bakery" [level=1] [ref=e16]
+    - heading "Save slot" [level=2] [ref=e17]
+    - radiogroup "Save slot" [ref=e18]:
+      - radio "Slot 1 Empty" [checked] [ref=e20] [cursor=pointer]:
+        - generic [ref=e21]: Slot 1
+        - generic [ref=e22]: Empty
+      - radio "Slot 2 Empty" [ref=e24] [cursor=pointer]:
+        - generic [ref=e25]: Slot 2
+        - generic [ref=e26]: Empty
+      - radio "Slot 3 Empty" [ref=e28] [cursor=pointer]:
+        - generic [ref=e29]: Slot 3
+        - generic [ref=e30]: Empty
+    - paragraph [ref=e31]: "Bà’s bakery on Gress Island Lane: she leaves you the shop, a little stock and a lot of faith. Everything else unlocks as you go."
+    - button "More options" [ref=e32] [cursor=pointer]
+    - generic [ref=e33]:
+      - button "Start this bakery" [ref=e34] [cursor=pointer]
+      - button "Back" [ref=e35] [cursor=pointer]

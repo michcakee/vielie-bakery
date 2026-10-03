@@ -564,3 +564,33 @@ Findings and fixes:
 - Not changed: reaching level 2 (usually day 2 or 3) still adds a batch of level recipes at once. That is the existing level pacing, not a system unlock; worth watching in a real playtest.
 
 Still to do: the real playtest with 2–3 kids (brief §8 Phase F), watching for every "what do I do?" and every tap on something locked, then retuning fallback days and triggers in `src/data/unlocks.ts`.
+
+## Playtest round 1 and the "real bakery game" pass (2026-10-03)
+
+Source: `PLAYTEST_FEEDBACK.md` (a scripted phone playtest as a 9–12 year old) plus research on successful cooking and restaurant games. The brief from the owner: a conventional bakery game, not a reading textbook; engaging, never lost, every function used and its importance clear, instructions upfront.
+
+### Models borrowed from
+- **Papa's games (Flipline):** short shifts, every order scored with stars and tips, ingredient bins in fixed places, upgrades that make rushes manageable. We already scored orders; we added fixed ingredient positions and a helper for the busy part of the counter.
+- **Good Pizza, Great Pizza:** one cheese pizza on day 1 and one new thing per day; customer happiness visible instantly. We kept one new system a morning and moved level recipes to one a morning too.
+- **Cooking Fever:** every level has a 3-star goal. Every day now has three sales targets, a live star meter and XP per star.
+- **Mobile first-session research:** playable in under a minute, action over text, hints at the moment they're needed. Day 1 is one guide (Bà's lesson), a "?" button answers "what now?" at any time, and each tab has one line saying what it's for.
+
+### What changed (commits 93393e8 → 45fc14f)
+- **Fair counter:** customers extra patient for 3 weeks in guided games; relaxed pace by default; Bà hands out pastries until a cashier is hired; bottom-sheet assembly on phones with every step button on screen; fixed ingredient spots; strong next-step glow for a week; "Not yet! Next: …" on wrong taps; a "N left" chip; compact controls with More.
+- **Goal and rewards:** daily 3-star goal; levels at 150 / 800 / 2,200 / 4,500 / 7,500 / 11,000 / 15,500 XP with a $100 × level gift; one recipe a morning.
+- **Never lost:** "What now?" sheet; tab help lines; day 1 shows only Bà's lesson (bake flan → open and serve → close); the welcome lines lead into it; spotlight targets the first tappable control in a card and opens the right Kitchen section.
+- **Every function used:** "Try this tomorrow" in the report names one unlocked feature not yet used; tips, events and level toasts never mention locked systems; hiring shows Bà's pick and honest value.
+- **Honest money:** prize money is its own report line; rent-day toast and 5-day countdown; confirmation sheets for loans, investors and new shops; price guesses compare buyers per 10 shoppers.
+- **Phone layout:** Kitchen sections (Bake / Prices / Menu / Plan), 44px tap targets on touch, "Money" tab label, no floating title icons, day-track labels fit.
+- **Kid safety:** parent gate (type a number written in words) for email and the grown-up summary; no lottery reference; kid-first wording in all intro-quest lessons.
+
+### Pacing is now tested against a kid, not the instant bot
+`tests/engine/bot.ts` has `runServiceKid` / `kidDay`: one order at a time, oldest first, ~2 s for a pastry and ~9 s for a bánh mì or drink at the relaxed pace, with an occasional wrong tap. `tests/engine/kid.test.ts` plays 30 guided days and requires the bakery to survive, at least 18 days with a star, and level 3. Logs: `KID_LOG=1` (add `KID_SLOW=0.6` for a practiced kid, `KID_HIRE=1` to hire Bà's pick).
+
+| Kid player | Typical day 10–30 | Stars | Level by day 30 |
+|---|---|---|---|
+| New kid, no hire | ~25 served of 50–80, roughly break-even | 1–2 | 3 |
+| Practiced kid | ~40 served, +$40–60 | 2 | 4 |
+| Kid who hires Bà's pick | 50–65 served, almost nobody lost | 2–3 | 4 |
+
+Still open: a real playtest with children; a mid-game story arc for days 36–60; "look at" intro steps still finish when you arrive rather than when you tap the thing.

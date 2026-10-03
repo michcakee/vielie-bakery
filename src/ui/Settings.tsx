@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { clearAllData, clearSave, exportCode, importCode, restoreLink } from '../engine/save';
 import { useGame } from './GameContext';
+import { featureOn } from '../engine/unlocks';
 import { Btn } from './kit';
 import { NOTEBOOK, NOTEBOOK_ORDER } from '../data/notebook';
 import { CreditsPage, LegalPage } from './Legal';
@@ -124,7 +125,19 @@ export function Settings({ onClose, onQuit }: { onClose: () => void; onQuit: () 
         <Toggle label="English under Vietnamese" hint="Show translations in speech bubbles" on={prefs.translations} set={(v) => setPrefs({ translations: v })} />
         <Toggle label="Reduce motion" hint="Fewer moving decorations" on={prefs.reducedMotion} set={(v) => setPrefs({ reducedMotion: v })} />
         <Toggle label="Break reminder" hint="A gentle note after 30 minutes of play. Off unless you want it." on={!!prefs.breakReminder} set={(v) => setPrefs({ breakReminder: v })} />
-        <Toggle label="Business view" hint="Full financial statements, ratios and elasticities instead of plain words" on={prefs.view === 'business'} set={(v) => setPrefs({ view: v ? 'business' : 'casual' })} />
+        {featureOn(state, 'finances.income') && (
+          <Toggle label="Business view" hint="Full financial statements, ratios and elasticities instead of plain words" on={prefs.view === 'business'} set={(v) => setPrefs({ view: v ? 'business' : 'casual' })} />
+        )}
+        {state.allUnlocked === false && (
+          <Toggle
+            label="Experienced baker"
+            hint="Unlock every part of the bakery now and skip the intro quests. Can't be undone for this bakery."
+            on={false}
+            set={(v) => {
+              if (v && window.confirm('Unlock everything now and skip the intro quests?')) dispatch({ type: 'unlockAll' });
+            }}
+          />
+        )}
         <div className="seg" role="radiogroup" aria-label="Text size">
           <span className="small">Text size:</span>
           {[1, 1.15, 1.3].map((t) => (

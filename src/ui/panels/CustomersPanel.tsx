@@ -10,7 +10,7 @@ import { Btn, Card, Empty, Tip } from '../kit';
 import { Sprite } from '../pixel/Sprite';
 
 export function CustomersPanel() {
-  const { state: s, dispatch, business } = useGame();
+  const { state: s, dispatch, business, feature, fresh } = useGame();
   const recent = s.history.slice(-14);
   const mix = segmentMix(s);
   const served: Record<string, number> = {};
@@ -51,7 +51,7 @@ export function CustomersPanel() {
         </div>
       </div>
 
-      <Card title="Who comes in" icon="people">
+      {feature('customers.regulars') && <Card title="Who comes in" icon="people" fresh={fresh('customers.regulars')}>
         <p className="small muted">Different customers want different things and react differently to price. Your neighbourhood decides the mix.</p>
         <ul className="segment-list">
           {SEGMENT_ORDER.filter((seg) => mix[seg] > 0.005 || served[seg]).map((seg) => {
@@ -74,9 +74,9 @@ export function CustomersPanel() {
             );
           })}
         </ul>
-      </Card>
+      </Card>}
 
-      <Card title="Rival bakeries nearby" icon="shop">
+      {feature('customers.rivals') && <Card title="Rival bakeries nearby" icon="shop" spot="rivals" fresh={fresh('customers.rivals')}>
         {rivals.length === 0 ? (
           <Empty icon="shop">No rivals on your street right now. Enjoy it; good profits tend to attract them.</Empty>
         ) : (
@@ -132,9 +132,9 @@ export function CustomersPanel() {
             </p>
           </>
         )}
-      </Card>
+      </Card>}
 
-      <Card title="Marketing" icon="phone" aside={levelOf(s.xp) < 2 ? <span className="lock-tag">Level 2</span> : undefined}>
+      {feature('customers.marketing') && <Card title="Marketing" icon="phone" spot="marketing" fresh={fresh('customers.marketing')} aside={levelOf(s.xp) < 2 ? <span className="lock-tag">Level 2</span> : undefined}>
         <ul className="choice-list">
           {(Object.keys(CAMPAIGNS) as CampaignKind[]).map((k) => {
             const c = CAMPAIGNS[k];
@@ -203,9 +203,9 @@ export function CustomersPanel() {
             </p>
           </>
         )}
-      </Card>
+      </Card>}
 
-      {recent.length > 0 && (
+      {recent.length > 0 && feature('customers.regulars') && (
         <Card title="What people ask for" icon="chart">
           <BarList
             title="Units sold in the last 14 days"

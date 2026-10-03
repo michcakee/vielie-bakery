@@ -97,6 +97,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
     [state, slot, setPrefs],
   );
 
+  // Finishing Bà's first week opens the other scenarios for every future game.
+  useEffect(() => {
+    if (state.day >= 8 && !prefs.graduated) setPrefs({ graduated: true });
+  }, [state.day, prefs.graduated, setPrefs]);
+
   const value = useMemo(
     () => ({
       state,

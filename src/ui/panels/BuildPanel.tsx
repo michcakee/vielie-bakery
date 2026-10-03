@@ -51,7 +51,7 @@ const DECOR_ICON: Record<DecorId, string> = {
 };
 
 export function BuildPanel() {
-  const { state: s, dispatch, business } = useGame();
+  const { state: s, dispatch, business, feature, fresh } = useGame();
   const level = levelOf(s.xp);
   const shopping = canShop(s);
   const [name, setName] = useState(s.bakeryName);
@@ -127,6 +127,7 @@ export function BuildPanel() {
 
   return (
     <div className="panel-stack">
+      {feature('growth.equipment') && (
       <Card className="oc-note" title={`Stage ${stage}: ${STAGES[stage - 1].name}`} icon="house">
         <p className="small">
           You have <b>{money(s.cash, 2)}</b>. Every purchase here means giving up something else for now: <Tip concept="opportunityCost">opportunity cost</Tip>. Equipment is an{' '}
@@ -153,19 +154,25 @@ export function BuildPanel() {
           </details>
         )}
       </Card>
+      )}
 
-      <Card title="Kitchen & equipment" icon="hot">
+      {feature('growth.equipment') && (
+      <Card spot="equipment" fresh={fresh('growth.equipment')} title="Kitchen & equipment" icon="hot">
         <ul className="shop-list">{UPGRADE_ORDER.filter((id) => UPGRADES[id].group === 'kitchen' || UPGRADES[id].group === 'shop' || UPGRADES[id].group === 'delivery').map(upgrade)}</ul>
       </Card>
+      )}
 
+      {feature('growth.equipment') && (
       <Card title="Grow the building" icon="house">
         <p className="muted small">
           More space brings more customers, but rent goes up every month: a <Tip concept="fixedCost">fixed cost</Tip>.
         </p>
         <ul className="shop-list">{UPGRADE_ORDER.filter((id) => UPGRADES[id].group === 'room').map(upgrade)}</ul>
       </Card>
+      )}
 
-      <Card title="More shops" icon="shop" aside={level < 4 ? <span className="lock-tag">Level 4</span> : undefined}>
+      {feature('growth.branches') && (
+      <Card spot="branches" fresh={fresh('growth.branches')} title="More shops" icon="shop" aside={level < 4 ? <span className="lock-tag">Level 4</span> : undefined}>
         {openBranches.map((b) => (
           <div key={b.id} className="branch-card">
             <b>
@@ -218,7 +225,9 @@ export function BuildPanel() {
           })}
         </ul>
       </Card>
+      )}
 
+      {feature('growth.branches') && (
       <Card title="What is the bakery worth?" icon="chart">
         <p className="small">
           A buyer would look at your yearly cash earnings ({money(v.ebitdaAnnual)}) × a multiple ({v.multiple.toFixed(1)}, higher for growing, well-loved bakeries) = <b>{money(v.enterprise)}</b>, then add cash and subtract debt: equity worth <b>{money(v.equityValue)}</b>
@@ -226,8 +235,10 @@ export function BuildPanel() {
         </p>
         {s.offer && <p className="note">{s.offer.buyer} plans to make you an offer soon.</p>}
       </Card>
+      )}
 
-      <Card title="Decorate" icon="plant">
+      {feature('growth.decor') && (
+      <Card spot="decor" fresh={fresh('growth.decor')} title="Decorate" icon="plant">
         <ul className="shop-list decor">
           {DECOR_ORDER.map((id) => {
             const d = DECOR[id];
@@ -265,6 +276,7 @@ export function BuildPanel() {
           })}
         </ul>
       </Card>
+      )}
 
       <Card title="You & your bakery" icon="people">
         <form

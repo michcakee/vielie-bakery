@@ -6,6 +6,7 @@ import { hireValue, marketWage } from '../../engine/labor';
 import type { Employee, RoleId } from '../../engine/types';
 import { money, money2 } from '../../lib/format';
 import { useGame } from '../GameContext';
+import { featureOn } from '../../engine/unlocks';
 import { Btn, Card, Empty, Meter, Stepper, Tip } from '../kit';
 import { Person, Sprite } from '../pixel/Sprite';
 
@@ -39,9 +40,9 @@ function EmployeeRow({ e }: { e: Employee }) {
         <Btn disabled={busy || wage === e.wage} onClick={() => dispatch({ type: 'setWage', id: e.id, wage })}>
           Set wage
         </Btn>
-        <Btn kind="ghost" disabled={busy || e.skill >= 5 || e.trainingUntil >= s.day || s.cash < ECON.labor.trainingCost * s.macro.priceIndex} onClick={() => dispatch({ type: 'train', id: e.id })}>
+        {featureOn(s, 'staff.manage') && <Btn kind="ghost" data-spot="train" disabled={busy || e.skill >= 5 || e.trainingUntil >= s.day || s.cash < ECON.labor.trainingCost * s.macro.priceIndex} onClick={() => dispatch({ type: 'train', id: e.id })}>
           Train ({money(ECON.labor.trainingCost * s.macro.priceIndex)})
-        </Btn>
+        </Btn>}
         {branches.length > 0 && (
           <select aria-label={`Where ${e.name} works`} value={e.branch ?? 'home'} onChange={(ev) => dispatch({ type: 'assign', id: e.id, branch: ev.target.value === 'home' ? null : Number(ev.target.value) })} disabled={busy}>
             <option value="home">Main shop</option>
@@ -61,7 +62,7 @@ function EmployeeRow({ e }: { e: Employee }) {
 }
 
 export function StaffPanel() {
-  const { state: s, dispatch, business } = useGame();
+  const { state: s, dispatch, business, feature, fresh } = useGame();
   const [branch, setBranch] = useState<number | null>(null);
   const team = s.staff;
   const ovens = ovenCapacity(s);
@@ -117,7 +118,8 @@ export function StaffPanel() {
         </p>
       </Card>
 
-      <Card title="Job applicants" icon="note" aside={<span className="small muted">New faces every Monday</span>}>
+      {feature('staff.hire') && (
+      <Card spot="hire" fresh={fresh('staff.hire')} title="Job applicants" icon="note" aside={<span className="small muted">New faces every Monday</span>}>
         {branches.length > 0 && (
           <label className="small">
             Hire for{' '}
@@ -173,6 +175,7 @@ export function StaffPanel() {
           Compare what each person adds with what they cost: that's <Tip concept="marginal">marginal analysis</Tip>.
         </p>
       </Card>
+      )}
 
       <Card title="What each role does" icon="book">
         <ul className="role-list">

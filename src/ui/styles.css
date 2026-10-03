@@ -4944,3 +4944,53 @@ html[data-motion='reduced'] .title-logo span {
   margin: 4px 0 8px;
   padding-left: 18px;
 }
+
+/* ---------- onboarding: spotlight, NEW badges, locked tabs, intro card ---------- */
+.spot-on {
+  position: relative;
+  z-index: 60;
+  box-shadow: 0 0 0 4px var(--butter), 0 0 0 9999px rgba(88, 82, 90, 0.55);
+  border-radius: 4px;
+}
+.spot-arrow {
+  position: fixed;
+  z-index: 61;
+  pointer-events: none;
+  animation: spot-bob 0.6s steps(2) infinite;
+}
+.spot-arrow .point-down { transform: rotate(90deg); }
+.spot-arrow .point-up { transform: rotate(-90deg); }
+@keyframes spot-bob {
+  50% { translate: 0 -6px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .spot-arrow { animation: none; }
+}
+.new-chip {
+  margin-left: auto;
+  padding: 1px 6px;
+  font-family: var(--pixel);
+  font-size: 0.75rem;
+  color: var(--ink);
+  background: var(--butter);
+  border: 2px solid var(--ink);
+}
+.card-head .new-chip + .card-aside { margin-left: 8px; }
+.tab { position: relative; }
+.new-dot {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  background: var(--rose, #e58f9e);
+  border: 2px solid var(--ink);
+}
+.tab.locked {
+  opacity: 0.45;
+  cursor: help;
+  filter: grayscale(1);
+}
+.intro-card .coach-steps li.now { font-weight: 600; }
+.price-plain { font-family: var(--pixel); font-size: 1.1rem; }
+.scenario.locked { opacity: 0.5; }

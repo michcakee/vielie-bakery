@@ -310,6 +310,8 @@ export interface Prefs {
   relaxed: boolean;
   translations: boolean;
   view: 'casual' | 'business';
+  /** Finished Bà's first week once (or chose Experienced baker): other scenarios open up. */
+  graduated?: boolean;
   slot: number;
   textScale: number;
 }

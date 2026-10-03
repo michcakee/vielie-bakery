@@ -55,7 +55,7 @@ export function EcoPanel() {
         </ul>
       </Card>
 
-      <Card title="Packaging" icon="bag">
+      <Card title="Packaging" icon="bag" spot="packaging">
         <div className="pack-choices" role="radiogroup" aria-label="Packaging">
           {(Object.keys(PACKAGING) as PackagingId[]).map((id) => {
             const p = PACKAGING[id];

@@ -54,7 +54,7 @@ function Statements({ days }: { days: DaySummary[] }) {
   if (!business) {
     const verdict = is.netProfit > 0 ? 'You\'re making money.' : is.netProfit > -50 ? 'You\'re roughly breaking even.' : 'You\'re losing money.';
     return (
-      <Card title="In plain words" icon="note">
+      <Card title="In plain words" icon="note" spot="profit">
         <p className="big-verdict">{verdict}</p>
         <dl className="plain">
           <div>
@@ -85,7 +85,7 @@ function Statements({ days }: { days: DaySummary[] }) {
 
   return (
     <>
-      <Card title="Income statement" icon="chart" aside={<span className="small muted">Did we make money?</span>}>
+      <Card title="Income statement" icon="chart" spot="profit" aside={<span className="small muted">Did we make money?</span>}>
         <dl className="stmt">
           <Line label="Revenue" value={is.revenue} strong onClick={() => toggle('rev')} open={open === 'rev'} />
           {open === 'rev' && (
@@ -242,7 +242,7 @@ function BreakEvenCalc() {
 }
 
 function Financing() {
-  const { state: s, dispatch } = useGame();
+  const { state: s, dispatch, feature, fresh } = useGame();
   const [amount, setAmount] = useState(5000);
   const [term, setTerm] = useState(12);
   const [equity, setEquity] = useState(10000);
@@ -255,7 +255,8 @@ function Financing() {
   const v = valuation(s);
   return (
     <>
-      <Card title="Bank loans" icon="house" aside={<span className="small muted">Risk: {creditRisk(s)}</span>}>
+      {feature('finances.loans') && (
+      <Card spot="loans" fresh={fresh('finances.loans')} title="Bank loans" icon="house" aside={<span className="small muted">Risk: {creditRisk(s)}</span>}>
         {s.loans.length === 0 ? (
           <p className="small muted">No loans. Borrowing lets you invest before you've saved up, but every month a payment comes due, busy or not.</p>
         ) : (
@@ -278,7 +279,7 @@ function Financing() {
         )}
         <div className="loan-builder">
           <span className="small">Borrow</span>
-          <Stepper value={amount} step={500} min={500} max={Math.max(500, limit)} format={(x) => money(x)} label="Loan amount" onChange={setAmount} />
+          <Stepper value={amount} step={500} min={500} max={Math.max(500, limit)} format={(x) => money(x)} label="Loan amount" onChange={(v) => (setAmount(v), s.intro?.active === 'finances.loans' && dispatch({ type: 'hint', id: 'visit:finances.loans' }))} />
           <span className="small">over</span>
           <div className="seg" role="radiogroup" aria-label="Loan term">
             {ECON.finance.loanTerms.map((t) => (
@@ -296,7 +297,9 @@ function Financing() {
         </Btn>
         <p className="small muted">The bank will lend up to {money(limit)} more based on your sales and debts.</p>
       </Card>
+      )}
 
+      {feature('finances.capital') && (
       <Card title="Credit line" icon="lock">
         <p className="small">
           If cash runs out, the bank covers the gap automatically up to <b>{money(creditLimit(s))}</b>, at {(creditLineRate(s) * 100).toFixed(0)}% a year. You're using <b>{money2(s.creditLine.balance)}</b>. It's repaid automatically when cash builds up.
@@ -305,8 +308,10 @@ function Financing() {
           Repay now
         </Btn>
       </Card>
+      )}
 
-      <Card title="Investors" icon="people" aside={levelOf(s.xp) < 3 ? <span className="lock-tag">After 30 days</span> : undefined}>
+      {feature('finances.capital') && (
+      <Card spot="investors" fresh={fresh('finances.capital')} title="Investors" icon="people" aside={levelOf(s.xp) < 3 ? <span className="lock-tag">After 30 days</span> : undefined}>
         {s.investors.map((i) => (
           <p key={i.id} className="small">
             <b>{i.name}</b> owns {pct(i.stake, 1)} (invested {money(i.invested)}, paid out {money(i.paidOut)} so far).{' '}
@@ -330,7 +335,9 @@ function Financing() {
           Accept the investment
         </Btn>
       </Card>
+      )}
 
+      {feature('finances.capital') && (
       <Card title="Community bonds" icon="heart" aside={s.community < 50 ? <span className="lock-tag">Community 50</span> : undefined}>
         <p className="small">
           Neighbours lend to the bakery they love at {(ECON.finance.bondRate * 100).toFixed(0)}% for a year, repaid in one go. Cheaper than the bank, and it deepens their loyalty. You can raise up to <b>{money(bondCap)}</b>.
@@ -342,6 +349,7 @@ function Financing() {
           </Btn>
         </div>
       </Card>
+      )}
     </>
   );
 }
@@ -379,7 +387,7 @@ function NotebookGraph({ kind }: { kind: NonNullable<NotebookEntry['graph']> }) 
 }
 
 export function FinancesPanel() {
-  const { state: s, dispatch, business, setPrefs } = useGame();
+  const { state: s, dispatch, business, setPrefs, feature, fresh } = useGame();
   const [range, setRange] = useState<Range>('month');
   const days = s.history.slice(-RANGES.find((r) => r.id === range)!.days);
   const r = ratios(s, days);
@@ -411,7 +419,8 @@ export function FinancesPanel() {
       )}
       {days.length > 0 && <BreakEvenCalc />}
 
-      <Card title="Bakery safety fund" icon="lock">
+      {feature('finances.cash') && (
+      <Card spot="fund" fresh={fresh('finances.cash')} title="Bakery safety fund" icon="lock">
         <p className="small">Money set aside for surprises. It pays your bills automatically if cash runs out, before the bank's expensive credit line does.</p>
         <div className="fund-meter">
           <span style={{ width: `${Math.min(100, (s.safetyFund / 3000) * 100)}%` }} />
@@ -438,9 +447,11 @@ export function FinancesPanel() {
           ))}
         </div>
       </Card>
+      )}
 
       <Financing />
 
+      {feature('finances.capital') && (
       <Card title="Co-op shares" icon="chart" aside={levelOf(s.xp) < 3 ? <span className="lock-tag">Level 3</span> : undefined}>
         <p className="small">
           Own a slice of the farms you buy from. Prices move every day; each week you get a 1.5% <Tip concept="dividends">dividend</Tip>. A dairy share rises when eggs get pricey for you: a natural <Tip concept="hedging">hedge</Tip>.
@@ -476,6 +487,7 @@ export function FinancesPanel() {
           })}
         </ul>
       </Card>
+      )}
 
       <Card title="Bakery notebook" icon="book">
         {s.learned.length === 0 ? (

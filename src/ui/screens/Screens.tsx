@@ -96,13 +96,19 @@ export function NewGame({ onBack, onStart }: { onBack: () => void; onStart: () =
   const { state, dispatch, slot, switchSlot } = useGame();
   const [chosenSlot, setChosenSlot] = useState(slot);
   const [scenario, setScenario] = useState<ScenarioId>('family');
-  const [difficulty, setDifficulty] = useState<Difficulty>('normal');
+  // First run: Bà's bakery on the gentlest setting; everything else is behind "More options".
+  const [difficulty, setDifficulty] = useState<Difficulty>('easy');
   const [confirm, setConfirm] = useState(false);
+  const [moreOpts, setMoreOpts] = useState(false);
+  const [experienced, setExperienced] = useState(false);
+  const { prefs, setPrefs } = useGame();
+  const graduated = !!prefs.graduated || experienced;
   const info = slotInfo();
   const occupied = (n: number) => !!info[n - 1];
   const start = () => {
     if (chosenSlot !== slot) switchSlot(chosenSlot);
-    dispatch({ type: 'newGame', options: { scenario, difficulty, name: state.bakeryName, look: state.look } });
+    dispatch({ type: 'newGame', options: { scenario, difficulty, name: state.bakeryName, look: state.look, guided: !experienced } });
+    if (experienced) setPrefs({ graduated: true });
     onStart();
   };
   return (
@@ -142,18 +148,35 @@ export function NewGame({ onBack, onStart }: { onBack: () => void; onStart: () =
           })}
         </div>
 
+        <p className="small">
+          <b>Bà’s bakery</b> on Gress Island Lane: she leaves you the shop, a little stock and a lot of faith. Everything else unlocks as you go.
+        </p>
+        <button type="button" className="link-btn" aria-expanded={moreOpts} onClick={() => setMoreOpts(!moreOpts)}>
+          {moreOpts ? 'Fewer options' : 'More options'}
+        </button>
+        {moreOpts && (
+        <>
+        <label className="toggle">
+          <input type="checkbox" checked={experienced} onChange={(e) => setExperienced(e.target.checked)} />
+          <span className="toggle-ui" aria-hidden="true" />
+          <span>
+            <b>Experienced baker</b>
+            <span className="small muted">Everything unlocked from day 1, no intro quests. For players who know the game.</span>
+          </span>
+        </label>
         <h2 className="h3">Scenario</h2>
         <div className="scenario-grid" role="radiogroup" aria-label="Scenario">
           {SCENARIO_ORDER.map((id) => {
             const sc = SCENARIOS[id];
+            const locked = id !== 'family' && !graduated;
             return (
-              <button key={id} type="button" role="radio" aria-checked={scenario === id} className={`scenario ${scenario === id ? 'on' : ''}`} onClick={() => (setScenario(id), setDifficulty(sc.difficulty))}>
+              <button key={id} type="button" role="radio" aria-checked={scenario === id} disabled={locked} className={`scenario ${scenario === id ? 'on' : ''} ${locked ? 'locked' : ''}`} onClick={() => (setScenario(id), setDifficulty(sc.difficulty))}>
                 <b>{sc.name}</b>
                 <span className="small muted" lang="vi">
                   {sc.vi}
                 </span>
                 <span className="small">{sc.blurb}</span>
-                <span className="small effect">Goal: {GOALS[sc.goal].name}</span>
+                <span className="small effect">{locked ? 'Finish Bà’s first week to unlock' : `Goal: ${GOALS[sc.goal].name}`}</span>
               </button>
             );
           })}
@@ -168,6 +191,8 @@ export function NewGame({ onBack, onStart }: { onBack: () => void; onStart: () =
           ))}
         </div>
         <p className="small muted">{DIFFICULTY[difficulty].blurb}</p>
+        </>
+        )}
 
         <div className="btn-row">
           {occupied(chosenSlot) && !confirm ? (

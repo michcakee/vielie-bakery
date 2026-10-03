@@ -385,26 +385,26 @@ function TestKitchen() {
 }
 
 export function AnalyticsPanel() {
-  const { state: s } = useGame();
+  const { state: s, dispatch, feature } = useGame();
   if (s.history.length === 0)
     return (
       <div className="panel-stack">
         <Card title="Analytics" icon="chart">
           <Empty icon="chart">Close your first day and the charts, forecasts and explanations start filling in.</Empty>
         </Card>
-        <Forecast />
+        {feature('analytics.full') && <Forecast />}
       </div>
     );
   return (
     <div className="panel-stack">
-      <Why />
-      <TestKitchen />
-      <Trends />
-      <Products />
-      <DemandCurve />
-      <Forecast />
-      <Journal />
-      <Economy />
+      {feature('analytics.why') && <div data-spot="why" onClick={() => s.intro?.active === 'analytics.why' && dispatch({ type: 'hint', id: 'visit:analytics.why' })}><Why /></div>}
+      {feature('analytics.testKitchen') && <div data-spot="test-kitchen" onClick={() => s.intro?.active === 'analytics.testKitchen' && dispatch({ type: 'hint', id: 'visit:analytics.testKitchen' })}><TestKitchen /></div>}
+      {feature('analytics.full') && <Trends />}
+      {feature('analytics.full') && <div data-spot="products"><Products /></div>}
+      {feature('analytics.full') && <DemandCurve />}
+      {feature('analytics.full') && <Forecast />}
+      {feature('analytics.full') && <Journal />}
+      {feature('analytics.economy') && <div data-spot="economy"><Economy /></div>}
       <p className="small muted">
         <Sprite name="spark" scale={1} /> Every number here comes from the same simulation your customers live in. Nothing is decorative.
       </p>

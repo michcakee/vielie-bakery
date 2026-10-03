@@ -35,7 +35,11 @@ export function Loading({ onDone }: { onDone: () => void }) {
         <span className="loading-baker">
           <Person look={BAKER} scale={4} walking />
           <img className="loading-wink px" src={winkURL(BAKER)} width={PERSON_W * 4} height={PERSON_H * 4} alt="" />
-          <span className="loading-sign">by mich! &lt;3</span>
+          <span className="loading-sign">
+            <span className="sign-body">by mich! &lt;3</span>
+            <i />
+            <i />
+          </span>
           <span className="loading-heart">
             <Sprite name="heart" scale={3} />
           </span>

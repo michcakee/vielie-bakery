@@ -2,11 +2,13 @@ import { useState } from 'react';
 import { INGREDIENTS, PRODUCTS, PRODUCT_ORDER, WEATHER } from '../../data/catalog';
 import { explainChange, explainProfit, productTable, rollUp, type Period } from '../../engine/analytics';
 import { FESTIVALS, type Festival } from '../../engine/calendar';
-import { demandCurve, elasticityAt, onMenu } from '../../engine/economy';
+import { demandCurve, elasticityAt, levelOf, onMenu } from '../../engine/economy';
+import { incomeStatement } from '../../engine/accounting';
+import { gameReducer } from '../../engine/state';
 import { forecast, ingredientsNeeded } from '../../engine/forecast';
 import { REGIMES } from '../../engine/macro';
-import type { ProductId, SupplierId } from '../../engine/types';
-import { money, money2, pct } from '../../lib/format';
+import type { GameState, ProductId, SupplierId } from '../../engine/types';
+import { money, money2, pct, signedMoney } from '../../lib/format';
 import { CHART_COLORS, LineChart } from '../charts';
 import { useGame } from '../GameContext';
 import { Btn, Card, Empty, Tip } from '../kit';
@@ -297,6 +299,91 @@ function Economy() {
   );
 }
 
+/**
+ * Test Kitchen: replay today with one thing changed and compare, side by side. The simulation is
+ * seeded by day, so the only difference between the two runs is the change you made.
+ */
+function TestKitchen() {
+  const { state: s } = useGame();
+  const [product, setProduct] = useState<ProductId>(onMenu(s)[0] ?? 'banhMi');
+  const [delta, setDelta] = useState(1);
+  const [result, setResult] = useState<{ a: GameState; b: GameState } | null>(null);
+  const ready = s.phase === 'morning' && s.events.length === 0;
+  const unlocked = s.learned.includes('elasticityCompare') || levelOf(s.xp) >= 3;
+  if (!unlocked) return null;
+  const run = () => {
+    const a = gameReducer(s, { type: 'runDay' });
+    const changed = gameReducer(s, { type: 'setPrice', product, price: s.prices[product] + delta });
+    const b = gameReducer(changed, { type: 'runDay' });
+    setResult({ a, b });
+  };
+  const row = (label: string, f: (x: GameState) => number, isMoney = true) => {
+    if (!result) return null;
+    const va = f(result.a);
+    const vb = f(result.b);
+    return (
+      <tr>
+        <th>{label}</th>
+        <td>{isMoney ? money(va) : va}</td>
+        <td>{isMoney ? money(vb) : vb}</td>
+        <td className={vb - va > 0 ? 'pos' : vb - va < 0 ? 'neg' : ''}>{isMoney ? signedMoney(vb - va) : vb - va > 0 ? `+${vb - va}` : vb - va}</td>
+      </tr>
+    );
+  };
+  return (
+    <Card title="Test Kitchen" icon="gear" aside={<span className="small muted">one change, same day</span>}>
+      <p className="small">
+        Replay today twice with the team running the shop: once as it is, once with one price changed. Same customers, same weather, same luck, so any difference is the price. Nothing here touches your real day.
+      </p>
+      <div className="test-kitchen-controls">
+        <label>
+          <span className="small">Item</span>
+          <select value={product} onChange={(e) => setProduct(e.target.value as ProductId)}>
+            {onMenu(s).map((p) => (
+              <option key={p} value={p}>
+                {PRODUCTS[p].name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          <span className="small">Change the price by</span>
+          <select value={delta} onChange={(e) => setDelta(Number(e.target.value))}>
+            {[-2, -1, -0.5, 0.5, 1, 2].map((d) => (
+              <option key={d} value={d}>
+                {signedMoney(d)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <Btn kind="primary" disabled={!ready} onClick={run} title={ready ? undefined : 'Available in the morning, before the doors open'}>
+          Run the experiment
+        </Btn>
+      </div>
+      {result && (
+        <table className="data-table test-kitchen">
+          <thead>
+            <tr>
+              <th />
+              <th>As it is ({money2(s.prices[product])})</th>
+              <th>Changed ({money2(s.prices[product] + delta)})</th>
+              <th>Difference</th>
+            </tr>
+          </thead>
+          <tbody>
+            {row(`${PRODUCTS[product].name} sold`, (x) => x.today.sold[product] ?? 0, false)}
+            {row('Customers served', (x) => x.today.served, false)}
+            {row('Sales', (x) => x.today.revenue)}
+            {row('Profit', (x) => incomeStatement(x.today.books).netProfit)}
+            {row('Left over (binned or kept)', (x) => x.today.wasteUnits ?? 0, false)}
+          </tbody>
+        </table>
+      )}
+      {result && <p className="small muted">Controlled experiment: change one thing, keep everything else the same, compare. That is how you find out what caused what.</p>}
+    </Card>
+  );
+}
+
 export function AnalyticsPanel() {
   const { state: s } = useGame();
   if (s.history.length === 0)
@@ -311,6 +398,7 @@ export function AnalyticsPanel() {
   return (
     <div className="panel-stack">
       <Why />
+      <TestKitchen />
       <Trends />
       <Products />
       <DemandCurve />

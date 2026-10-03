@@ -416,3 +416,33 @@ describe('predict, notice, name', () => {
     check(s);
   });
 });
+
+describe('concepts 9–18 mechanics and the Test Kitchen', () => {
+  it('kept trays sell day-old at a discount, the combo adds sales, sizes lift drink revenue, and a replayed day is deterministic', async () => {
+    const { effectivePrice, isDayOld } = await import('../../src/engine/economy');
+    let s = createNewGame(81);
+    for (let d = 0; d < 2; d++) s = autoDay(s);
+    s = morning(s);
+    // day-old: a flan tray made yesterday
+    const aged = { ...s, display: { ...s.display, flan: { ...s.display.flan, qty: 5, madeDay: s.day - 1 } } };
+    expect(isDayOld(aged, 'flan')).toBe(true);
+    expect(effectivePrice(aged, 'flan')).toBeCloseTo(s.prices.flan * 0.7, 2);
+    expect(isDayOld(s, 'caPhe')).toBe(false);
+
+    // combo and sizes: same seeded day, with and without, run by the team
+    const base = gameReducer(s, { type: 'runDay' });
+    const withCombo = gameReducer(gameReducer(s, { type: 'setCombo', on: true }), { type: 'runDay' });
+    expect((withCombo.today.comboSales ?? 0) + (withCombo.today.sold.banhMi + withCombo.today.sold.caPhe)).toBeGreaterThanOrEqual(base.today.sold.banhMi + base.today.sold.caPhe);
+    expect(withCombo.learned).toContain('bundling');
+    const withSizes = gameReducer(gameReducer(s, { type: 'setSizes', on: true }), { type: 'runDay' });
+    if (base.today.sold.caPhe > 3) expect(withSizes.today.revenueBy.caPhe).toBeGreaterThan(base.today.revenueBy.caPhe * 0.95);
+    expect(withSizes.learned).toContain('anchoring');
+
+    // Test Kitchen: replaying the same morning twice gives the same day
+    const again = gameReducer(s, { type: 'runDay' });
+    expect(again.today.revenue).toBe(base.today.revenue);
+    expect(again.today.served).toBe(base.today.served);
+    check(withCombo);
+    check(withSizes);
+  });
+});

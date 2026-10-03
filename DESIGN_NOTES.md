@@ -347,3 +347,13 @@ Playtest: changing bánh mì's price shows the Predict card, a guess locks in, a
 Known issues: 'Lately it sold about 0 a day' on day 1 (no history yet): the text could hide the number until there is a history
 Next step proposed: Phase 9 (concepts 9–18, Test Kitchen, Grown-up summary)
 ```
+
+```
+Phase 9 – done (concepts 9–18, Test Kitchen, Grown-up summary)
+Changed: src/data/config.ts (dayOld, combo, sizes), src/engine/economy.ts (isDayOld; kept trays sell at −30% the next day), src/engine/service.ts (combo deal: 35% of coffee or bánh mì buyers add the other at 15% off; drink sizes small/medium/large at ×0.85 / ×1 / ×1.25, chosen 20/55/25%), src/engine/state.ts (setCombo, setSizes; 'comparative' learned when two roles are on staff), src/data/notebook.ts (Professor's notes, Real World and Ask-a-grown-up for diminishing returns, scale, supply shocks and pass-through, interest/NPV, competition (Bertrand/Hotelling), hidden quality, risk/diversification, bundling, comparative advantage, anchoring), src/ui/panels/KitchenPanel.tsx (deal toggles, day-old chips), src/ui/panels/AnalyticsPanel.tsx (Test Kitchen: replay today with one price changed, side-by-side table; unlocks with concept 7 or level 3), src/ui/Settings.tsx (Grown-up summary behind a 7×8 gate: concepts unlocked, prediction accuracy, conversation starters; nothing leaves the device)
+Hooks added to game logic: day-old price; combo add-on sale; size price multiplier; two toggle actions; 'comparative' on hire
+Simplifications stated in the Professor's notes: sizes change price only (same ingredients); customers never bargain; reputation lags by a moving average
+Tests: day-old discount, combo adds sales, sizes lift drink revenue, replaying the same morning is deterministic (the Test Kitchen's premise); 113 passing
+Known issues: trade between shops (the second half of concept 15) is taught, not simulated; the quiz at chapter ends (§13.8, optional) is not built; the Test Kitchen only varies price (batch size and menu are one-line additions)
+Next step proposed: a human playtest of the first fortnight; then retune concept pacing from the prediction-accuracy numbers in the Grown-up summary
+```

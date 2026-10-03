@@ -320,8 +320,12 @@ export function willingToPay(s: GameState, p: ProductId, budget: number, quality
 
 export const specialMult = (s: Pick<GameState, 'special'>, p: ProductId) => (s.special === p ? ECON.service.dailySpecial.mult : 1);
 
+/** A kept tray from an earlier day sells as day-old at a discount. */
+export const isDayOld = (s: Pick<GameState, 'display' | 'day'>, p: ProductId) => PRODUCTS[p].kind === 'tray' && s.display[p].qty > 0 && s.display[p].madeDay !== undefined && s.display[p].madeDay! < s.day;
+
 export function effectivePrice(s: GameState, p: ProductId): number {
-  const base = s.prices[p] * specialMult(s, p);
+  let base = s.prices[p] * specialMult(s, p);
+  if (isDayOld(s, p)) base *= 1 - ECON.service.dayOld.discount;
   return s.service?.lastCall && PRODUCTS[p].kind === 'tray' ? round2(base * (1 - ECON.service.lastCallDiscount)) : round2(base);
 }
 

@@ -344,10 +344,14 @@ export function serve(s: GameState, visitId: number, process?: number, by: strin
     else return leave(s, v, 'sad', pick(rngFor(s.seed, s.day, 500 + visitId), LINES.soldOut));
   }
   const price = effectivePrice(s, p);
+  // Drink sizes: the customer picks small, medium or large; medium is the anchor most pick.
+  const sizeRand = rngFor(s.seed, s.day, 950 + visitId)();
+  const sz = ECON.service.sizes;
+  const size = s.sizes && PRODUCTS[p].kind === 'drink' ? (sizeRand < sz.small.share ? sz.small : sizeRand < sz.small.share + sz.medium.share ? sz.medium : sz.large) : null;
   const c = consume(s, p, qty, process);
   let next = c.s;
   const pack = packagingCost(s, p) * qty;
-  const paid = round2(price * qty);
+  const paid = round2(price * (size ? size.price : 1) * qty);
   const wtp = willingToPay(s, p, v.budget, c.quality, v.ecoMinded, v.segment, v.loyal);
   const waited = svc.clock - (v.waitStart ?? svc.clock);
   const sat = 0.45 * (c.quality / 100) + 0.35 * clamp(1 - waited / Math.max(1, v.patience), 0, 1) + 0.2 * clamp(((wtp - price) / wtp) * 2 + 0.5, 0, 1);
@@ -361,6 +365,15 @@ export function serve(s: GameState, visitId: number, process?: number, by: strin
   const line = reaction ? pick(rand, reaction) : pick(rand, mood === 'love' ? LINES.love : mood === 'happy' ? LINES.happy : LINES.ok);
 
   next = bookSale(next, p, qty, paid, tip, c.cogs, pack);
+  // Combo deal: a buyer of one half may add the other at the discount.
+  const cb = ECON.service.combo;
+  const other = p === cb.a ? (cb.b as ProductId) : p === cb.b ? (cb.a as ProductId) : null;
+  if (s.combo && other && available(next, other, 1) && rngFor(s.seed, s.day, 960 + visitId)() < cb.takeUp) {
+    const add = consume(next, other, 1, process);
+    const addPaid = round2(effectivePrice(next, other) * (1 - cb.discount));
+    next = bookSale(add.s, other, 1, addPaid, 0, add.cogs, packagingCost(next, other));
+    next = { ...next, today: { ...next.today, comboSales: (next.today.comboSales ?? 0) + 1 } };
+  }
   const t = { ...next.today };
   t.served++;
   t.satisfaction += sat;

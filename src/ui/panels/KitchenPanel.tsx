@@ -21,6 +21,7 @@ import {
   playerShare,
   priceBounds,
   recipeCost,
+  isDayOld,
 } from '../../engine/economy';
 import type { IngredientId, ProductId } from '../../engine/types';
 import { money2, pct } from '../../lib/format';
@@ -253,7 +254,10 @@ function PriceRow({ p, business }: { p: ProductId; business: boolean }) {
           <span>
             Costs {money2(cost)} to make · <Tip concept="margin">you keep</Tip> <b className={keep < 0 ? 'neg' : 'pos'}>{money2(keep)}</b> ({pct(price > 0 ? keep / price : 0)})
           </span>
-          <span>{d.kind === 'tray' ? `${stock} in the case` : `${stock} can be made`}</span>
+          <span>
+            {d.kind === 'tray' ? `${stock} in the case` : `${stock} can be made`}
+            {isDayOld(s, p) && <span className="day-old"> day-old, −{Math.round(ECON.service.dayOld.discount * 100)}%</span>}
+          </span>
           {theirs !== undefined && <span className="rival">{rival!.name}: {money2(theirs)}</span>}
           {business && (
             <span>
@@ -442,6 +446,24 @@ function MenuCard() {
           );
         })}
       </ul>
+      <div className="deals">
+        <label className="toggle">
+          <input type="checkbox" checked={!!s.combo} disabled={s.phase === 'service'} onChange={(e) => dispatch({ type: 'setCombo', on: e.target.checked })} />
+          <span className="toggle-ui" aria-hidden="true" />
+          <span>
+            <b>Combo deal: cà phê + bánh mì</b>
+            <span className="small muted">{Math.round(ECON.service.combo.discount * 100)}% off the second item. Some people who came for one take both.</span>
+          </span>
+        </label>
+        <label className="toggle">
+          <input type="checkbox" checked={!!s.sizes} disabled={s.phase === 'service'} onChange={(e) => dispatch({ type: 'setSizes', on: e.target.checked })} />
+          <span className="toggle-ui" aria-hidden="true" />
+          <span>
+            <b>Drink sizes: small, medium, large</b>
+            <span className="small muted">Large sells for ×{ECON.service.sizes.large.price}, small for ×{ECON.service.sizes.small.price}; most people pick medium.</span>
+          </span>
+        </label>
+      </div>
     </Card>
   );
 }

@@ -315,6 +315,8 @@ export type Action =
   | { type: 'closeBranch'; id: number }
   | { type: 'retire' }
   | { type: 'predict'; guess: Guess }
+  | { type: 'setCombo'; on: boolean }
+  | { type: 'setSizes'; on: boolean }
   | { type: 'dismissToast'; id: number }
   | { type: 'hint'; id: string }
   | { type: 'newGame'; seed?: number; options?: NewGameOptions }
@@ -1144,6 +1146,7 @@ export function gameReducer(s: GameState, a: Action): GameState {
       if (!paid) return s;
       const branch = a.branch ?? null;
       let next: GameState = { ...paid, staff: [...paid.staff, makeEmployee(ap, s.day, branch)], applicants: paid.applicants.filter((x) => x.id !== ap.id), questProgress: { ...paid.questProgress, hired: 1 } };
+      if (new Set(next.staff.map((e) => e.role)).size >= 2) next = learn(next, 'comparative');
       next = decide(next, { kind: 'hire', text: `Hired ${ap.name} as a ${ROLES[ap.role].name.toLowerCase()} at $${ap.wage.toFixed(2)}/hour.`, metric: 'customers', before: s.history.slice(-7).reduce((t, h) => t + h.served, 0) / Math.max(1, s.history.slice(-7).length) });
       return checkProgress(learn(next, 'labor', 'marginal'));
     }
@@ -1272,6 +1275,12 @@ export function gameReducer(s: GameState, a: Action): GameState {
       next = decide(next, { kind: 'branch', text: `Opened ${b.name} in ${loc.name} ($${(fit + dep).toLocaleString('en-US')} fit-out and deposit).`, metric: 'profit', before: avgProfit(s) });
       return checkProgress(learn(toast(next, 'unlock', 'New shop!', `${b.name} is open. Hire a manager, a baker and counter staff for it in the Staff tab.`), 'expansion', 'capex'));
     }
+    case 'setCombo':
+      if (s.phase === 'service') return s;
+      return learn({ ...s, combo: a.on }, 'bundling');
+    case 'setSizes':
+      if (s.phase === 'service') return s;
+      return learn({ ...s, sizes: a.on }, 'anchoring');
     case 'predict': {
       if (s.phase !== 'morning' || !s.pendingPrediction || s.pendingPrediction.guess) return s;
       return learn({ ...s, pendingPrediction: { ...s.pendingPrediction, guess: a.guess }, xp: s.xp + 5 }, 'forecasting');

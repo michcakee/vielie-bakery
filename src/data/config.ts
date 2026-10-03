@@ -31,6 +31,12 @@ export const ECON = {
     dailySpecial: { mult: 1.5, fromDay: 3 },
     /** Occasional big orders with a generous tip, from level 2. */
     specialOrder: { chance: 0.35, qty: 3, budget: 1.5, patience: 1.4, tipShare: 0.4, fromLevel: 2 },
+    /** Kept trays sell as day-old the next morning at this discount (concept 4: perishability). */
+    dayOld: { discount: 0.3 },
+    /** Combo deal (concept 12, bundling): coffee + bánh mì together at a discount; share of buyers of one who add the other. */
+    combo: { a: 'caPhe', b: 'banhMi', discount: 0.15, takeUp: 0.35 },
+    /** Drink sizes (concept 18, anchoring): shares and price/cost multipliers for small, medium, large. */
+    sizes: { small: { share: 0.2, price: 0.85 }, medium: { share: 0.55, price: 1 }, large: { share: 0.25, price: 1.25 } },
     /** Grade weights (accuracy, speed, quality) and star thresholds. */
     grade: { accuracy: 0.45, speed: 0.35, quality: 0.2, stars: [90, 75, 60, 40] },
     /** Minutes a generalist (the owner on autopilot) needs per order. */

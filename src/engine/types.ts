@@ -235,6 +235,7 @@ export interface DayStats {
   customers: number;
   served: number;
   love: number;
+  comboSales?: number;
   bestOrder?: { score: number; stars: number; product: ProductId; name: string };
   /** Consumer surplus: what customers would have paid minus what they did, summed over the day. */
   surplus?: number;
@@ -593,6 +594,10 @@ export interface GameState {
   pendingPrediction?: { product: ProductId; from: number; to: number; unitsBefore: number; guess?: Guess } | null;
   /** Settled predictions, newest last. */
   predictions?: Prediction[];
+  /** Coffee + bánh mì combo deal on (concept 12). */
+  combo?: boolean;
+  /** Drink sizes offered (concept 18). */
+  sizes?: boolean;
   visitsByRegular: Record<string, number>;
   quests: string[];
   questProgress: Record<string, number>;

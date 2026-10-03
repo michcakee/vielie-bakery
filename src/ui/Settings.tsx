@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { clearAllData, clearSave, exportCode, importCode, restoreLink } from '../engine/save';
 import { useGame } from './GameContext';
 import { Btn } from './kit';
+import { NOTEBOOK, NOTEBOOK_ORDER } from '../data/notebook';
 import { CreditsPage, LegalPage } from './Legal';
 import { Modal } from './overlays';
 
@@ -19,6 +20,53 @@ function Toggle({ label, hint, on, set }: { label: string; hint?: string; on: bo
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/** What the player has learned, behind a small arithmetic gate so it's clearly for adults. Nothing leaves the device. */
+function GrownUpSummary() {
+  const { state } = useGame();
+  const [answer, setAnswer] = useState('');
+  const [open, setOpen] = useState(false);
+  const learned = NOTEBOOK_ORDER.filter((k) => state.learned.includes(k) && NOTEBOOK[k].professor);
+  const total = NOTEBOOK_ORDER.filter((k) => NOTEBOOK[k].professor).length;
+  const guesses = state.questProgress.predictions ?? 0;
+  const right = state.questProgress.predictionsRight ?? 0;
+  if (!open) {
+    return (
+      <div className="settings-group grownup-gate">
+        <p className="small">A summary of what the player has learned, for a parent or teacher. To open it, what is 7 × 8?</p>
+        <div className="btn-row">
+          <input value={answer} onChange={(e) => setAnswer(e.target.value)} inputMode="numeric" aria-label="Seven times eight" className="num-in" />
+          <Btn disabled={answer.trim() !== '56'} onClick={() => setOpen(true)}>
+            Open
+          </Btn>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="settings-group grownup">
+      <p className="small">
+        <b>Concepts unlocked:</b> {learned.length} of {total}. <b>Predictions:</b> {guesses} made, {right} right{guesses ? ` (${Math.round((right / guesses) * 100)}%)` : ''}. <b>Days played:</b> {state.day}. Nothing here is sent anywhere; it is read from the save on this device.
+      </p>
+      {learned.length > 0 && (
+        <>
+          <p className="small">
+            <b>Unlocked so far:</b> {learned.map((k) => NOTEBOOK[k].term).join(' · ')}
+          </p>
+          <p className="small">
+            <b>Conversation starters:</b>
+          </p>
+          <ul className="small">
+            {learned.slice(-5).map((k) => (
+              <li key={k}>{NOTEBOOK[k].askGrownUp}</li>
+            ))}
+          </ul>
+        </>
+      )}
+      <p className="small muted">Every concept has a Professor's note in the bakery notebook (Finances tab) with the formal version.</p>
+    </div>
+  );
+}
 
 export function Settings({ onClose, onQuit }: { onClose: () => void; onQuit: () => void }) {
   const { state, dispatch, prefs, setPrefs, slot } = useGame();
@@ -126,6 +174,9 @@ export function Settings({ onClose, onQuit }: { onClose: () => void; onQuit: () 
           Back to the title screen
         </Btn>
       </div>
+
+      <h3>For grown-ups</h3>
+      <GrownUpSummary />
 
       <h3>About</h3>
       <div className="btn-row">

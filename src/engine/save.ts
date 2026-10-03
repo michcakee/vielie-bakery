@@ -3,6 +3,7 @@ import { balanceSheet } from './accounting';
 import { refreshKinds } from './events';
 import { createNewGame, SAVE_VERSION } from './state';
 import type { Employee, Equipment, GameState, UpgradeId } from './types';
+import { migrateFeatures } from './unlocks';
 
 /** Old single-slot key from v2 (kept untouched as a backup after migration). */
 export const LEGACY_V2_KEY = 'vielie-bakery-save-v2';
@@ -32,6 +33,10 @@ const finite = (v: unknown) => typeof v === 'number' && Number.isFinite(v);
  */
 export function fillNewContent(data: unknown): void {
   const s = data as GameState;
+  // v3 → v4: feature unlocks arrived. Older bakeries keep everything up to their day and anything in use.
+  if (s && typeof s === 'object' && (s as { version: number }).version === 3 && s.display && s.prices && s.pantry && Array.isArray(s.staff)) {
+    Object.assign(s, migrateFeatures({ ...s, version: SAVE_VERSION } as GameState));
+  }
   if (!s || typeof s !== 'object' || s.version !== SAVE_VERSION || !s.display || !s.prices || !s.pantry) return;
   for (const p of PRODUCT_ORDER) {
     if (!s.display[p]) s.display[p] = { qty: 0, quality: 70, unitCost: 0 };

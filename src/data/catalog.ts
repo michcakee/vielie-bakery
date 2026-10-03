@@ -745,13 +745,14 @@ export const DECOR_ORDER: DecorId[] = ['plant', 'stools', 'stringLights', 'sign'
  * schedule runs out, levels take over. Days are game days (day 1 is the first morning).
  */
 export const UNLOCK_SCHEDULE: { day: number; kind: 'recipe' | 'regular' | 'decor'; id: string; tease: string }[] = [
-  { day: 2, kind: 'recipe', id: 'gressCupcake', tease: 'New recipe: Gress cupcake' },
+  // Recipe days never share a morning with a new system (see FEATURES in data/unlocks.ts).
   { day: 3, kind: 'regular', id: 'mai', tease: 'A new face on the lane: Mai' },
-  { day: 4, kind: 'recipe', id: 'traTac', tease: 'New recipe: Trà tắc' },
+  { day: 4, kind: 'recipe', id: 'gressCupcake', tease: 'New recipe: Gress cupcake' },
   { day: 5, kind: 'decor', id: 'stringLights', tease: 'A gift from Bà for the shop' },
-  { day: 6, kind: 'recipe', id: 'gressTeaLight', tease: 'New recipe: Light gress tea' },
+  { day: 6, kind: 'recipe', id: 'traTac', tease: 'New recipe: Trà tắc' },
   { day: 8, kind: 'regular', id: 'hung', tease: 'A new face: Chú Hùng' },
-  { day: 10, kind: 'recipe', id: 'pateChaud', tease: 'New recipe: Bánh patê sô' },
+  { day: 9, kind: 'recipe', id: 'gressTeaLight', tease: 'New recipe: Light gress tea' },
+  { day: 11, kind: 'recipe', id: 'pateChaud', tease: 'New recipe: Bánh patê sô' },
   { day: 13, kind: 'recipe', id: 'gressOreo', tease: 'New recipe: Gress sandwich cookies' },
 ];
 

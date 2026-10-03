@@ -7,6 +7,8 @@ import { ecoScore, levelOf, levelProgress } from './economy';
 import { valuation } from './finance';
 import { toast } from './helpers';
 import type { DecorId, GameState, ProductId } from './types';
+import type { FeatureId } from '../data/unlocks';
+import { featureOn, nextFeature } from './unlocks';
 
 export interface QuestDef {
   id: string;
@@ -16,32 +18,34 @@ export interface QuestDef {
   progress: (s: GameState) => number;
   reward: { cash?: number; xp?: number; decor?: DecorId };
   rewardText: string;
+  /** Hidden until this system unlocks. */
+  needs?: FeatureId;
 }
 
 const best = (s: GameState, f: (h: GameState['history'][number]) => number) => Math.max(0, ...s.history.map(f));
 
 export const QUESTS: QuestDef[] = [
   { id: 'firstBanhMi', title: 'First bánh mì', text: 'Sell your first bánh mì.', target: 1, progress: (s) => s.lifetime.sold.banhMi, reward: { cash: 60, xp: 20 }, rewardText: '$60' },
-  { id: 'stockUp', title: 'Stock up', text: 'Buy 5 packs of ingredients at the market.', target: 5, progress: (s) => s.questProgress.packs ?? 0, reward: { cash: 40, xp: 15 }, rewardText: '$40' },
+  { id: 'stockUp', needs: 'market.wet', title: 'Stock up', text: 'Buy 5 packs of ingredients at the market.', target: 5, progress: (s) => s.questProgress.packs ?? 0, reward: { cash: 40, xp: 15 }, rewardText: '$40' },
   { id: 'baker', title: 'Oven on!', text: 'Bake 3 trays in one morning.', target: 3, progress: (s) => Math.max(s.traysToday, s.questProgress.bestTrays ?? 0), reward: { cash: 50, xp: 20 }, rewardText: '$50' },
   { id: 'firstProfit', title: 'In the black', text: 'Finish a day with a profit.', target: 1, progress: (s) => (s.history.some((h) => h.profit > 0) ? 1 : 0), reward: { xp: 30, decor: 'plant' }, rewardText: 'A potted monstera' },
-  { id: 'priceExplorer', title: 'Price explorer', text: 'Change a price, then open the doors.', target: 1, progress: (s) => s.questProgress.priceChanged ?? 0, reward: { xp: 30, cash: 40 }, rewardText: '$40' },
+  { id: 'priceExplorer', needs: 'kitchen.prices', title: 'Price explorer', text: 'Change a price, then open the doors.', target: 1, progress: (s) => s.questProgress.priceChanged ?? 0, reward: { xp: 30, cash: 40 }, rewardText: '$40' },
   { id: 'morningRush', title: 'Morning rush', text: 'Serve 12 customers before noon in one day.', target: 12, progress: (s) => Math.max(s.today.servedBeforeNoon, s.questProgress.bestMorning ?? 0), reward: { xp: 40, decor: 'stringLights' }, rewardText: 'String lights' },
-  { id: 'smartShopper', title: 'Smart shopper', text: 'Save $60 by shopping below normal prices.', target: 60, progress: (s) => Math.floor(s.questProgress.saved ?? 0), reward: { cash: 80, xp: 30 }, rewardText: '$80' },
-  { id: 'firstHire', title: 'Not alone anymore', text: 'Hire your first employee.', target: 1, progress: (s) => Math.min(1, s.staff.length + (s.questProgress.hired ?? 0)), reward: { xp: 40 }, rewardText: 'Bonus XP' },
+  { id: 'smartShopper', needs: 'market.wet', title: 'Smart shopper', text: 'Save $60 by shopping below normal prices.', target: 60, progress: (s) => Math.floor(s.questProgress.saved ?? 0), reward: { cash: 80, xp: 30 }, rewardText: '$80' },
+  { id: 'firstHire', needs: 'staff.hire', title: 'Not alone anymore', text: 'Hire your first employee.', target: 1, progress: (s) => Math.min(1, s.staff.length + (s.questProgress.hired ?? 0)), reward: { xp: 40 }, rewardText: 'Bonus XP' },
   { id: 'zeroWaste', title: 'Zero waste day', text: 'Serve 10+ customers and close without binning food (donate a little at most).', target: 1, progress: (s) => s.lifetime.zeroWasteDays, reward: { cash: 80, xp: 40 }, rewardText: '$80' },
-  { id: 'safetyFund', title: 'Rainy-day money', text: 'Put $500 in the bakery safety fund.', target: 500, progress: (s) => Math.floor(Math.max(s.safetyFund, s.questProgress.bestFund ?? 0)), reward: { xp: 40, decor: 'radio' }, rewardText: 'An old radio' },
-  { id: 'decorator', title: 'Make it yours', text: 'Own 3 decorations.', target: 3, progress: (s) => s.decor.length, reward: { cash: 80, xp: 30 }, rewardText: '$80' },
+  { id: 'safetyFund', needs: 'finances.cash', title: 'Rainy-day money', text: 'Put $500 in the bakery safety fund.', target: 500, progress: (s) => Math.floor(Math.max(s.safetyFund, s.questProgress.bestFund ?? 0)), reward: { xp: 40, decor: 'radio' }, rewardText: 'An old radio' },
+  { id: 'decorator', needs: 'growth.decor', title: 'Make it yours', text: 'Own 3 decorations.', target: 3, progress: (s) => s.decor.length, reward: { cash: 80, xp: 30 }, rewardText: '$80' },
   { id: 'bigDay', title: 'Big day', text: 'Make $250 profit in a single day.', target: 250, progress: (s) => Math.floor(best(s, (h) => h.profit)), reward: { cash: 150, xp: 60 }, rewardText: '$150' },
-  { id: 'greenBakery', title: 'Green bakery', text: 'Reach an eco score of 75.', target: 75, progress: (s) => ecoScore(s), reward: { xp: 60, decor: 'flowers' }, rewardText: 'Fresh flowers' },
+  { id: 'greenBakery', needs: 'eco.all', title: 'Green bakery', text: 'Reach an eco score of 75.', target: 75, progress: (s) => ecoScore(s), reward: { xp: 60, decor: 'flowers' }, rewardText: 'Fresh flowers' },
   { id: 'community', title: 'Community favourite', text: 'Welcome back loyal customers 100 times.', target: 100, progress: (s) => s.lifetime.returning, reward: { cash: 200, xp: 80 }, rewardText: '$200' },
   { id: 'coffeeTime', title: 'Coffee time', text: 'Sell 200 cà phê sữa đá.', target: 200, progress: (s) => s.lifetime.sold.caPhe, reward: { cash: 120, xp: 60 }, rewardText: '$120' },
-  { id: 'expand', title: 'Room to grow', text: 'Open the coffee corner.', target: 1, progress: (s) => (s.upgrades.includes('corner') ? 1 : 0), reward: { xp: 100, decor: 'rug' }, rewardText: 'A woven rug' },
-  { id: 'secondShop', title: 'Second shop', text: 'Open a second location.', target: 1, progress: (s) => s.branches.length, reward: { xp: 200 }, rewardText: 'Big XP' },
+  { id: 'expand', needs: 'growth.equipment', title: 'Room to grow', text: 'Open the coffee corner.', target: 1, progress: (s) => (s.upgrades.includes('corner') ? 1 : 0), reward: { xp: 100, decor: 'rug' }, rewardText: 'A woven rug' },
+  { id: 'secondShop', needs: 'growth.branches', title: 'Second shop', text: 'Open a second location.', target: 1, progress: (s) => s.branches.length, reward: { xp: 200 }, rewardText: 'Big XP' },
 ];
 
 export function activeQuests(s: GameState, n = 3): QuestDef[] {
-  return QUESTS.filter((q) => !s.quests.includes(q.id)).slice(0, n);
+  return QUESTS.filter((q) => !s.quests.includes(q.id) && (!q.needs || featureOn(s, q.needs))).slice(0, n);
 }
 
 export interface AchievementDef {
@@ -194,6 +198,11 @@ export function applySchedule(s: GameState): GameState {
 /** What the player is working toward right now, for the Today card and the day report. */
 export function nextUnlock(s: GameState): { text: string; pct: number; when: string; tomorrow: boolean } {
   const upcoming = UNLOCK_SCHEDULE.find((u) => u.day > s.day);
+  const feat = nextFeature(s);
+  if (feat && (!upcoming || feat.day < upcoming.day)) {
+    const days = feat.day - s.day;
+    return { text: feat.teaser, pct: Math.max(0, Math.min(1, 1 - days / 4)), when: days <= 1 ? 'tomorrow' : `in about ${days} days`, tomorrow: days <= 1 };
+  }
   if (upcoming) {
     const prev = [...UNLOCK_SCHEDULE].reverse().find((u) => u.day <= s.day)?.day ?? 1;
     const days = upcoming.day - s.day;

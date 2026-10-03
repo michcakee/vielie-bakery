@@ -48,6 +48,8 @@ import { hireValue, makeEmployee, marketWage, quitters, updateMorale, weeklyAppl
 import { createMacro, dailyMacro, monthlyMacro } from './macro';
 import { generateMarket } from './market';
 import { applySchedule, checkProgress, goalMet, WEEKLY_GOALS } from './progression';
+import { applyFeatureUnlocks, checkIntro, emptyIntro, featureOn, introLater, introStart, refreshIntroBase, seeTab, startingFeatures, unlockAll } from './unlocks';
+import { ACTION_FEATURE, type FeatureId } from '../data/unlocks';
 import { businessTip, recap } from './report';
 import { newSeed, rngFor } from './rng';
 import { endService, fastForward, keepsOvernight, openShop, serve, setLastCall, tick } from './service';
@@ -78,7 +80,7 @@ import type {
   Prediction,
 } from './types';
 
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
 
 const zeroProducts = (): ByProduct<number> => Object.fromEntries(PRODUCT_ORDER.map((p) => [p, 0])) as ByProduct<number>;
 
@@ -146,6 +148,8 @@ export interface NewGameOptions {
   location?: LocationId;
   name?: string;
   look?: Look;
+  /** A guided game: systems unlock one at a time. Off for tests and Experienced bakers. */
+  guided?: boolean;
 }
 
 export function createNewGame(seedOrOpts: number | NewGameOptions = {}): GameState {
@@ -259,6 +263,13 @@ export function createNewGame(seedOrOpts: number | NewGameOptions = {}): GameSta
   base.nextId += base.applicants.length;
   const bs = balanceSheet(base);
   base.equity = { contributed: bs.equity, retained: 0, distributions: 0 };
+  if (opts.guided) {
+    base.allUnlocked = false;
+    base.features = startingFeatures(sc.id);
+    base.newFeatures = [];
+    base.intro = { ...emptyIntro(), done: [...base.features] };
+    base.lastFeatureDay = 1;
+  }
   return base;
 }
 
@@ -319,6 +330,9 @@ export type Action =
   | { type: 'setSizes'; on: boolean }
   | { type: 'dismissToast'; id: number }
   | { type: 'hint'; id: string }
+  | { type: 'introLater' }
+  | { type: 'introStart'; id: FeatureId }
+  | { type: 'unlockAll' }
   | { type: 'newGame'; seed?: number; options?: NewGameOptions }
   | { type: 'load'; state: GameState };
 
@@ -438,13 +452,19 @@ function autoProcess(s: GameState): number {
 }
 
 function autoStock(s: GameState): GameState {
-  if (s.plan.autoStock === false) return s;
+  if (s.plan.autoStock === false || !featureOn(s, 'market.wet')) return s;
+  const bulk = featureOn(s, 'market.suppliers');
   const need = ingredientsNeeded(s, forecast(s, 1));
   let next = s;
   for (const [id, n] of Object.entries(need) as [IngredientId, { short: number }][]) {
     if (!n.short) continue;
-    const packs = Math.ceil(n.short / INGREDIENTS[id].pack);
-    next = buy(next, id, 'cho', packs);
+    let packs = Math.ceil(n.short / INGREDIENTS[id].pack);
+    // Before bulk tiers unlock, the autopilot carries home at most 5 packs at a time, like the player.
+    while (packs > 0) {
+      const n5 = bulk ? packs : Math.min(5, packs);
+      next = buy(next, id, 'cho', n5);
+      packs -= n5;
+    }
   }
   return next;
 }
@@ -846,11 +866,14 @@ function startDay(s: GameState): GameState {
   next.today = { ...emptyDay(day, next.market.weather), community: next.community, reputation: next.reputation };
 
   next = applySchedule(next);
+  next = applyFeatureUnlocks(next);
   // Today's special: one everyday item from the menu pays more.
-  if (day >= ECON.service.dailySpecial.fromDay) {
+  next.special = null;
+  if (day >= ECON.service.dailySpecial.fromDay && featureOn(next, 'today.special')) {
     const pool = onMenu(next).filter((p) => !PRODUCTS[p].season);
     next.special = pool.length ? pool[Math.floor(rngFor(next.seed, day, 931)() * pool.length)] : null;
   }
+  next = refreshIntroBase(next);
   if (isMonthStart(day)) next = startOfMonth(next);
   // Repairs that were waiting.
   for (const e of next.effects.filter((x) => x.id === 'repairDue' && x.until < day)) {
@@ -982,7 +1005,38 @@ function runDay(s: GameState): GameState {
 
 // ---------------------------------------------------------------- reducer
 
+/** Counters for intro quests: bumped whenever one of these actions changes the game. */
+const COUNTERS: Partial<Record<Action['type'], string>> = {
+  setPrice: 'priceEdits',
+  setMenu: 'menuToggles',
+  setPackaging: 'packagingChanges',
+  setPlan: 'planEdits',
+  lockPrice: 'locksMade',
+  train: 'trainings',
+  campaign: 'campaigns',
+  runDay: 'teamDays',
+  handOver: 'teamDays',
+};
+
+/** Which feature an action needs right now (buying beyond the wet market needs more suppliers). */
+export function actionFeature(a: Action): FeatureId | undefined {
+  if (a.type === 'buy' && (a.supplier !== 'cho' || a.packs > 5)) return 'market.suppliers';
+  return ACTION_FEATURE[a.type];
+}
+
 export function gameReducer(s: GameState, a: Action): GameState {
+  // Locked systems: the reducer refuses them, so the UI, the team and the autopilot all play by the same rules.
+  const need = actionFeature(a);
+  if (need && !featureOn(s, need)) return s;
+  let next = reduce(s, a);
+  if (next === s) return s;
+  const k = COUNTERS[a.type];
+  if (k) next = { ...next, questProgress: { ...next.questProgress, [k]: (next.questProgress[k] ?? 0) + 1 } };
+  if (a.type === 'bake' && s.traysToday < trayCapacity(s) && next.traysToday >= trayCapacity(next)) next = { ...next, questProgress: { ...next.questProgress, capHits: (next.questProgress.capHits ?? 0) + 1 } };
+  return next.intro?.active ? checkIntro(next) : next;
+}
+
+function reduce(s: GameState, a: Action): GameState {
   if (s.ending && a.type !== 'newGame' && a.type !== 'load' && a.type !== 'dismissToast') return s;
   // Untrusted input guard: NaN or ±Infinity anywhere in an action would silently pass every `<`/`>` check.
   if (a.type !== 'load' && a.type !== 'newGame' && Object.values(a).some((v) => typeof v === 'number' && !Number.isFinite(v))) return s;
@@ -1118,6 +1172,7 @@ export function gameReducer(s: GameState, a: Action): GameState {
       const choice = def.choices(s).find((c) => c.id === a.choice);
       if (!choice || (choice.enabled && !choice.enabled(s))) return s;
       let next = choice.apply(s);
+      next = { ...next, eventsSeen: [...new Set([...(next.eventsSeen ?? []), pending.id])] };
       if (def.concept) next = learn(next, def.concept);
       next = { ...next, events: next.events.filter((e) => e !== pending) };
       if (next.ending) return { ...next, phase: 'ended' };
@@ -1300,8 +1355,17 @@ export function gameReducer(s: GameState, a: Action): GameState {
     }
     case 'dismissToast':
       return { ...s, toasts: s.toasts.filter((t) => t.id !== a.id) };
-    case 'hint':
-      return s.hints.includes(a.id) ? s : { ...s, hints: [...s.hints, a.id] };
+    case 'hint': {
+      let next = s.hints.includes(a.id) ? s : { ...s, hints: [...s.hints, a.id] };
+      if (a.id.startsWith('tab:')) next = seeTab(next, a.id.slice(4).split(':')[0]);
+      return next;
+    }
+    case 'introLater':
+      return introLater(s);
+    case 'introStart':
+      return introStart(s, a.id);
+    case 'unlockAll':
+      return unlockAll(s);
     case 'newGame':
       return createNewGame(a.options ?? (a.seed !== undefined ? { seed: a.seed } : {}));
     case 'load':

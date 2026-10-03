@@ -1,3 +1,4 @@
+import type { FeatureId } from '../data/unlocks';
 export type ProductId =
   | 'banhMi'
   | 'caPhe'
@@ -598,6 +599,18 @@ export interface GameState {
   combo?: boolean;
   /** Drink sizes offered (concept 18). */
   sizes?: boolean;
+  /** Feature gating. `false` = guided game; missing or `true` = everything open (tests, old saves, Experienced baker). */
+  allUnlocked?: boolean;
+  /** Systems the player has unlocked so far (guided games). */
+  features?: FeatureId[];
+  /** Unlocked but not yet looked at: drives the NEW badge. */
+  newFeatures?: FeatureId[];
+  /** Day the last system unlocked (one a day at most). */
+  lastFeatureDay?: number;
+  /** Intro quests: the active one, deferred ones, finished ones. */
+  intro?: IntroState;
+  /** Morning event ids the player has met, for unlock triggers. */
+  eventsSeen?: string[];
   visitsByRegular: Record<string, number>;
   quests: string[];
   questProgress: Record<string, number>;
@@ -674,4 +687,13 @@ export interface Report {
   savedToFund: number;
   why: string[];
   branchProfit: number;
+}
+
+export interface IntroState {
+  active: FeatureId | null;
+  base: Record<string, number>;
+  done: FeatureId[];
+  later: FeatureId[];
+  startedDay: number;
+  replay: boolean;
 }

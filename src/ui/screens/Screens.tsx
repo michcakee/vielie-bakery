@@ -60,7 +60,7 @@ export function Title({ onContinue, onNew }: { onContinue: () => void; onNew: ()
           <span>Shop</span>
         </h1>
         <p className="title-sub">
-          A cozy Vietnamese bakery sandbox. Bake bánh mì and mooncakes, hire a team, outsmart rival bakeries, ride out recessions, and grow a little tiệm bánh into a citywide brand.
+          A cozy Vietnamese bakery game. Bake bánh mì, serve your neighbours, earn stars, and grow Bà’s little tiệm bánh into the most famous bakery in town.
         </p>
         <div className="title-buttons">
           {resumable && (

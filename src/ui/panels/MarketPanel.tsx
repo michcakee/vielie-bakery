@@ -110,7 +110,7 @@ export function MarketPanel() {
             </span>
           </div>
         </div>
-        <p className="small muted">Over the cold limit, fresh ingredients spoil three times as fast. Bulk is cheaper per pack, but only if you use it before it goes off: that's the trade-off.</p>
+        <p className="small muted">Over the cold limit, fresh ingredients spoil three times as fast.{more && " Bulk is cheaper per pack, but only if you use it before it goes off: that's the trade-off."}</p>
         {s.deliveries.length > 0 && (
           <p className="small">
             On the way: {s.deliveries.map((d) => `${d.packs} × ${INGREDIENTS[d.ingredient].name.toLowerCase()} (day ${d.arrives})`).join(', ')}

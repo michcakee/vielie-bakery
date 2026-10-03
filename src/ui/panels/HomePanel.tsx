@@ -49,7 +49,7 @@ function Coach() {
   const steps = [
     { done: s.traysToday > 0 || s.history.length > 0, text: 'The pastry case is empty! Bake a tray of bánh flan in the Kitchen. Tap “Take it out” when it’s golden.', tab: 'kitchen' as Tab, spot: 'bake-flan' },
     { done: s.lifetime.served > 0, text: 'Open the doors and serve your first customer.', tab: 'today' as Tab, spot: 'open' },
-    { done: s.history.length > 0, text: 'Close up: choose to keep, donate or bin what’s left, then read the report.' },
+    { done: s.history.length > 0, text: 'When the day ends, choose what to do with leftovers (donating is kind!), then see your stars.' },
   ];
   if (steps.every((x) => x.done)) return null;
   const at = steps.findIndex((x) => !x.done);

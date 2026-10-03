@@ -594,3 +594,17 @@ Source: `PLAYTEST_FEEDBACK.md` (a scripted phone playtest as a 9–12 year old) 
 | Kid who hires Bà's pick | 50–65 served, almost nobody lost | 2–3 | 4 |
 
 Still open: a real playtest with children; a mid-game story arc for days 36–60; "look at" intro steps still finish when you arrive rather than when you tap the thing.
+
+### Playtest round 2 (`PLAYTEST_FEEDBACK_2.md`) and fixes (ff4cd58 → 428a55a)
+Round 2 found days 1–5 calm and fair, but from about day 10 a kid couldn't grow: wages of about $135 a day never paid back, and the controls overflowed the screen at 360px. Fixes:
+- **Part-time helper** role ($9/h, serves anything at 1.5× staff time); one always applies. Kid bot with helpers: 50–80 served a day, almost nobody lost, profit positive. The next bottleneck is baking enough, which points to equipment.
+- **Controls** wrap and go icon-only under 420px; the "N left" chip sits on the goal line.
+- **"Open anyway?"** check when the case is empty or there are no baguettes ("Go bake first").
+- **Spotlight** prefers the primary button and skips glossary links and selected toggles. To-dos are single actions with Show me.
+- **Report:** an empty case counts as sold out ("people wanted flan, but the case was empty"). Profit reads the live books so level gifts add up.
+- **Pacing:** goals follow recent sales after 3 days; weekly goals +8%; levels 150 / 800 / 1,700 / 3,300 / 5,600 / 8,600 / 12,500. Investors need level 5 and co-op shares level 6 in guided games.
+- **Smaller fixes:** toasts at the top on phones, a fixed "More" label, Neighbours moved to Customers, the Money tab opens on Yesterday for new players, price guesses shown "of every 100", grammar.
+
+Kid bot after round 2 (seed 12):
+- **No hire:** level 4 on day 23, about 2 stars a day.
+- **Hires Bà's pick:** level 4 on day 17, and 68–71 served by day 20–30.

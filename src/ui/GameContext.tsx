@@ -2,6 +2,8 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useReducer,
 import { loadGame, loadPrefs, saveGame, savePrefs, type Prefs } from '../engine/save';
 import { createNewGame, gameReducer, type Action } from '../engine/state';
 import type { GameState } from '../engine/types';
+import { featureOn } from '../engine/unlocks';
+import type { FeatureId } from '../data/unlocks';
 import { setAudio } from './audio';
 
 interface Ctx {
@@ -12,6 +14,10 @@ interface Ctx {
   setPrefs: (p: Partial<Prefs>) => void;
   reduced: boolean;
   business: boolean;
+  /** Is this system unlocked for the player? */
+  feature: (id: FeatureId) => boolean;
+  /** Unlocked and not yet looked at (NEW badge). */
+  fresh: (id: FeatureId) => boolean;
   slot: number;
   switchSlot: (slot: number) => boolean;
 }
@@ -92,7 +98,20 @@ export function GameProvider({ children }: { children: ReactNode }) {
   );
 
   const value = useMemo(
-    () => ({ state, dispatch, hasSave: !!saved, prefs, setPrefs, reduced, business: prefs.view === 'business', slot, switchSlot }),
+    () => ({
+      state,
+      dispatch,
+      hasSave: !!saved,
+      prefs,
+      setPrefs,
+      reduced,
+      // Business view only once the money pages exist; casual view first.
+      business: prefs.view === 'business' && featureOn(state, 'finances.income'),
+      feature: (id: FeatureId) => featureOn(state, id),
+      fresh: (id: FeatureId) => (state.newFeatures ?? []).includes(id),
+      slot,
+      switchSlot,
+    }),
     [state, saved, prefs, setPrefs, reduced, slot, switchSlot],
   );
   return <GameCtx.Provider value={value}>{children}</GameCtx.Provider>;

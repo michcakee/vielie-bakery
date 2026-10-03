@@ -205,7 +205,7 @@ function OvenCard() {
                     {missing.length > 0 && <span className="warn small">Need more {missing.map((m) => INGREDIENTS[m].name.toLowerCase()).join(', ')}. Stock up in the Market.</span>}
                   </div>
                   <div className="bake-actions">
-                    <Btn kind="primary" disabled={!morning || !ok || left <= 0} onClick={() => setBaking(item)} sfx="pop">
+                    <Btn kind="primary" disabled={!morning || !ok || left <= 0} onClick={() => setBaking(item)} sfx="pop" data-spot={`bake-${item}`}>
                       Bake
                     </Btn>
                     <button type="button" className="link-btn" disabled={!morning || !ok || left <= 0} onClick={() => bake(item, 72)} title="Skip the mini-game: fair quality">
@@ -224,7 +224,7 @@ function OvenCard() {
 }
 
 function PriceRow({ p, business }: { p: ProductId; business: boolean }) {
-  const { state: s, dispatch } = useGame();
+  const { state: s, dispatch, feature } = useGame();
   const d = PRODUCTS[p];
   const price = s.prices[p];
   const [lo, hi] = priceBounds(s, p);
@@ -244,7 +244,7 @@ function PriceRow({ p, business }: { p: ProductId; business: boolean }) {
           <span className="muted small">{d.en}</span>
         </div>
         <div className="price-controls">
-          <Stepper value={price} step={CONFIG.priceStep} min={lo} max={hi} format={money2} label={`${d.name} price`} disabled={s.phase !== 'morning'} onChange={(v) => dispatch({ type: 'setPrice', product: p, price: v })} />
+          {!feature('kitchen.prices') ? <b className="price-plain">{money2(price)}</b> : <Stepper value={price} step={CONFIG.priceStep} min={lo} max={hi} format={money2} label={`${d.name} price`} disabled={s.phase !== 'morning'} onChange={(v) => dispatch({ type: 'setPrice', product: p, price: v })} />}
           <div className="demand">
             <Meter value={a} tone={lab.tone} label={`Demand for ${d.name}`} />
             <span className={`demand-say tone-${lab.tone}`}>{lab.text}</span>
@@ -356,7 +356,7 @@ function PredictCard() {
     );
   }
   return (
-    <Card className="predict-card" title="What do you think will happen?" icon="note">
+    <Card className="predict-card" title="What do you think will happen?" icon="note" spot="predict">
       <p className="small">
         You moved <b>{d.name}</b> {up ? 'up' : 'down'} from {money2(p.from)} to {money2(p.to)}. Lately it sold about <b>{p.unitsBefore.toFixed(0)}</b> a day. Tomorrow’s report will show the answer next to your guess (any guess earns XP; a right one earns more).
       </p>
@@ -376,13 +376,13 @@ function PredictCard() {
 }
 
 function PlanCard() {
-  const { state: s, dispatch } = useGame();
+  const { state: s, dispatch, fresh } = useGame();
   const suggested = suggestedTrays(s);
   const items: Bakeable[] = ['baguette', ...onMenu(s).filter((p) => PRODUCTS[p].kind === 'tray')];
   const ovens = ovenCapacity(s);
   const people = laborTrays(s);
   return (
-    <Card title="Production plan" icon="note" aside={<span className="small muted">Used on team / autopilot days</span>}>
+    <Card title="Production plan" icon="note" spot="plan" fresh={fresh('kitchen.plan')} aside={<span className="small muted">Used on team / autopilot days</span>}>
       <p className="small">
         Capacity: ovens {ovens} trays, team {people} trays, so <b>{Math.min(ovens, people)}</b> a morning. {ovens < people ? 'Ovens are the bottleneck.' : ovens > people ? 'People are the bottleneck.' : ''}
       </p>
@@ -424,10 +424,10 @@ function PlanCard() {
 }
 
 function MenuCard() {
-  const { state: s, dispatch } = useGame();
+  const { state: s, dispatch, feature, fresh } = useGame();
   const options = PRODUCT_ORDER.filter((p) => s.unlocked.includes(p) && !PRODUCTS[p].season);
   return (
-    <Card title="What's on the menu" icon="book">
+    <Card title="What's on the menu" icon="book" spot="menu" fresh={fresh('kitchen.menu')}>
       <p className="small muted">A wider menu catches more kinds of customers, but every item needs ingredients, oven space and hands. Seasonal specials appear on their own.</p>
       <ul className="menu-toggles">
         {options.map((p) => {
@@ -446,7 +446,7 @@ function MenuCard() {
           );
         })}
       </ul>
-      <div className="deals">
+      {feature('kitchen.deals') && <div className="deals" data-spot="deals">
         <label className="toggle">
           <input type="checkbox" checked={!!s.combo} disabled={s.phase === 'service'} onChange={(e) => dispatch({ type: 'setCombo', on: e.target.checked })} />
           <span className="toggle-ui" aria-hidden="true" />
@@ -463,13 +463,13 @@ function MenuCard() {
             <span className="small muted">Large sells for ×{ECON.service.sizes.large.price}, small for ×{ECON.service.sizes.small.price}; most people pick medium.</span>
           </span>
         </label>
-      </div>
+      </div>}
     </Card>
   );
 }
 
 export function KitchenPanel() {
-  const { state: s, business } = useGame();
+  const { state: s, business, feature } = useGame();
   const walkIns = Math.round(expectedWalkIns(s));
   return (
     <div className="panel-stack">
@@ -479,10 +479,10 @@ export function KitchenPanel() {
         </p>
       </Card>
       <OvenCard />
-      <Card title="Menu & prices" icon="coin">
-        <p className="muted small">
+      <Card title={feature('kitchen.prices') ? 'Menu & prices' : 'Today’s prices'} icon="coin" spot="price">
+        {feature('kitchen.prices') && <p className="muted small">
           The meter shows how many shoppers think the price is fair. Higher prices mean more per sale but fewer sales: <Tip concept="elasticity">find the sweet spot</Tip>.
-        </p>
+        </p>}
         <ul className="price-list">
           {onMenu(s).map((p) => (
             <PriceRow key={p} p={p} business={business} />
@@ -490,10 +490,10 @@ export function KitchenPanel() {
         </ul>
         {s.phase !== 'morning' && <p className="muted small">Prices are set for today once the doors open.</p>}
       </Card>
-      <MenuCard />
-      <PredictCard />
-      <PlanCard />
-      <RecipeBook />
+      {feature('kitchen.menu') && <MenuCard />}
+      {feature('kitchen.prices') && <PredictCard />}
+      {feature('kitchen.plan') && <PlanCard />}
+      {feature('kitchen.menu') && <RecipeBook />}
     </div>
   );
 }

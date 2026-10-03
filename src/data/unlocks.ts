@@ -43,6 +43,8 @@ export interface IntroStep {
   /** Tab to open and `data-spot` anchor to spotlight for "Show me". */
   tab?: TabId;
   spot?: string;
+  /** Done by opening `tab` while this step is active (the UI records `visit:<feature>`). */
+  visit?: boolean;
   /** Measured against a snapshot taken when the intro quest starts. */
   done: (s: GameState, base: Record<string, number>) => boolean;
 }
@@ -155,7 +157,7 @@ export const FEATURES: FeatureDef[] = [
       en: 'Do you remember my favourite?',
       snapshot: (s) => ({ visits: sum(s.visitsByRegular) }),
       steps: [
-        { text: 'Open the Customers tab.', tab: 'customers', spot: 'tab-customers', done: (s) => seen(s, 'tab:customers') },
+        { text: 'Open the Customers tab.', tab: 'customers', spot: 'tab-customers', visit: true, done: (s) => seen(s, 'visit:customers.regulars') },
         { text: 'Serve a regular by name at the counter.', tab: 'today', spot: 'open', done: (s, b) => sum(s.visitsByRegular) > b.visits },
       ],
       after: 'Happy regulars come back without being asked. Repeat customers are worth more than one sale.',
@@ -195,7 +197,7 @@ export const FEATURES: FeatureDef[] = [
       vi: 'Mỗi ngày đều có lý do.',
       en: 'Every day has a reason behind it.',
       steps: [
-        { text: 'Open Analytics and tap one explanation.', tab: 'analytics', spot: 'why', done: (s) => seen(s, 'why:tapped') },
+        { text: 'Open Analytics and tap one explanation.', tab: 'analytics', spot: 'why', done: (s) => seen(s, 'visit:analytics.why') },
       ],
       after: 'Looking for causes, not just results, is how you get better on purpose.',
       xp: 20,
@@ -252,7 +254,7 @@ export const FEATURES: FeatureDef[] = [
       who: 'Bà',
       vi: 'Bán được nhiều chưa chắc là lời nhiều.',
       en: 'Selling a lot doesn’t always mean earning a lot.',
-      steps: [{ text: 'Open Finances and find yesterday’s profit.', tab: 'money', spot: 'profit', done: (s) => seen(s, 'tab:money') }],
+      steps: [{ text: 'Open Finances and find yesterday’s profit.', tab: 'money', spot: 'profit', visit: true, done: (s) => seen(s, 'visit:finances.income') }],
       after: 'Profit is what’s left after costs: sales minus costs. Business view is now in Settings if you want every number.',
       xp: 20,
     },
@@ -290,7 +292,7 @@ export const FEATURES: FeatureDef[] = [
       vi: 'Túi ni-lông nhiều quá chị ơi.',
       en: 'So many plastic bags!',
       snapshot: (s) => ({ pack: qp(s, 'packagingChanges') }),
-      steps: [{ text: 'Pick a packaging in the Eco tab.', tab: 'eco', spot: 'packaging', done: (s, b) => qp(s, 'packagingChanges') > b.pack || seen(s, 'tab:eco') && s.packaging !== 'plastic' }],
+      steps: [{ text: 'Pick a packaging in the Eco tab.', tab: 'eco', spot: 'packaging', done: (s, b) => qp(s, 'packagingChanges') > b.pack }],
       after: 'Plastic is cheap for you but costs the street. A cost someone else pays is an externality.',
       xp: 20,
     },
@@ -307,7 +309,7 @@ export const FEATURES: FeatureDef[] = [
       who: 'Bà',
       vi: 'Tiệm đẹp thì khách vui.',
       en: 'A pretty shop makes happy customers.',
-      steps: [{ text: 'Open Growth and look at the decorations.', tab: 'growth', spot: 'decor', done: (s) => seen(s, 'tab:growth') }],
+      steps: [{ text: 'Open Growth and look at the decorations.', tab: 'growth', spot: 'decor', visit: true, done: (s) => seen(s, 'visit:growth.decor') }],
       after: 'Decorations cost once and help every day after. That’s an investment.',
       xp: 15,
     },
@@ -327,7 +329,7 @@ export const FEATURES: FeatureDef[] = [
       en: 'The new place is cheaper, you know.',
       snapshot: (s) => ({ changed: qp(s, 'priceEdits'), days: s.history.length }),
       steps: [
-        { text: 'Check your rivals in the Customers tab.', tab: 'customers', spot: 'rivals', done: (s) => seen(s, 'tab:customers:rivals') || seen(s, 'tab:customers') },
+        { text: 'Check your rivals in the Customers tab.', tab: 'customers', spot: 'rivals', visit: true, done: (s) => seen(s, 'visit:customers.rivals') },
         { text: 'Match a price, or keep yours and run a day.', tab: 'kitchen', spot: 'price', done: (s, b) => qp(s, 'priceEdits') > b.changed || s.history.length > b.days },
       ],
       after: 'When someone else sells the same thing, you compete on price or on being different.',
@@ -402,7 +404,7 @@ export const FEATURES: FeatureDef[] = [
       who: 'Cô Ngọc (food critic)',
       vi: 'Nhìn cả tuần, đừng nhìn một ngày.',
       en: 'Look at the whole week, not just one day.',
-      steps: [{ text: 'Open Analytics and find your best-earning product.', tab: 'analytics', spot: 'products', done: (s) => seen(s, 'tab:analytics') }],
+      steps: [{ text: 'Open Analytics and find your best-earning product.', tab: 'analytics', spot: 'products', visit: true, done: (s) => seen(s, 'visit:analytics.full') }],
       after: 'Trends hide in many days of numbers. One day can fool you.',
       xp: 15,
     },
@@ -476,7 +478,7 @@ export const FEATURES: FeatureDef[] = [
       who: 'Cô Lan (bank officer)',
       vi: 'Vay thì phải trả, cả tiền lời nữa.',
       en: 'A loan must be paid back, with interest too.',
-      steps: [{ text: 'Open the loans card and look at the monthly payment.', tab: 'money', spot: 'loans', done: (s) => seen(s, 'tab:money') && seen(s, 'loans:looked') }],
+      steps: [{ text: 'Try a loan amount and look at the monthly payment.', tab: 'money', spot: 'loans', done: (s) => seen(s, 'visit:finances.loans') }],
       after: 'Borrowing is worth it only if what you buy earns more than the interest.',
       xp: 20,
     },
@@ -514,7 +516,7 @@ export const FEATURES: FeatureDef[] = [
       who: 'Cô Lan (bank officer)',
       vi: 'Cả thành phố đang thay đổi.',
       en: 'The whole city is changing.',
-      steps: [{ text: 'Read the economy card in Analytics.', tab: 'analytics', spot: 'economy', done: (s) => seen(s, 'tab:analytics') }],
+      steps: [{ text: 'Read the economy card in Analytics.', tab: 'analytics', spot: 'economy', visit: true, done: (s) => seen(s, 'visit:analytics.economy') }],
       after: 'When everyone earns more or less, every shop feels it. That’s the macroeconomy.',
       xp: 15,
     },
@@ -532,7 +534,7 @@ export const FEATURES: FeatureDef[] = [
       who: 'Bà',
       vi: 'Tiền của người khác thì có giá của nó.',
       en: 'Other people’s money always has a price.',
-      steps: [{ text: 'Look at the investors card in Finances.', tab: 'money', spot: 'investors', done: (s) => seen(s, 'tab:money') }],
+      steps: [{ text: 'Look at the investors card in Finances.', tab: 'money', spot: 'investors', visit: true, done: (s) => seen(s, 'visit:finances.capital') }],
       after: 'Debt must be repaid; investors own a share instead. Leverage cuts both ways.',
       xp: 15,
     },
@@ -551,7 +553,7 @@ export const FEATURES: FeatureDef[] = [
       who: 'Cô Ngọc (food critic)',
       vi: 'Đổi một thứ thôi, rồi so sánh.',
       en: 'Change one thing only, then compare.',
-      steps: [{ text: 'Replay a day in the Test Kitchen with one change.', tab: 'analytics', spot: 'test-kitchen', done: (s) => seen(s, 'testKitchen:run') }],
+      steps: [{ text: 'Replay a day in the Test Kitchen with one change.', tab: 'analytics', spot: 'test-kitchen', done: (s) => seen(s, 'visit:analytics.testKitchen') }],
       after: 'Changing one thing at a time is a controlled experiment.',
       xp: 20,
     },
@@ -570,7 +572,7 @@ export const FEATURES: FeatureDef[] = [
       who: 'Bà',
       vi: 'Con giỏi rồi. Mở thêm tiệm không?',
       en: 'You’ve done well. Another shop, maybe?',
-      steps: [{ text: 'Look at a second neighbourhood in Growth.', tab: 'growth', spot: 'branches', done: (s) => seen(s, 'tab:growth') }],
+      steps: [{ text: 'Look at a second neighbourhood in Growth.', tab: 'growth', spot: 'branches', visit: true, done: (s) => seen(s, 'visit:growth.branches') }],
       after: 'A second shop shares your recipes and suppliers. Growing cheaper per item is economies of scale.',
       xp: 20,
     },

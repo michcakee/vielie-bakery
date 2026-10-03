@@ -25,6 +25,9 @@ import { StaffPanel } from './panels/StaffPanel';
 import { Sprite } from './pixel/Sprite';
 import { BakeryScene } from './scene/BakeryScene';
 import { IntroLines, Loading, NewGame, Setup, Title } from './screens/Screens';
+import { GuideProvider } from './Guide';
+import { FEATURE } from '../data/unlocks';
+import { introStep, nextFeature, tabOn } from '../engine/unlocks';
 import { Settings } from './Settings';
 
 const TABS: { id: Tab; label: string; vi: string; icon: string; mobile: boolean }[] = [
@@ -221,13 +224,28 @@ function Game({ onQuit }: { onQuit: () => void }) {
     setTab('today');
   };
   const goTo = (t: Tab) => {
+    if (!tabOn(s, t)) return;
     setTab(t);
     setDrawer(null);
     window.scrollTo({ top: 0 });
+    dispatch({ type: 'hint', id: `tab:${t}` });
+    // "Open the X tab" steps of the active intro quest count as done when you get there.
+    const a = s.intro?.active;
+    const at = a ? introStep(s) : -1;
+    if (a && at >= 0) {
+      const st = FEATURE[a].intro.steps[at];
+      if (st.visit && st.tab === t) dispatch({ type: 'hint', id: `visit:${a}` });
+    }
   };
   const current = TABS.find((t) => t.id === tab)!;
+  const visibleTabs = TABS.filter((t) => tabOn(s, t.id));
+  const moreTabs = visibleTabs.filter((t) => !t.mobile);
+  const lockedTabs = TABS.filter((t) => !tabOn(s, t.id));
+  const isNew = (id: Tab) => (s.newFeatures ?? []).some((f) => FEATURE[f].tab === id);
+  const teaser = nextFeature(s);
 
   return (
+    <GuideProvider goTo={goTo}>
     <div className={`app phase-${s.phase}${s.phase === 'morning' && !intro && tab !== 'today' ? ' has-fab' : ''}${shake ? ' shake' : ''}`}>
       <a className="skip-link" href="#panel">
         Skip to controls
@@ -267,12 +285,13 @@ function Game({ onQuit }: { onQuit: () => void }) {
         <section className="panel-col" id="panel">
           {!service && s.phase !== 'closing' && (
             <nav className="tabs" role="tablist" aria-label="Bakery sections">
-              {TABS.map((t) => (
+              {visibleTabs.map((t) => (
                 <button
                   key={t.id}
                   type="button"
                   role="tab"
                   id={`tab-${t.id}`}
+                  data-spot={`tab-${t.id}`}
                   aria-selected={tab === t.id}
                   aria-controls="tabpanel"
                   className={`tab ${tab === t.id ? 'on' : ''} ${t.mobile ? '' : 'desktop-only'}`}
@@ -283,15 +302,29 @@ function Game({ onQuit }: { onQuit: () => void }) {
                   <span className="tab-vi" lang="vi">
                     {t.vi}
                   </span>
+                  {isNew(t.id) && <span className="new-dot" aria-label="new" />}
                 </button>
               ))}
+              {/* Desktop shows what's coming as padlocks; phones hide locked tabs entirely. */}
+              {lockedTabs.map((t) => (
+                <span key={t.id} className="tab locked desktop-only" title={teaser && FEATURE[teaser.id].tab === t.id ? teaser.teaser : 'Unlocks as your bakery grows'}>
+                  <Sprite name="lock" scale={2} />
+                  <span className="tab-label">{t.label}</span>
+                  <span className="tab-vi" lang="vi">
+                    {t.vi}
+                  </span>
+                </span>
+              ))}
+              {moreTabs.length > 0 && (
               <button type="button" className={`tab mobile-only ${!current.mobile ? 'on' : ''}`} aria-haspopup="dialog" onClick={() => (play('click'), setDrawer('more'))}>
                 <Sprite name="gear" scale={2} />
                 <span className="tab-label">{!current.mobile ? current.label : 'More'}</span>
                 <span className="tab-vi" lang="vi">
                   Thêm
                 </span>
+                {moreTabs.some((m) => isNew(m.id)) && <span className="new-dot" aria-label="new" />}
               </button>
+              )}
             </nav>
           )}
           <div className="tabpanel" role={service || s.phase === 'closing' ? undefined : 'tabpanel'} id="tabpanel" aria-labelledby={service ? undefined : `tab-${tab}`}>
@@ -344,10 +377,11 @@ function Game({ onQuit }: { onQuit: () => void }) {
         <Modal label="More sections" onClose={() => setDrawer(null)} className="drawer sheet">
           <h2>More</h2>
           <div className="more-grid">
-            {TABS.filter((t) => !t.mobile).map((t) => (
-              <button key={t.id} type="button" className={`more-item ${tab === t.id ? 'on' : ''}`} onClick={() => goTo(t.id)}>
+            {moreTabs.map((t) => (
+              <button key={t.id} type="button" className={`more-item ${tab === t.id ? 'on' : ''}`} onClick={() => goTo(t.id)} data-spot={`tab-${t.id}`}>
                 <Sprite name={t.icon} scale={3} />
                 <b>{t.label}</b>
+                {isNew(t.id) && <span className="new-chip">NEW</span>}
                 <span className="small muted" lang="vi">
                   {t.vi}
                 </span>
@@ -365,5 +399,6 @@ function Game({ onQuit }: { onQuit: () => void }) {
         </Modal>
       )}
     </div>
+    </GuideProvider>
   );
 }

@@ -24,6 +24,8 @@ export function Btn({
   type?: 'button' | 'submit';
   'aria-label'?: string;
   'aria-pressed'?: boolean;
+  /** Anchor for the intro-quest spotlight. */
+  'data-spot'?: string;
 }) {
   const [popping, setPopping] = useState(false);
   return (
@@ -113,13 +115,14 @@ export function Stars({ value, label }: { value: number; label: string }) {
   );
 }
 
-export function Card({ children, className = '', title, icon, aside }: { children: ReactNode; className?: string; title?: ReactNode; icon?: string; aside?: ReactNode }) {
+export function Card({ children, className = '', title, icon, aside, spot, fresh }: { children: ReactNode; className?: string; title?: ReactNode; icon?: string; aside?: ReactNode; spot?: string; fresh?: boolean }) {
   return (
-    <section className={`card ${className}`}>
+    <section className={`card ${className}`} data-spot={spot}>
       {title && (
         <header className="card-head">
           {icon && <Sprite name={icon} scale={2} />}
           <h3>{title}</h3>
+          {fresh && <span className="new-chip">NEW</span>}
           {aside && <span className="card-aside">{aside}</span>}
         </header>
       )}

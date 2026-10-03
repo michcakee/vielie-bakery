@@ -89,7 +89,9 @@ export function introLater(s: GameState): GameState {
 export function introStart(s: GameState, id: FeatureId): GameState {
   if (!featureOn(s, id) || !FEATURE[id]) return s;
   const intro = s.intro ?? emptyIntro();
-  return startIntro(s, id, intro.done.includes(id));
+  // A replay starts clean: "looked at it" steps have to be looked at again.
+  const hints = s.hints.filter((h) => h !== `visit:${id}`);
+  return startIntro({ ...s, hints }, id, intro.done.includes(id));
 }
 
 /** Opening a tab clears its NEW badges. */

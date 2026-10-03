@@ -55,7 +55,9 @@ function ReorderEditor({ id }: { id: IngredientId }) {
 }
 
 export function MarketPanel() {
-  const { state: s, dispatch, business } = useGame();
+  const { state: s, dispatch, business, feature, fresh } = useGame();
+  const more = feature('market.suppliers');
+  const deals = feature('market.contracts');
   const [sup, setSup] = useState<SupplierId>('cho');
   const [size, setSize] = useState(1);
   const [pops, setPops] = useState<{ id: number; ing: IngredientId; n: number }[]>([]);
@@ -116,13 +118,13 @@ export function MarketPanel() {
         )}
       </Card>
 
-      <div className="suppliers four" role="tablist" aria-label="Suppliers">
+      {more && <div className="suppliers four" role="tablist" aria-label="Suppliers">
         {SUPPLIER_ORDER.map((id) => {
           const d = SUPPLIERS[id];
           const disc = loyaltyDiscount(s, id);
           const toNext = LOYALTY.packsPerPoint - (s.supplierLoyalty[id] % LOYALTY.packsPerPoint);
           return (
-            <button key={id} type="button" role="tab" aria-selected={sup === id} className={`supplier ${sup === id ? 'on' : ''}`} onClick={() => (play('click'), setSup(id))}>
+            <button key={id} type="button" role="tab" aria-selected={sup === id} className={`supplier ${sup === id ? 'on' : ''}`} onClick={() => (play('click'), setSup(id))} data-spot={`supplier-${id}`}>
               <b>{d.name}</b>
               <span className="muted small" lang="vi">
                 {d.vi}
@@ -143,12 +145,12 @@ export function MarketPanel() {
             </button>
           );
         })}
-      </div>
+      </div>}
 
-      <Card title={`Stock up at ${SUPPLIERS[sup].name}`} icon="bag">
+      <Card title={`Stock up at ${SUPPLIERS[sup].name}`} icon="bag" spot="stock-up" fresh={fresh('market.wet') || fresh('market.suppliers')}>
         <div className="seg" role="radiogroup" aria-label="Order size">
           <span className="small">Order size:</span>
-          {SIZES.map((n) => (
+          {SIZES.filter((n) => more || n <= 5).map((n) => (
             <button key={n} type="button" role="radio" aria-checked={size === n} className={size === n ? 'on' : ''} onClick={() => setSize(n)} disabled={n < SUPPLIERS[sup].minPacks}>
               {n} pack{n > 1 ? 's' : ''}
               {bulkDiscount(n) > 0 && <em> −{Math.round(bulkDiscount(n) * 100)}%</em>}
@@ -204,10 +206,10 @@ export function MarketPanel() {
                       {SUPPLIERS[sup].leadDays ? 'Order' : 'Stock up'}
                     </Btn>
                   )}
-                  <button type="button" className="link-btn" onClick={() => setEditing(editing === id ? null : id)}>
+                  {deals && <button type="button" className="link-btn" onClick={() => setEditing(editing === id ? null : id)}>
                     {editing === id ? 'Close' : 'Auto-reorder'}
-                  </button>
-                  {lockable && !lock && (
+                  </button>}
+                  {deals && lockable && !lock && (
                     <button type="button" className="link-btn" disabled={!shopping || s.cash < ECON.costs.priceLockFee} onClick={() => dispatch({ type: 'lockPrice', ingredient: id })} title="Freeze today's market price for 7 days">
                       Lock price ${ECON.costs.priceLockFee}
                     </button>
@@ -225,7 +227,7 @@ export function MarketPanel() {
         {s.cash < 5 && <p className="warn">The bakery wallet is feeling a little empty…</p>}
       </Card>
 
-      <Card title="Supply contracts" icon="lock">
+      {deals && <Card title="Supply contracts" icon="lock" spot="contracts" fresh={fresh('market.contracts')}>
         <p className="small">
           Agree a fixed price for a weekly delivery. You're protected if prices rise, stuck paying if they fall, and cancelling costs two weeks of deliveries. That's a <Tip concept="contracts">supply contract</Tip>.
         </p>
@@ -258,7 +260,7 @@ export function MarketPanel() {
             Sign
           </Btn>
         </div>
-      </Card>
+      </Card>}
     </div>
   );
 }

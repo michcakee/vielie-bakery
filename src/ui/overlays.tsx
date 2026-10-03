@@ -304,7 +304,7 @@ export function DayReport() {
             const right = pr.guess && pr.guess === pr.result;
             return (
               <span className={`prediction ${right ? 'right' : ''}`}>
-                <Sprite name="note" scale={2} /> {PRODUCTS[pr.product].name} {money2(pr.from)} → {money2(pr.to)}: {pr.unitsBefore.toFixed(0)} a day became {pr.unitsAfter} ({word(pr.result)}).
+                <Sprite name="note" scale={2} /> {PRODUCTS[pr.product].name} {money2(pr.from)} → {money2(pr.to)}: {pr.rateBefore !== undefined && pr.rateAfter !== undefined ? `out of every 10 shoppers, ${pr.rateBefore.toFixed(1)} bought it before and ${pr.rateAfter.toFixed(1)} today` : `${pr.unitsBefore.toFixed(0)} a day became ${pr.unitsAfter}`} ({word(pr.result)}).
                 {pr.guess ? (right ? ' Nice call! +10 XP' : ` You guessed ${word(pr.guess)}. +5 XP for guessing.`) : ''}
               </span>
             );

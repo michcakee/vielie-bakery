@@ -325,6 +325,9 @@ export interface Prediction {
   to: number;
   unitsBefore: number;
   unitsAfter: number;
+  /** Bought per 10 shoppers, before and after: fair even when the street is busier. */
+  rateBefore?: number;
+  rateAfter?: number;
   guess?: Guess;
   result: Guess;
 }
@@ -599,7 +602,7 @@ export interface GameState {
   /** Today's special: this item sells for more today. */
   special?: ProductId | null;
   /** A price change waiting for its day to play out (and, maybe, a guess). */
-  pendingPrediction?: { product: ProductId; from: number; to: number; unitsBefore: number; guess?: Guess } | null;
+  pendingPrediction?: { product: ProductId; from: number; to: number; unitsBefore: number; rateBefore?: number; guess?: Guess } | null;
   /** Settled predictions, newest last. */
   predictions?: Prediction[];
   /** Coffee + bánh mì combo deal on (concept 12). */

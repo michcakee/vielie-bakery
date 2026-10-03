@@ -473,7 +473,6 @@ export const FEATURES: FeatureDef[] = [
     chapter: 4,
     tab: 'money',
     fallbackDay: 27,
-    trigger: (s) => s.day >= 14 && s.cash < rent(s) * 5,
     requires: ['finances.cash'],
     teaser: 'Unlocks soon: borrowing from the bank',
     intro: {

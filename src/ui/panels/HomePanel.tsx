@@ -193,7 +193,7 @@ export function HomePanel({ goTo, onOpen, onRunDay }: { goTo: (t: Tab) => void; 
             <Sprite name={s.special} scale={3} />
             <div>
               <b>{PRODUCTS[s.special].name}</b>
-              <span className="small">Sells for {money2(effectivePrice(s, s.special))} today instead of {money2(s.prices[s.special])}, and customers are happy to pay it. Bake extra.</span>
+              <span className="small">Sells for {money2(effectivePrice(s, s.special))} today instead of {money2(s.prices[s.special])}, and customers are happy to pay it. {PRODUCTS[s.special].kind === 'tray' ? 'Bake extra!' : 'Make sure you have the ingredients!'}</span>
             </div>
           </div>
         </Card>

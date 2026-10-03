@@ -15,10 +15,10 @@ export function recap(s: GameState, t: DayStats): string[] {
     if (at !== undefined && at < 300) out.push(`Your ${nameOf(p)} sold out at ${clockLabel(at)}, before lunch!`);
   }
   const top = PRODUCT_ORDER.filter((p) => t.sold[p] > 0).sort((a, b) => t.sold[b] - t.sold[a])[0];
-  if (top) out.push(`${nameOf(top)} was the star today: ${t.sold[top]} sold.`);
+  if (top && t.sold[top] >= 5) out.push(`${nameOf(top)} was the star today: ${t.sold[top]} sold.`);
   const earner = PRODUCT_ORDER.filter((p) => t.revenueBy[p] > 0).sort((a, b) => t.revenueBy[b] - t.cogsBy[b] - (t.revenueBy[a] - t.cogsBy[a]))[0];
   if (earner && earner !== top) out.push(`But ${nameOf(earner)} earned the most after costs: $${(t.revenueBy[earner] - t.cogsBy[earner]).toFixed(0)}.`);
-  for (const p of PRODUCT_ORDER) if (t.made[p] >= 6 && t.sold[p] < t.made[p] * 0.5) out.push(`${nameOf(p)} was slower than expected: ${t.sold[p]} of ${t.made[p]} sold.`);
+  for (const p of PRODUCT_ORDER) if (p !== top && t.made[p] >= 6 && t.sold[p] < t.made[p] * 0.5) out.push(`${nameOf(p)} was slower than expected: ${t.sold[p]} of ${t.made[p]} sold.`);
   for (const p of PRODUCT_ORDER) {
     const n = t.pricey[p] ?? 0;
     if (n >= 3) out.push(`${n} people looked at the ${nameOf(p)} price and said "Đắt quá…"`);
@@ -31,7 +31,7 @@ export function recap(s: GameState, t: DayStats): string[] {
   if (t.staffServed > 0) out.push(`Your team served ${t.staffServed} customers${t.ownerServed ? `; you served ${t.ownerServed}` : ''}.`);
   if (t.deliveries > 0) out.push(`Riders delivered ${t.deliveries} orders around the neighbourhood.`);
   const reg = REGULARS.filter((r) => s.service?.visits.some((v) => v.who === r.id && v.mood && ['love', 'happy', 'ok'].includes(v.mood)));
-  if (reg.length) out.push(`${reg.map((r) => r.name).join(', ')} ${reg.length === 1 ? 'came' : 'all came'} back today.`);
+  if (reg.length) out.push(`${reg.map((r) => r.name).join(', ')} ${reg.length === 1 ? 'came' : 'all came'} ${s.day === 1 ? 'stopped by today.' : 'back today.'}`);
   if (t.donatedUnits > 0) out.push(`You gave ${t.donatedUnits} leftover items to the neighbourhood food shelf.`);
   out.push(...t.notes);
   if (!out.length) out.push(`A quiet ${WEATHER[t.weather].name.toLowerCase()} day on the lane.`);

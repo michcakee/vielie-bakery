@@ -107,7 +107,7 @@ export function StaffPanel() {
           ) : (
             'Ovens and people are balanced.'
           )}{' '}
-          At the counter you have {servers.length} helper{servers.length === 1 ? '' : 's'}; last week about {lostSlow.toFixed(1)} customers a day gave up waiting.
+          At the counter you have {servers.length} helper{servers.length === 1 ? '' : 's'}. {lostSlow >= 0.5 ? `Last week about ${Math.round(lostSlow)} customers a day gave up waiting in line.` : 'Nobody gave up waiting in line last week.'}
         </p>
         {business && (
           <p className="small muted">

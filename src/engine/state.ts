@@ -503,10 +503,14 @@ function settlePrediction(s: GameState): GameState {
   const p = s.pendingPrediction;
   if (!p) return s;
   const unitsAfter = s.today.sold[p.product] ?? 0;
-  const diff = p.unitsBefore > 0 ? (unitsAfter - p.unitsBefore) / p.unitsBefore : unitsAfter > 0 ? 1 : 0;
+  // Compare per 10 shoppers, so a busier street doesn't make a higher price look like it sold more.
+  const rateAfter = s.today.customers > 0 ? (unitsAfter / s.today.customers) * 10 : 0;
+  const before = p.rateBefore ?? p.unitsBefore;
+  const after = p.rateBefore !== undefined ? rateAfter : unitsAfter;
+  const diff = before > 0 ? (after - before) / before : after > 0 ? 1 : 0;
   const result: Guess = diff > 0.1 ? 'more' : diff < -0.1 ? 'fewer' : 'same';
   const right = p.guess !== undefined && p.guess === result;
-  const record: Prediction = { day: s.day, product: p.product, from: p.from, to: p.to, unitsBefore: p.unitsBefore, unitsAfter, guess: p.guess, result };
+  const record: Prediction = { day: s.day, product: p.product, from: p.from, to: p.to, unitsBefore: p.unitsBefore, unitsAfter, rateBefore: p.rateBefore, rateAfter, guess: p.guess, result };
   let next: GameState = { ...s, pendingPrediction: null, predictions: [...(s.predictions ?? []).slice(-29), record], xp: s.xp + (right ? 10 : 0) };
   next = { ...next, questProgress: { ...next.questProgress, predictions: (next.questProgress.predictions ?? 0) + (p.guess ? 1 : 0), predictionsRight: (next.questProgress.predictionsRight ?? 0) + (right ? 1 : 0) } };
   return learn(next, 'elasticity', p.to > p.from ? 'elasticityCompare' : 'elasticity');
@@ -1111,7 +1115,9 @@ function reduce(s: GameState, a: Action): GameState {
       // Predict: remember the change so tomorrow's result can be shown against a guess.
       const recent = s.history.slice(-3);
       const unitsBefore = recent.length ? recent.reduce((t, h) => t + (h.sold[a.product] ?? 0), 0) / recent.length : 0;
-      const pending = s.pendingPrediction?.product === a.product ? { ...s.pendingPrediction, to: price } : { product: a.product, from: s.prices[a.product], to: price, unitsBefore };
+      const shoppers = recent.reduce((t, h) => t + h.customers, 0);
+      const rateBefore = shoppers > 0 ? (recent.reduce((t, h) => t + (h.sold[a.product] ?? 0), 0) / shoppers) * 10 : 0;
+      const pending = s.pendingPrediction?.product === a.product ? { ...s.pendingPrediction, to: price } : { product: a.product, from: s.prices[a.product], to: price, unitsBefore, rateBefore };
       let next: GameState = { ...s, prices: { ...s.prices, [a.product]: price }, questProgress: { ...s.questProgress, priceTouched: 1 }, pendingPrediction: pending.from === pending.to ? null : pending };
       const last = s.decisions[s.decisions.length - 1];
       if (last && last.kind === 'price' && last.product === a.product && last.day === s.day) {

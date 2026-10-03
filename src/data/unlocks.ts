@@ -1,4 +1,4 @@
-import { activeRivals, levelOf, rent } from '../engine/economy';
+import { activeRivals, levelOf } from '../engine/economy';
 import { dateOf } from '../engine/calendar';
 import type { GameState, ScenarioId } from '../engine/types';
 

@@ -1,7 +1,7 @@
 import { incomeStatement } from '../engine/accounting';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { LEVELS, PRODUCTS, WEATHER } from '../data/catalog';
-import { EVENTS } from '../engine/events';
+import { EVENTS, visibleChoices } from '../engine/events';
 import { FEATURE } from '../data/unlocks';
 import { ACHIEVEMENTS, activeQuests, goalMet, nextUnlock, QUESTS, WEEKLY_GOALS } from '../engine/progression';
 import { keepsOvernight } from '../engine/service';
@@ -88,7 +88,7 @@ export function EventCard() {
       </div>
       <p className="event-text">{def.text(s)}</p>
       <div className="event-choices">
-        {def.choices(s).map((c) => {
+        {visibleChoices(def, s).map((c) => {
           const ok = (!c.enabled || c.enabled(s)) && (c.cost === undefined || (c.fromFund ? s.safetyFund >= c.cost : s.cash >= c.cost));
           return (
             <button key={c.id} type="button" className="choice" disabled={!ok} onClick={() => (play('pop'), dispatch({ type: 'resolveEvent', choice: c.id }))}>
@@ -402,7 +402,9 @@ export function WeeklyReview() {
 
 export function Toasts() {
   const { state: s, dispatch } = useGame();
-  const t = s.toasts[0];
+  // One voice at a time: pop-ups wait while an event card is open, and during service only warnings show.
+  const hold = s.events.length > 0 || (s.phase === 'service' && s.toasts[0]?.kind !== 'warning');
+  const t = hold ? undefined : s.toasts[0];
   useEffect(() => {
     if (!t) return;
     play(t.kind === 'level' || t.kind === 'unlock' ? 'level' : t.kind === 'info' ? 'ding' : 'sparkle');

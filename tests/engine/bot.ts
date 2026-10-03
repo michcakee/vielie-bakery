@@ -1,6 +1,6 @@
 import { BAGUETTE, INGREDIENTS, PRODUCTS } from '../../src/data/catalog';
 import { canBakeTray, onMenu, trayCapacity } from '../../src/engine/economy';
-import { EVENTS } from '../../src/engine/events';
+import { EVENTS, visibleChoices } from '../../src/engine/events';
 import { DEFAULT_LOOK, gameReducer, type Action } from '../../src/engine/state';
 import type { GameState, IngredientId } from '../../src/engine/types';
 
@@ -15,7 +15,7 @@ export function resolveEvents(s: GameState, pick: 'first' | 'last' = 'last'): Ga
       next = gameReducer(next, { type: 'resolveEvent', choice: 'accept' });
       continue;
     }
-    const choices = EVENTS[ev.id].choices(next).filter((c) => (!c.enabled || c.enabled(next)) && (c.cost === undefined || next.cash >= c.cost));
+    const choices = visibleChoices(EVENTS[ev.id], next).filter((c) => (!c.enabled || c.enabled(next)) && (c.cost === undefined || next.cash >= c.cost));
     const c = pick === 'first' ? choices[0] : choices[choices.length - 1];
     const before = next.events.length;
     next = gameReducer(next, { type: 'resolveEvent', choice: c?.id ?? 'skip' });

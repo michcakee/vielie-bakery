@@ -47,7 +47,7 @@ function startIntro(s: GameState, id: FeatureId, replay = false): GameState {
 
 /** Morning: at most one new system, never on a day a new recipe arrives. */
 export function applyFeatureUnlocks(s: GameState): GameState {
-  if (s.allUnlocked !== false || recipeDay(s.day) || s.lastFeatureDay === s.day) return s;
+  if (s.allUnlocked !== false || recipeDay(s.day) || s.lastFeatureDay === s.day || s.questProgress.recipeDay === s.day) return s;
   const [id] = dueFeatures(s);
   if (!id) return s;
   const next: GameState = { ...s, features: [...(s.features ?? []), id], newFeatures: [...(s.newFeatures ?? []), id], lastFeatureDay: s.day };

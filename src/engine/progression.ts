@@ -256,7 +256,13 @@ export function applyLevelUnlocks(s: GameState): GameState {
   let next = s;
   // Scheduled recipes wait for their day, so the first fortnight keeps its rhythm.
   const waiting = new Set(UNLOCK_SCHEDULE.filter((u) => u.kind === 'recipe' && u.day > s.day).map((u) => u.id));
-  const newly: ProductId[] = PRODUCT_ORDER.filter((p) => p !== 'mutDua' && PRODUCTS[p].level <= level && !next.unlocked.includes(p) && !waiting.has(p));
+  let newly: ProductId[] = PRODUCT_ORDER.filter((p) => p !== 'mutDua' && PRODUCTS[p].level <= level && !next.unlocked.includes(p) && !waiting.has(p));
+  // Guided games: one new recipe a day, outside service, never on the same day as a new system.
+  if (s.allUnlocked === false) {
+    const busy = s.phase === 'service' || next.questProgress.recipeDay === s.day || s.lastFeatureDay === s.day;
+    newly = busy ? [] : newly.slice(0, 1);
+    if (newly.length) next = { ...next, questProgress: { ...next.questProgress, recipeDay: s.day } };
+  }
   if (newly.length) {
     next = { ...next, unlocked: [...next.unlocked, ...newly], menu: [...next.menu, ...newly.filter((p) => !PRODUCTS[p].season && !PRODUCTS[p].equipment)] };
     for (const p of newly) next = toast(next, 'unlock', 'NEW RECIPE!!', `${PRODUCTS[p].name}: ${PRODUCTS[p].en}${PRODUCTS[p].equipment ? ` (needs a ${UPGRADES[PRODUCTS[p].equipment!].name.toLowerCase()})` : ''}`);
@@ -264,7 +270,7 @@ export function applyLevelUnlocks(s: GameState): GameState {
   const prevLevel = next.questProgress.level ?? 1;
   if (level > prevLevel) {
     next = { ...next, questProgress: { ...next.questProgress, level } };
-    const shop = [...Object.values(UPGRADES).filter((u) => u.level === level).map((u) => u.name), ...Object.values(DECOR).filter((d) => d.level === level).map((d) => d.name)];
+    const shop = [...(featureOn(next, 'growth.equipment') ? Object.values(UPGRADES).filter((u) => u.level === level).map((u) => u.name) : []), ...(featureOn(next, 'growth.decor') ? Object.values(DECOR).filter((d) => d.level === level).map((d) => d.name) : [])];
     next = toast(next, 'level', `LEVEL ${level}: ${LEVELS[level - 1].name}`, shop.length ? `New in the shop: ${shop.slice(0, 4).join(', ')}` : LEVELS[level - 1].en);
   }
   return next;

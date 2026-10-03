@@ -1,3 +1,5 @@
+import type { FeatureId } from '../data/unlocks';
+import { featureOn } from './unlocks';
 import { INGREDIENTS, PRODUCTS, UPGRADES } from '../data/catalog';
 import { STORY_BEATS } from '../data/story';
 import { DIFFICULTY, ECON } from '../data/config';
@@ -18,7 +20,17 @@ export interface EventChoice {
   cost?: number;
   fromFund?: boolean;
   enabled?: (s: GameState) => boolean;
+  /** Only offered once this system is unlocked (choices paid from the fund need the fund). */
+  needs?: FeatureId;
   apply: (s: GameState) => GameState;
+}
+
+/** The choices a player can actually see: anything tied to a locked system is left out. */
+export function visibleChoices(def: EventDef, s: GameState): EventChoice[] {
+  return def.choices(s).filter((c) => {
+    const need = c.needs ?? (c.fromFund ? 'finances.cash' : undefined);
+    return !need || featureOn(s, need);
+  });
 }
 
 export interface EventDef {
@@ -66,6 +78,7 @@ export const EVENTS: Record<string, EventDef> = {
     choices: (s) => [
       {
         id: 'lock',
+        needs: 'market.contracts',
         label: `Lock coffee & condensed milk ($${ECON.costs.priceLockFee})`,
         detail: 'Pay a small fee to keep today\'s price for 7 days. If prices rise, you\'re covered. If not, you paid for peace of mind.',
         cost: ECON.costs.priceLockFee,

@@ -41,7 +41,7 @@ import {
   wages,
   loyalChurnRate,
 } from './economy';
-import { EVENTS, eventFor, refreshKinds } from './events';
+import { EVENTS, eventFor, refreshKinds, visibleChoices } from './events';
 import { bondCapacity, borrowingLimit, creditLimit, creditLineRate, investorTerms, makeLoan, quoteLoan, valuation } from './finance';
 import { suggestedTrays, forecast, ingredientsNeeded } from './forecast';
 import { bump, decide, learn, spend, toast } from './helpers';
@@ -1176,7 +1176,7 @@ function reduce(s: GameState, a: Action): GameState {
       if (pending.id === 'bailout') return resolveBailout(s, a.choice);
       const def = EVENTS[pending.id];
       if (!def) return { ...s, events: s.events.slice(1) };
-      const choice = def.choices(s).find((c) => c.id === a.choice);
+      const choice = visibleChoices(def, s).find((c) => c.id === a.choice);
       if (!choice || (choice.enabled && !choice.enabled(s))) return s;
       let next = choice.apply(s);
       next = { ...next, eventsSeen: [...new Set([...(next.eventsSeen ?? []), pending.id])] };

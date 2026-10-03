@@ -759,9 +759,12 @@ export const UNLOCK_SCHEDULE: { day: number; kind: 'recipe' | 'regular' | 'decor
 export const LEVELS = [
   { level: 1, xp: 0, name: 'Tiny Tiệm Bánh', en: 'A tiny bakery' },
   { level: 2, xp: 150, name: 'Neighborhood Bakery', en: 'The street knows you' },
-  { level: 3, xp: 900, name: 'Popular Bakery', en: 'People cross town for you' },
-  { level: 4, xp: 3000, name: 'Community Favorite', en: 'Part of the neighbourhood' },
-  { level: 5, xp: 8000, name: 'Viet Bake Shop', en: 'A local legend' },
+  { level: 3, xp: 800, name: 'Popular Bakery', en: 'People cross town for you' },
+  { level: 4, xp: 2200, name: 'Community Favorite', en: 'Part of the neighbourhood' },
+  { level: 5, xp: 4500, name: 'Viet Bake Shop', en: 'A local legend' },
+  { level: 6, xp: 7500, name: 'Golden Oven', en: 'Bakers ask for your secrets' },
+  { level: 7, xp: 11000, name: 'Famous Bakery', en: 'Tourists come to taste it' },
+  { level: 8, xp: 15500, name: 'Bakery Legend', en: 'Bà would be so proud' },
 ];
 
 export const STAGES = [

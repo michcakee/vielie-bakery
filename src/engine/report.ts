@@ -1,3 +1,5 @@
+import type { FeatureId } from '../data/unlocks';
+import { featureOn } from './unlocks';
 import { PRODUCTS, PRODUCT_ORDER, WEATHER } from '../data/catalog';
 import { REGULARS } from '../data/people';
 import { clockLabel } from './time';
@@ -38,19 +40,20 @@ export function recap(s: GameState, t: DayStats): string[] {
 
 /** One friendly, useful suggestion. */
 export function businessTip(s: GameState, t: DayStats, profit: number): string {
+  const on = (id: FeatureId) => featureOn(s, id);
   const early = PRODUCT_ORDER.find((p) => (t.soldOutAt[p] ?? 999) < 360);
-  if (early) return `${nameOf(early)} ran out early. Tomorrow you could make a few more: those were sales you missed.`;
+  if (early) return `${nameOf(early)} ran out early. Bake more tomorrow: those were sales you missed!`;
   const pricey = PRODUCT_ORDER.find((p) => (t.pricey[p] ?? 0) >= 4);
-  if (pricey) return `Lots of people thought ${nameOf(pricey)} was too expensive. Try a small price cut and watch the demand meter.`;
-  if (t.wasteUnits >= 8) return `You threw away ${t.wasteUnits} items. Bake a little less, or turn on Last Call near closing to sell leftovers at a discount.`;
-  if (t.lostSlow >= 5) return 'The queue got long and people left. Adding one more person at the counter could pay for itself: check the Staff tab for the numbers.';
-  if (t.diverted >= 6) return `${t.diverted} shoppers went to rivals today. Compare prices and quality in the Market tab; you don't have to be cheapest, just worth it.`;
-  if (profit < 0 && t.revenue > 0) return `Rent, wages and power cost about $${(t.books.rent + t.books.wages + t.books.utilities).toFixed(0)} a day whether you sell 1 item or 100. Selling more each day spreads that fixed cost thinner.`;
-  if (t.lostSoldOut >= 4) return 'Several people asked for something you didn\'t have. A wider menu catches more customers.';
+  if (pricey && on('kitchen.prices')) return `Lots of people thought ${nameOf(pricey)} was too expensive. Try a small price cut in the Kitchen and watch the demand meter.`;
+  if (t.wasteUnits >= 8) return `You threw away ${t.wasteUnits} items. Bake a little less tomorrow, or use Last Call near closing to sell leftovers cheaper.`;
+  if (t.lostSlow >= 5) return on('staff.hire') ? 'The line got long and people left. A helper at the counter could pay for itself: check the Staff tab.' : 'The line got long and people left. Serve the oldest order first (the one with the worried face), or tap More → Let Bà help.';
+  if (t.diverted >= 6 && on('customers.rivals')) return `${t.diverted} shoppers went to a rival today. Check the Customers tab: you don't have to be cheapest, just worth it.`;
+  if (profit < 0 && t.revenue > 0) return `Rent and running the shop cost about $${(t.books.rent + t.books.wages + t.books.utilities).toFixed(0)} a day, busy or not. The more you sell, the easier that is to cover.`;
+  if (t.lostSoldOut >= 4) return on('kitchen.menu') ? 'Several people asked for something you didn’t have. A wider menu catches more customers.' : 'Several people asked for something you ran out of. Bake a little more of it tomorrow.';
   const unsold = PRODUCT_ORDER.find((p) => t.made[p] > 0 && t.sold[p] === 0);
-  if (unsold) return `Nobody bought ${nameOf(unsold)} today. Check its price and the time of day people want it.`;
-  if (s.market.tomorrow === 'hot') return 'Tomorrow will be hot. Cold drinks will be in demand: stock up on coffee, condensed milk and kumquats.';
-  if (s.market.tomorrow === 'rainy') return 'Rain tomorrow means fewer walk-ins. A smaller bake keeps waste down.';
-  if (profit > 0 && s.safetyFund < 300) return 'Good day! Putting a little into the safety fund helps the bakery handle surprises.';
-  return 'Nice work. Try one small change tomorrow, like a price or an extra tray, and check the Analytics tab a week later to see what it did.';
+  if (unsold) return `Nobody bought ${nameOf(unsold)} today. Maybe bake less of it tomorrow.`;
+  if (s.market.tomorrow === 'hot') return on('market.wet') ? 'Tomorrow will be hot. Cold drinks sell fast: stock up on coffee, condensed milk and kumquats.' : 'Tomorrow will be hot. Cold drinks will sell fast!';
+  if (s.market.tomorrow === 'rainy') return 'Rain tomorrow means fewer customers. Bake a bit less so less goes to waste.';
+  if (profit > 0 && s.safetyFund < 300 && on('finances.cash')) return 'Good day! Putting a little into the safety fund helps the bakery handle surprises.';
+  return on('analytics.full') ? 'Nice work. Try one small change tomorrow, like a price or an extra tray, and check Analytics a week later to see what it did.' : 'Nice work! Try to beat today’s stars tomorrow.';
 }

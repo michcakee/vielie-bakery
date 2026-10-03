@@ -1,0 +1,59 @@
+name: Bug report
+description: Something broke, looked wrong, or was confusing.
+title: "Bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping make the bakery better! Please don't include anyone's personal information (names, photos, school or location), especially a child's.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: Tell us what you saw. A screenshot helps a lot.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: How can we make it happen again?
+      placeholder: |
+        1. Start a new bakery
+        2. Go to the Kitchen
+        3. Tap Bake
+    validations:
+      required: false
+  - type: input
+    id: day
+    attributes:
+      label: Which day of the game, and which tab?
+      placeholder: "Day 12, Kitchen → Prices"
+  - type: dropdown
+    id: device
+    attributes:
+      label: Device
+      options:
+        - Phone
+        - Tablet
+        - Laptop or desktop
+        - Chromebook
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser or app
+      placeholder: "Chrome on Android, Safari on iPhone, the Android app…"
+  - type: textarea
+    id: save
+    attributes:
+      label: Save code (optional)
+      description: Settings → Saving → Copy save code. Paste it here so we can see exactly what happened.
+      render: text

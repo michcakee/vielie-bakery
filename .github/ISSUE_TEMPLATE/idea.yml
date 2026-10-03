@@ -1,0 +1,31 @@
+name: Idea or wish
+description: A new recipe, feature, character or anything that would make the game more fun.
+title: "Idea: "
+labels: ["idea"]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: What's your idea?
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why would it make the game better?
+      description: More fun? Less confusing? Teaches something cool?
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which part of the game?
+      options:
+        - Serving customers
+        - Baking and recipes
+        - Market and ingredients
+        - Staff
+        - Money and growing the bakery
+        - Stars, levels and quests
+        - Story and characters
+        - Something else

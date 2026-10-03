@@ -26,6 +26,7 @@ import { play } from '../audio';
 import { useGame } from '../GameContext';
 import { Btn, Card, Meter, Stepper, Tip } from '../kit';
 import { Sprite } from '../pixel/Sprite';
+import { SPRITES } from '../pixel/sprites';
 
 type Bakeable = ProductId | 'baguette';
 const BAKE_MS = 3200;
@@ -230,6 +231,63 @@ function PriceRow({ p, business }: { p: ProductId; business: boolean }) {
   );
 }
 
+/** Picture recipes: ingredients → oven or hands → result. Locked recipes are silhouettes with a padlock. */
+function RecipeBook() {
+  const { state: s } = useGame();
+  const [tab, setTab] = useState<'all' | 'tray' | 'drink' | 'sandwich'>('all');
+  const tabs = [
+    ['all', 'All', 'book'],
+    ['sandwich', 'Bánh mì', 'banhMi'],
+    ['tray', 'Pastries', 'flan'],
+    ['drink', 'Drinks', 'caPhe'],
+  ] as const;
+  const shown = PRODUCT_ORDER.filter((p) => tab === 'all' || PRODUCTS[p].kind === tab);
+  return (
+    <Card title="Recipe book" icon="book" aside={<span className="small muted">{s.unlocked.length} of {PRODUCT_ORDER.length}</span>}>
+      <div className="seg book-tabs" role="tablist" aria-label="Recipe categories">
+        {tabs.map(([id, label, icon]) => (
+          <button key={id} type="button" role="tab" aria-selected={tab === id} className={tab === id ? 'on' : ''} onClick={() => setTab(id)}>
+            <Sprite name={icon} scale={2} /> {label}
+          </button>
+        ))}
+      </div>
+      <ul className="recipe-book">
+        {shown.map((p) => {
+          const d = PRODUCTS[p];
+          const locked = !s.unlocked.includes(p);
+          return (
+            <li key={p} className={`recipe ${locked ? 'locked' : ''}`}>
+              <span className="recipe-result">
+                <Sprite name={p} scale={3} label={locked ? `${d.name} (locked)` : d.name} />
+                {locked && (
+                  <span className="recipe-lock">
+                    <Sprite name="lock" scale={2} />
+                  </span>
+                )}
+              </span>
+              <span className="recipe-text">
+                <b>{locked ? (d.season ? 'Seasonal recipe' : `Level ${d.level} recipe`) : d.name}</b>
+                <span className="recipe-steps" aria-hidden="true">
+                  {(Object.keys(d.recipe) as IngredientId[]).slice(0, 4).map((id) => (
+                    <Sprite key={id} name={id in SPRITE_NAMES ? id : 'box'} scale={2} />
+                  ))}
+                  <Sprite name="arrow" scale={2} />
+                  <Sprite name={d.kind === 'tray' ? 'hot' : 'spoon'} scale={2} />
+                  <Sprite name="arrow" scale={2} />
+                  <Sprite name={p} scale={2} />
+                </span>
+                {!locked && <span className="small muted">{d.kind === 'tray' ? `Tray of ${d.yield}` : 'Made to order'}</span>}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </Card>
+  );
+}
+
+const SPRITE_NAMES: Record<string, true> = Object.fromEntries(Object.keys(SPRITES).map((k) => [k, true]));
+
 function PlanCard() {
   const { state: s, dispatch } = useGame();
   const suggested = suggestedTrays(s);
@@ -329,6 +387,7 @@ export function KitchenPanel() {
       </Card>
       <MenuCard />
       <PlanCard />
+      <RecipeBook />
     </div>
   );
 }

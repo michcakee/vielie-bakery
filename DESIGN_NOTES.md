@@ -274,3 +274,21 @@ Hooks added to game logic: none
 Known issues: fractional stage scaling; no fixed sprite cells; 3 colour sources; a few sub-48px targets; unicode star/sparkle glyphs
 Next step proposed: Phase 1 (palette tokens as the single colour source, Pixelify Sans everywhere, integer device-pixel stage scaling with letterbox) after your go-ahead; the brief's pastel-16 palette would replace the cream/mint/yellow scheme you chose this week, so confirm which palette wins before I start
 ```
+
+```
+Phase 1 – done
+Changed: src/ui/styles.css (tokens, hex remap, fonts, letterbox), src/ui/pixel/palette.ts + scene.ts + screens/Exterior.tsx (nearest-palette remap), src/ui/scene/BakeryScene.tsx + screens/Exterior.tsx (integer device-pixel scale), public/fonts (VT323 out, Press Start 2P in), CREDITS.md, OFL.txt
+New assets: Press Start 2P (CodeMan38, SIL OFL 1.1, Google Fonts)
+Hooks added to game logic: none
+Known issues: skin and hair tones kept outside the palette on purpose; night sky now slate; the stage is letterboxed at most widths (by design)
+Next step proposed: Phase 2
+```
+
+```
+Phase 2 – done
+Changed: src/ui/pixelUi.ts (new: runtime 9-slice panel images, cursor, touch sparkle), src/main.tsx, src/ui/styles.css (kit: panels, button states, 48 px targets, coin spin, bubbles, faces, recipe book, cursor), src/ui/pixel/sprites.ts (faces, arrow, cursor hand), src/ui/panels/ServicePanel.tsx (patience face), src/ui/scene/BakeryScene.tsx (item in bubbles), src/ui/panels/KitchenPanel.tsx (recipe book with tabs and padlocks)
+New assets: none (all generated in code)
+Hooks added to game logic: none
+Known issues: bánh bao, chè and mooncake have no sprite yet (Phase 3); border-image panels can't show rounded CSS corners, so everything is pixel-notched by design
+Next step proposed: Phase 3 (fixed 16×16 cells, missing sprites, burnt and perfect variants, glyphs to sprites)
+```

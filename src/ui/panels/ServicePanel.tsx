@@ -8,7 +8,7 @@ import type { ProductId, Visit } from '../../engine/types';
 import { money2 } from '../../lib/format';
 import { play } from '../audio';
 import { useGame } from '../GameContext';
-import { Btn, Meter } from '../kit';
+import { Btn } from '../kit';
 import { Person, Sprite } from '../pixel/Sprite';
 
 const STEP_ICON: Record<string, string> = {
@@ -290,7 +290,9 @@ export function ServicePanel({ paused, setPaused, speed, setSpeed, activeId, set
                         <span>{money2(effectivePrice(s, v.wants) * v.qty)}</span>
                       </span>
                       <span className="order-act">{tray ? 'Hand over' : 'Make it'}</span>
-                      <Meter value={patience} tone={patience < 0.3 ? 'bad' : patience < 0.6 ? 'meh' : 'good'} label={`${v.name}'s patience`} />
+                      <span className={`patience-face ${patience < 0.3 ? 'worried' : ''}`} role="img" aria-label={`${v.name} is ${patience < 0.3 ? 'getting impatient' : patience < 0.6 ? 'waiting' : 'happy to wait'}`}>
+                        <Sprite name={patience < 0.3 ? 'faceWorried' : patience < 0.6 ? 'faceOk' : 'faceHappy'} scale={3} />
+                      </span>
                     </button>
                   </li>
                 );

@@ -289,6 +289,12 @@ export function BakeryScene({ onCustomer, baking = false, caption }: Props) {
           .slice(-2)
           .map(({ v, x }) => (
             <div key={v.id} className="say" style={{ left: (x + 6) * scale, top: (LAYOUT.queueY - 30) * scale }}>
+              {v.status !== 'done' && (
+                <span className="say-item">
+                  <Sprite name={v.wants} scale={2} />
+                  {v.qty > 1 && <b>×{v.qty}</b>}
+                </span>
+              )}
               {v.line}
               {prefs.translations && translate(v.line) && <em>{translate(v.line)}</em>}
             </div>

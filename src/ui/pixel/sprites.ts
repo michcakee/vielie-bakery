@@ -317,6 +317,11 @@ export const SPRITES: Record<string, string[]> = {
   medalBronze: ['..oo..', '.okKo.', 'okkkKo', 'okwkKo', 'okkkKo', '.oKKo.', '..oo..'],
   medalSilver: ['..oo..', '.oeEo.', 'oeeeEo', 'oewEEo', 'oeeeEo', '.oEEo.', '..oo..'],
   medalGold: ['..oo..', '.oyYo.', 'oyyyYo', 'oywyYo', 'oyyyYo', '.oYYo.', '..oo..'],
+  faceHappy: ['..oooo..', '.oyyyyo.', 'oyoyyoyo', 'oyyyyyyo', 'oyoyyoyo', 'oyyooyyo', '.oyyyyo.', '..oooo..'],
+  faceOk: ['..oooo..', '.oyyyyo.', 'oyoyyoyo', 'oyyyyyyo', 'oyyyyyyo', 'oyoooyyo', '.oyyyyo.', '..oooo..'],
+  faceWorried: ['..oooo..', '.oyyyyo.', 'oyoyyoyo', 'oyyyyyyo', 'oyyooyyo', 'oyoyyoyo', '.oyyyyo.', '..oooo..'],
+  arrow: ['....o...', '....oo..', 'oooooooo', 'oeeeeeeo', 'oooooooo', '....oo..', '....o...', '........'],
+  cursorHand: ['....oo......', '...owwo.....', '...owwo.....', '...owwooo...', '...owwowwoo.', 'oo.owwowwowo', 'owoowwwwwwwo', 'owwwwwwwwwwo', '.owwwwwwwwwo', '.owwwwwwwwo.', '..owwwwwwwo.', '..owwwwwwwo.', '...oooooooo.'],
   baguette: [
     '................',
     '................',

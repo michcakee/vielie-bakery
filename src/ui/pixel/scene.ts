@@ -23,7 +23,7 @@ export const LAYOUT = {
   fridge: { x: 175, y: 14, w: 15, h: 43 },
   oven: { x: 193, y: 10, w: 39, h: 47 },
   /** Service counter: a top face 10 deep, then a front 20 tall. */
-  counter: { x: 56, y: 66, w: 136 },
+  counter: { x: 56, y: 70, w: 136 },
   case: { x: 58, y: 75, w: 72, h: 21 },
   register: { x: 148, y: 57, w: 14, h: 12 },
   player: { x: 168, feet: 74 },

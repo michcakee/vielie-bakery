@@ -208,7 +208,7 @@ export function createNewGame(seedOrOpts: number | NewGameOptions = {}): GameSta
     upgrades: refreshKinds(equipment),
     equipment,
     nextUid: 2,
-    decor: [],
+    decor: ['flowers', 'plant'],
     unlocked: [...START_PRODUCTS],
     market,
     macro,

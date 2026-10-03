@@ -92,7 +92,7 @@ export function BuildPanel() {
           )}
           {items.map((e) => (
             <span key={e.uid} className="tiny">
-              Bought day {e.boughtDay}: book value {money(e.cost - e.depreciated)}
+              {business ? <>Bought day {e.boughtDay}: book value {money(e.cost - e.depreciated)}</> : 'Yours'}
               {e.broken && <b className="warn"> · broken</b>}
               {u.group !== 'room' && (
                 <button type="button" className="link-btn" disabled={!shopping} onClick={() => dispatch({ type: 'sellEquipment', uid: e.uid })}>

@@ -252,7 +252,7 @@ function PriceRow({ p, business }: { p: ProductId; business: boolean }) {
         </div>
         <div className="price-facts small">
           <span>
-            Costs {money2(cost)} to make · <Tip concept="margin">you keep</Tip> <b className={keep < 0 ? 'neg' : 'pos'}>{money2(keep)}</b> ({pct(price > 0 ? keep / price : 0)})
+            {business && <>Costs {money2(cost)} to make · </>}<Tip concept="margin">you keep</Tip> <b className={keep < 0 ? 'neg' : 'pos'}>{money2(keep)}</b>{business && <> ({pct(price > 0 ? keep / price : 0)})</>}
           </span>
           <span>
             {d.kind === 'tray' ? `${stock} in the case` : `${stock} can be made`}

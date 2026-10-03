@@ -176,12 +176,12 @@ export function MarketPanel() {
                   </b>
                   <span className="small">
                     Pantry: <b>{s.pantry[id].qty}</b> {d.unit}s {low && <span className="warn">· running low</span>} {d.cold && <span className="muted">· cold</span>}
-                    {d.spoil > 0 && <span className="muted"> · loses ~{Math.round(d.spoil * 100)}% a night</span>}
+                    {d.spoil > 0 && <span className="muted"> · {business ? `loses ~${Math.round(d.spoil * 100)}% a night` : 'spoils'}</span>}
                   </span>
                   <span className="small">
-                    {packs} × {d.pack} {d.unit}s: <b>{money2(price * packs)}</b> ({money2(price)}/pack)
-                    {mult > 1.08 && <span className="up"> · ▲ {Math.round((mult - 1) * 100)}% above normal</span>}
-                    {mult < 0.94 && <span className="down"> · ▼ {Math.round((1 - mult) * 100)}% below normal</span>}
+                    {packs} × {d.pack} {d.unit}s: <b>{money2(price * packs)}</b>{business && <> ({money2(price)}/pack)</>}
+                    {mult > 1.08 && <span className="up"> · ▲ {business ? `${Math.round((mult - 1) * 100)}% above normal` : 'pricey today'}</span>}
+                    {mult < 0.94 && <span className="down"> · ▼ {business ? `${Math.round((1 - mult) * 100)}% below normal` : 'a bargain today'}</span>}
                   </span>
                   {lock && <span className="small locked">Price locked until day {lock.until}</span>}
                   {rule && (

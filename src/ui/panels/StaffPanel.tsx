@@ -153,7 +153,7 @@ export function StaffPanel() {
                     <span className="small">{ROLES[a.role].blurb}</span>
                     <span className="small marginal">
                       Costs about <b>{money(v.cost)}/day</b>. Adds {v.adds}
-                      {v.addsValue > 0 && (
+                      {business && v.addsValue > 0 && (
                         <>
                           , worth roughly <b>{money(v.addsValue)}/day</b> in extra contribution
                         </>

@@ -2,11 +2,11 @@
 
 Viet Bake Shop ships to phones with **Capacitor 7**: the same Vite build that runs on GitHub Pages is copied into a native Android project (`android/`) and a native iOS project (`ios/`). The game runs fully offline inside the app, with no backend and **no network permissions at all** (Capacitor's default `INTERNET` permission was removed from the manifest; add it back only for a live-reload dev build).
 
-> **Status:** version 3.1.0 builds as a debug APK on the owner's Windows PC (3 October 2026). The signed release bundle does **not** build yet: Gradle can open the keystore but not the `upload` key, which means `keyPassword` in `key.properties` is wrong (for a keystore made by `keytool`, it is normally the same as `storePassword`). iOS needs a Mac with Xcode and has not been compiled. Nothing has been submitted to any store.
+> **Status:** the owner is shipping **iOS only**. Version 3.1.0 is checked on GitHub's Macs by the *iOS build check* workflow (`.github/workflows/ios.yml`): it builds the app, launches it on an iPhone and an iPad simulator and saves a screenshot of each. Nothing is signed or submitted yet; that needs an Apple Developer account. The Android project is kept and its debug build still compiles, but it is not being released.
 
 | | |
 | --- | --- |
-| App ID / bundle ID | `com.michcakee.vieliebakery` |
+| App ID / bundle ID | `com.michcakee.vietbakeshop` |
 | App name | Viet Bake Shop |
 | Version | 3.1.0 (`package.json`, Android `versionName`, iOS `MARKETING_VERSION`) |
 | Build number | Android `versionCode` 1, iOS `CURRENT_PROJECT_VERSION` 1 |
@@ -82,13 +82,31 @@ The Android back button closes the topmost sheet, modal or sub-screen (the same 
 
 ## iOS
 
-**You need:** a Mac with Xcode 16+, CocoaPods (`sudo gem install cocoapods`) or Swift Package Manager, and an Apple Developer account ($99/year) to ship.
+**To ship you need:** an Apple Developer account ($99/year), and either a Mac with Xcode 16+ or a cloud Mac (GitHub Actions, as below).
+
+### Without a Mac: the build check
+
+Every push that touches `ios/`, `capacitor.config.ts` or `package.json` runs **iOS build check** on a GitHub Mac (free for a public repository). You can also start it by hand: GitHub → Actions → *iOS build check* → *Run workflow*. It:
+
+1. builds the web game and copies it into the iOS project (`npx cap sync ios`, which also runs `pod install`),
+2. builds the app for the simulator, launches it on an iPhone 16 Pro Max and an iPad Pro 13-inch, and uploads a screenshot of each as the `ios-screenshots` artifact,
+3. builds the Release configuration for real devices, unsigned.
+
+A green run means the project compiles and starts. It does not prove the game plays well on a real iPhone; only a device or TestFlight does.
+
+### With a Mac
 
 1. `npm install`, then `npx cap sync ios`, then `npm run mobile:ios`.
-2. In Xcode, select the **App** target → *Signing & Capabilities* → choose your team. Keep the bundle ID `com.michcakee.vieliebakery` (or change it everywhere, including `capacitor.config.ts`).
+2. In Xcode, select the **App** target → *Signing & Capabilities* → choose your team. The bundle ID is `com.michcakee.vietbakeshop` (to change it, change it in `capacitor.config.ts` too).
 3. Run on a simulator or device.
 4. **Release:** set the scheme to *Any iOS Device*, then *Product → Archive → Distribute App → App Store Connect*.
 5. Increase *Build* (`CURRENT_PROJECT_VERSION`) for every upload.
+
+### What the project is set to
+
+- iPhone plays upright only; iPad allows every orientation.
+- `ITSAppUsesNonExemptEncryption` is `false` in `Info.plist`, so App Store Connect does not ask the export-compliance question on each upload.
+- iOS 14 or later; iPhone and iPad.
 
 ## Offline and saves
 

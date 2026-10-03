@@ -7,7 +7,7 @@
 | Framework | React 18 + TypeScript (strict), Vite 5, Vitest. Only runtime deps: react, react-dom (lucide-react is a leftover from v1). |
 | Frontend | `src/ui`: App shell with tabs, a pixel scene (canvas layers + DOM sprites in a scaled 240×135 stage), panels per tab, overlays (event card, report, weekly review, toasts, quest book, settings). |
 | Backend | None. Static site on GitHub Pages via `.github/workflows/deploy.yml` (install → test → build → publish). |
-| Storage | `localStorage` (`vielie-bakery-save-v2`), validated on load; prefs in a separate key; save codes (deflate + base64url) and an email restore link. |
+| Storage | `localStorage` (`vietbakeshop-v3-slot-1` to `-3`, plus backups), validated on load; prefs in a separate key; save codes (deflate + base64url) and an email restore link. |
 | State | One `GameState` changed only by `gameReducer` (`src/engine/state.ts`). Engine is pure TS with seeded RNG. |
 | Mechanics | Real-time shop day (customers with budgets, patience, substitution), trays + made-to-order assembly, three suppliers with loyalty and price locks, events with choices, leftovers, eco score, quests, achievements, levels, decor, loans (flat fee), co-op shares, marketing, weekly goals. |
 | Assets | All pixel art generated in code (`src/ui/pixel`), no image files. Synth audio. Google Fonts (VT323, Be Vietnam Pro). |

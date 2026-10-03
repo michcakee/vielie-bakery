@@ -29,7 +29,7 @@ function safeReducer(s: GameState, a: Action): GameState {
   try {
     return gameReducer(s, a);
   } catch (e) {
-    console.error('[vielie] action failed', a.type, e);
+    console.error('[vietbakeshop] action failed', a.type, e);
     return s;
   }
 }

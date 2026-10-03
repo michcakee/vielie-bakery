@@ -6564,19 +6564,22 @@ html[data-motion='reduced'] .menu-cursor {
 @media (hover: none), (max-width: 980px) {
   .title-screen {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto auto 1fr auto;
+    /* The picture and the menu sit together in the middle of the screen; the footer stays at the bottom. */
+    grid-template-rows: 1fr auto auto 1fr auto;
     grid-template-areas:
+      '.'
       'art'
       'menu'
       '.'
       'foot';
-    gap: 18px;
+    gap: 0;
     padding: calc(16px + env(safe-area-inset-top)) 16px 0;
-    align-content: start;
+    align-content: stretch;
   }
   .title-art {
     max-width: min(560px, calc((100dvh - 430px) * 240 / 135));
     min-width: 240px;
+    margin-bottom: 18px;
   }
   .title-screen .title-card {
     justify-items: center;

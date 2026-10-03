@@ -7,7 +7,7 @@ export class CrashScreen extends Component<{ children: ReactNode }, { error: Err
     return { error };
   }
   componentDidCatch(error: Error) {
-    console.error('[vielie] crashed', error);
+    console.error('[vietbakeshop] crashed', error);
   }
   render() {
     if (!this.state.error) return this.props.children;

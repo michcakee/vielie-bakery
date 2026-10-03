@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.michcakee.vieliebakery',
+  appId: 'com.michcakee.vietbakeshop',
   appName: 'Viet Bake Shop',
   webDir: 'dist',
   backgroundColor: '#f7e6c6',

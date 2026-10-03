@@ -1,4 +1,4 @@
-package com.michcakee.vieliebakery;
+package com.michcakee.vietbakeshop;
 
 import com.getcapacitor.BridgeActivity;
 

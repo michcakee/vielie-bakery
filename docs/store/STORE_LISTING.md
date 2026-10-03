@@ -8,7 +8,7 @@
 | --- | --- |
 | App name | Viet Bake Shop |
 | Subtitle (iOS, 30 chars) | Run a cozy Vietnamese bakery |
-| Bundle / package ID | `com.michcakee.vieliebakery` |
+| Bundle / package ID | `com.michcakee.vietbakeshop` |
 | Category | Games → Simulation (secondary: Education) |
 | Price | Free. No ads, no in-app purchases |
 | Developer name | My-Vien Nguyen |

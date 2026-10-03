@@ -5,20 +5,52 @@ import { createNewGame, SAVE_VERSION } from './state';
 import type { Employee, Equipment, GameState, UpgradeId } from './types';
 import { migrateFeatures } from './unlocks';
 
-/** Old single-slot key from v2 (kept untouched as a backup after migration). */
+/** Old single-slot key from v2 (kept untouched as a backup after migration). It keeps the game's first name. */
 export const LEGACY_V2_KEY = 'vielie-bakery-save-v2';
-export const SLOT_PREFIX = 'vielie-bakery-v3-slot-';
+export const SLOT_PREFIX = 'vietbakeshop-v3-slot-';
 export const BACKUP_SUFFIX = '-backup';
-export const PREFS_KEY = 'vielie-bakery-prefs-v2';
+export const PREFS_KEY = 'vietbakeshop-prefs-v2';
+/** Where saves and settings lived before the game was renamed; they are moved to the new keys on first run. */
+const OLD_SLOT_PREFIX = 'vielie-bakery-v3-slot-';
+const OLD_PREFS_KEY = 'vielie-bakery-prefs-v2';
 export const SLOTS = [1, 2, 3];
 /** Kept for older imports. */
 export const SAVE_KEY = `${SLOT_PREFIX}1`;
 
 type StorageLike = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 
+/**
+ * Move saves, backups and settings written under the game's old name to the new keys.
+ * A key that already exists under the new name is never overwritten.
+ */
+export function adoptOldKeys(store: StorageLike | null): void {
+  if (!store) return;
+  const move = (from: string, to: string) => {
+    const old = store.getItem(from);
+    if (old === null) return;
+    if (store.getItem(to) === null) store.setItem(to, old);
+    store.removeItem(from);
+  };
+  try {
+    for (const slot of [1, 2, 3]) {
+      move(`${OLD_SLOT_PREFIX}${slot}`, `${SLOT_PREFIX}${slot}`);
+      move(`${OLD_SLOT_PREFIX}${slot}-backup`, `${SLOT_PREFIX}${slot}-backup`);
+    }
+    move(OLD_PREFS_KEY, PREFS_KEY);
+  } catch {
+    /* storage full or unavailable: the old keys stay where they are */
+  }
+}
+
+let adopted = false;
 function storage(): StorageLike | null {
   try {
-    return typeof localStorage !== 'undefined' ? localStorage : null;
+    const store = typeof localStorage !== 'undefined' ? localStorage : null;
+    if (store && !adopted) {
+      adopted = true;
+      adoptOldKeys(store);
+    }
+    return store;
   } catch {
     return null;
   }
@@ -181,7 +213,7 @@ export function migrateV2(old: any): GameState | null {
     s.equity = { contributed: balanceSheet(s).equity, retained: 0, distributions: 0 };
     return validSave(s) ? s : null;
   } catch (e) {
-    console.error('[vielie] migration failed', e);
+    console.error('[vietbakeshop] migration failed', e);
     return null;
   }
 }
@@ -206,7 +238,7 @@ export function saveGame(s: GameState, slot = 1, store: StorageLike | null = sto
     store.setItem(key, JSON.stringify({ ...forStorage(s), savedAt: Date.now() }));
     return true;
   } catch (e) {
-    console.error('[vielie] save failed', e);
+    console.error('[vietbakeshop] save failed', e);
     return false;
   }
 }
@@ -221,7 +253,7 @@ export function loadGame(slot = 1, store: StorageLike | null = storage()): GameS
       const data = JSON.parse(raw);
       return validSave(data) ? data : null;
     } catch (e) {
-      console.error('[vielie] save unreadable', key, e);
+      console.error('[vietbakeshop] save unreadable', key, e);
       return null;
     }
   };
@@ -238,7 +270,7 @@ export function loadGame(slot = 1, store: StorageLike | null = storage()): GameS
         }
       }
     } catch (e) {
-      console.error('[vielie] v2 save unreadable', e);
+      console.error('[vietbakeshop] v2 save unreadable', e);
     }
   }
   return null;
@@ -274,7 +306,14 @@ export function clearAllData(store: StorageLike | null = storage()): void {
       store.removeItem(`${SLOT_PREFIX}${slot}${BACKUP_SUFFIX}`);
     }
     store.removeItem(LEGACY_V2_KEY);
+    store.removeItem('vielie-bakery-save-v1');
     store.removeItem(PREFS_KEY);
+    // Anything still sitting under the old name goes too.
+    for (let slot = 1; slot <= 3; slot++) {
+      store.removeItem(`${OLD_SLOT_PREFIX}${slot}`);
+      store.removeItem(`${OLD_SLOT_PREFIX}${slot}${BACKUP_SUFFIX}`);
+    }
+    store.removeItem(OLD_PREFS_KEY);
   } catch {
     /* storage unavailable */
   }
@@ -326,7 +365,7 @@ export async function importCode(code: string): Promise<GameState | null> {
     const migrated = migrateV2(data);
     return migrated;
   } catch (e) {
-    console.error('[vielie] bad save code', e);
+    console.error('[vietbakeshop] bad save code', e);
     return null;
   }
 }

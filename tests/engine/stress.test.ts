@@ -358,6 +358,26 @@ describe('daily special and special orders', () => {
   });
 });
 
+describe('the rename from vielie-bakery to vietbakeshop', () => {
+  it('saves and settings written under the old name are moved to the new keys, without overwriting newer ones', async () => {
+    const { adoptOldKeys, saveGame, loadGame, SLOT_PREFIX, PREFS_KEY } = await import('../../src/engine/save');
+    const m = new Map<string, string>();
+    const store = { getItem: (k: string) => m.get(k) ?? null, setItem: (k: string, v: string) => void m.set(k, v), removeItem: (k: string) => void m.delete(k) };
+    const old = { ...createNewGame(4), bakeryName: 'Old Name Bakery' };
+    store.setItem('vielie-bakery-v3-slot-1', JSON.stringify(old));
+    store.setItem('vielie-bakery-v3-slot-1-backup', JSON.stringify(old));
+    store.setItem('vielie-bakery-prefs-v2', JSON.stringify({ sound: true }));
+    store.setItem('vielie-bakery-v3-slot-2', JSON.stringify(old));
+    saveGame({ ...createNewGame(5), bakeryName: 'Newer Bakery' }, 2, store);
+    adoptOldKeys(store);
+    expect([...m.keys()].filter((k) => k.startsWith('vielie'))).toEqual([]);
+    expect(loadGame(1, store)!.bakeryName).toBe('Old Name Bakery');
+    expect(m.has(`${SLOT_PREFIX}1-backup`)).toBe(true);
+    expect(loadGame(2, store)!.bakeryName).toBe('Newer Bakery');
+    expect(JSON.parse(m.get(PREFS_KEY)!).sound).toBe(true);
+  });
+});
+
 describe('legal cleanup and story beats', () => {
   it('delete-all wipes every key this game writes, and prefs no longer carry an email', async () => {
     const { clearAllData, saveGame, loadGame, DEFAULT_PREFS, PREFS_KEY } = await import('../../src/engine/save');
@@ -367,9 +387,10 @@ describe('legal cleanup and story beats', () => {
     saveGame(createNewGame(2), 3, store);
     store.setItem(PREFS_KEY, JSON.stringify({ sound: true, email: 'someone@example.com' }));
     store.setItem('vielie-bakery-save-v2', '{}');
-    expect(m.size).toBeGreaterThanOrEqual(4);
+    store.setItem('vielie-bakery-v3-slot-2', '{}');
+    expect(m.size).toBeGreaterThanOrEqual(5);
     clearAllData(store);
-    expect([...m.keys()].filter((k) => k.startsWith('vielie'))).toEqual([]);
+    expect([...m.keys()]).toEqual([]);
     expect(loadGame(1, store)).toBeNull();
     expect('email' in DEFAULT_PREFS).toBe(false);
   });

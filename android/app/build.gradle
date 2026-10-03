@@ -8,10 +8,10 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace "com.michcakee.vieliebakery"
+    namespace "com.michcakee.vietbakeshop"
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.michcakee.vieliebakery"
+        applicationId "com.michcakee.vietbakeshop"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

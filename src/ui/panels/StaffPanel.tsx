@@ -7,7 +7,7 @@ import type { Employee, RoleId } from '../../engine/types';
 import { money, money2 } from '../../lib/format';
 import { useGame } from '../GameContext';
 import { featureOn } from '../../engine/unlocks';
-import { Btn, Card, Empty, Meter, Stepper, Tip } from '../kit';
+import { Btn, Card, ConfirmBtn, Empty, Meter, Stepper, Tip } from '../kit';
 import { Person, Sprite } from '../pixel/Sprite';
 
 function EmployeeRow({ e }: { e: Employee }) {
@@ -125,6 +125,7 @@ export function StaffPanel() {
       </Card>
 
       <Card title={`Your team (${team.length})`} icon="people">
+        {team.length > 0 && <StaffModeSwitch />}
         {team.length === 0 ? <Empty icon="people">It's just you for now. Hire someone when the queue gets long or the ovens sit idle.</Empty> : <ul className="staff-list">{team.map((e) => <EmployeeRow key={e.id} e={e} />)}</ul>}
         <p className="small muted">
           Wages are paid every day, busy or not: a <Tip concept="fixedCost">fixed cost</Tip>. Happy staff work faster; staff paid below the going rate drift away.
@@ -181,9 +182,22 @@ export function StaffPanel() {
                     </span>
                   </div>
                   <div className="staff-act">
-                    <Btn kind={a.id === pick ? 'primary' : 'plain'} data-spot={a.id === pick || (!pick && a.id === shown[0]?.a.id) ? 'hire-btn' : undefined} disabled={s.phase === 'service' || s.cash < hireFee} onClick={() => dispatch({ type: 'hire', applicantId: a.id, branch })}>
-                      Hire ({money(hireFee)} fee)
-                    </Btn>
+                    {v.addsValue >= v.cost * 0.6 || a.name === FRIENDS[0].name ? (
+                      <Btn kind={a.id === pick ? 'primary' : 'plain'} data-spot={a.id === pick || (!pick && a.id === shown[0]?.a.id) ? 'hire-btn' : undefined} disabled={s.phase === 'service' || s.cash < hireFee} onClick={() => dispatch({ type: 'hire', applicantId: a.id, branch })}>
+                        Hire ({money(hireFee)} fee)
+                      </Btn>
+                    ) : (
+                      <ConfirmBtn
+                        kind="plain"
+                        disabled={s.phase === 'service' || s.cash < hireFee}
+                        title={`Hire ${a.name}?`}
+                        lines={[`${a.name} costs about ${money(v.cost)} a day, every day, busy or not.`, `Right now they’d add: ${v.adds}.`]}
+                        warn="Bà thinks they won’t pay for themselves yet. Wages that add nothing can sink a bakery."
+                        onConfirm={() => dispatch({ type: 'hire', applicantId: a.id, branch })}
+                      >
+                        Hire ({money(hireFee)} fee)
+                      </ConfirmBtn>
+                    )}
                   </div>
                 </li>
               );
@@ -212,6 +226,28 @@ export function StaffPanel() {
         </ul>
         <Sprite name="people" scale={2} />
       </Card>
+    </div>
+  );
+}
+
+/** Who serves at the counter: leave new orders for the player first, or let staff take them all. */
+export function StaffModeSwitch() {
+  const { state: s, dispatch } = useGame();
+  const mode = s.staffMode ?? 'help';
+  return (
+    <div className="staff-mode">
+      <span className="small">
+        <b>At the counter, your team…</b>
+      </span>
+      <div className="seg" role="radiogroup" aria-label="How your team serves">
+        <button type="button" role="radio" aria-checked={mode === 'help'} className={mode === 'help' ? 'on' : ''} onClick={() => dispatch({ type: 'setStaffMode', mode: 'help' })}>
+          Leaves orders for me first
+        </button>
+        <button type="button" role="radio" aria-checked={mode === 'all'} className={mode === 'all' ? 'on' : ''} onClick={() => dispatch({ type: 'setStaffMode', mode: 'all' })}>
+          Takes every order
+        </button>
+      </div>
+      <span className="small muted">{mode === 'help' ? 'Your team leaves the two oldest orders for you and serves everyone else. If you don’t get to one in a few seconds, a helper steps in.' : 'Helpers serve right away. You can still take any order they haven’t started.'}</span>
     </div>
   );
 }

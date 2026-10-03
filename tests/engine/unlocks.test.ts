@@ -110,6 +110,10 @@ describe('feature unlocks (guided game)', () => {
     s = gameReducer(s, { type: 'buy', ingredient: 'flour', supplier: 'cho', packs: 1 });
     expect(s.intro?.active).toBe('market.wet');
     s = gameReducer(s, { type: 'buy', ingredient: 'sugar', supplier: 'cho', packs: 1 });
+    // Then the lesson asks you to bake with what you bought.
+    expect(s.intro?.active).toBe('market.wet');
+    expect(introStep(s)).toBe(1);
+    s = gameReducer(s, { type: 'bake', item: 'baguette', process: 80 });
     expect(s.intro?.active).toBeNull();
     expect(s.intro?.done).toContain('market.wet');
     expect(s.xp).toBeGreaterThanOrEqual(xp + FEATURE['market.wet'].intro.xp);

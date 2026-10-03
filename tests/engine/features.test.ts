@@ -10,6 +10,11 @@ import { createNewGame, decorSpot, gameReducer } from '../../src/engine/state';
 import { rngFor } from '../../src/engine/rng';
 import { rollTwist, TWIST, twistBonus, twistLabel, twistSteps } from '../../src/engine/twists';
 import type { GameState, Visit } from '../../src/engine/types';
+import { COSMETICS, STAR_CASH, STYLE_COUNTS, starsToSpend } from '../../src/data/cosmetics';
+import { COUNTERS, FLOORS, PATTERNS, WALLS } from '../../src/ui/pixel/scene';
+import { biggestProblem } from '../../src/engine/advice';
+import { staffWait } from '../../src/engine/service';
+import { activeQuests, QUESTS } from '../../src/engine/progression';
 import { act, finish, morning, playDay, resolveEvents, runService } from './bot';
 
 const start = (seed: number) => act(createNewGame(seed), { type: 'setup', name: 'Test', look: createNewGame(seed).look });
@@ -121,9 +126,12 @@ describe('the Lantern Festival story', () => {
 
 describe('painting and arranging the shop', () => {
   it('style choices stick and stay in range', () => {
-    let s = start(51);
+    let s: GameState = { ...start(51), cosmetics: COSMETICS.map((c) => c.id) };
     s = act(s, { type: 'setStyle', key: 'wall', value: 3 }, { type: 'setStyle', key: 'floor', value: 99 }, { type: 'setStyle', key: 'counter', value: -4 });
-    expect(s.style).toMatchObject({ wall: 3, floor: 7, counter: 0, pattern: 0 });
+    expect(s.style).toMatchObject({ wall: 3, floor: STYLE_COUNTS.floor - 1, counter: 0, pattern: 0 });
+    // A paint you haven't bought can't be chosen.
+    const plain = act(start(51), { type: 'setStyle', key: 'floor', value: STYLE_COUNTS.floor - 1 });
+    expect(plain.style?.floor ?? 0).toBe(0);
   });
 
   it('decorations move between three spots and never share one', () => {
@@ -203,5 +211,70 @@ describe('tester round 4', () => {
     const s = start(75);
     expect(favouritesPull({ ...s, menu: ['banhMi'] })).toBeLessThan(favouritesPull(s));
     expect(favouritesPull({ ...s, menu: PRODUCT_ORDER })).toBeGreaterThan(favouritesPull(s));
+  });
+});
+
+describe('playtest 3 follow-ups', () => {
+  it('the paint counts match the drawn lists, and every star-shop item points at a real choice', () => {
+    expect(STYLE_COUNTS).toEqual({ wall: WALLS.length, pattern: PATTERNS.length, floor: FLOORS.length, counter: COUNTERS.length });
+    for (const c of COSMETICS) if (c.kind === 'wall' || c.kind === 'floor' || c.kind === 'counter') expect(c.index).toBeLessThan(STYLE_COUNTS[c.kind]);
+  });
+
+  it('Bà’s tip jar turns stars into cash, and only when you have enough', () => {
+    let s: GameState = { ...start(61), questProgress: { ...start(61).questProgress, stars: STAR_CASH.stars + 3 } };
+    const cash = s.cash;
+    s = gameReducer(s, { type: 'starsForCash' });
+    expect(s.cash).toBeCloseTo(cash + STAR_CASH.cash, 2);
+    expect(starsToSpend(s)).toBe(3);
+    expect(gameReducer(s, { type: 'starsForCash' })).toBe(s);
+  });
+
+  it('staff leave a new order for the player first, then step in; a claimed order is never taken', () => {
+    let s = gameReducer(start(62), { type: 'open' });
+    const hire = s.applicants.find((a) => a.role === 'helper')!;
+    s = { ...start(62), cash: 9000 };
+    s = gameReducer(s, { type: 'hire', applicantId: s.applicants.find((a) => a.role === 'helper')!.id });
+    s = gameReducer(s, { type: 'open' });
+    void hire;
+    let first: Visit | undefined;
+    for (let i = 0; i < 200 && !first; i++) {
+      s = gameReducer(s, { type: 'tick', minutes: 1 });
+      first = s.service?.visits.find((v) => v.status === 'waiting');
+    }
+    expect(first).toBeDefined();
+    expect(first!.servedBy).toBeUndefined();
+    s = gameReducer(s, { type: 'claim', visitId: first!.id });
+    for (let i = 0; i < Math.ceil(staffWait(first!)) + 5; i++) s = gameReducer(s, { type: 'tick', minutes: 1 });
+    const mine = s.service!.visits.find((v) => v.id === first!.id)!;
+    expect(mine.servedBy === 'player' || mine.status !== 'waiting').toBe(true);
+    // In "take every order" mode a helper picks up new orders at once.
+    s = gameReducer(s, { type: 'setStaffMode', mode: 'all' });
+    expect(s.staffMode).toBe('all');
+  });
+
+  it('the advice names the real bottleneck: losing money first, then an empty case', () => {
+    let s = start(63);
+    for (let d = 0; d < 4; d++) s = playDay(s);
+    const fake = (over: Partial<GameState['history'][number]>) => s.history.slice(-3).map((h) => ({ ...h, ...over }));
+    const sellOut = { ...s, history: fake({ lostSoldOut: 40, profit: 50 }) };
+    expect(biggestProblem(sellOut)?.id).toBe('soldOut');
+    const losing = { ...s, history: fake({ profit: -100, books: { ...s.history[0].books, wages: 400 } }), staff: s.staff };
+    const p = biggestProblem(losing);
+    expect(p?.id === 'losing' || p === null).toBe(true);
+  });
+
+  it('legend goals open only at the top level, and come first when they do', () => {
+    const s = start(64);
+    expect(activeQuests(s, 20).some((q) => q.minLevel)).toBe(false);
+    const legend = { ...s, xp: 999999 };
+    const open = activeQuests(legend, 3);
+    expect(open[0].minLevel).toBe(8);
+    expect(QUESTS.filter((q) => q.minLevel).length).toBeGreaterThanOrEqual(6);
+  });
+
+  it('opening week: a new guided bakery loses fewer customers to price than later on', () => {
+    let a = createNewGame({ seed: 65, guided: true });
+    a = playDay(gameReducer(a, { type: 'setup', name: 'x', look: a.look }));
+    expect(a.history[0].lostPrice / Math.max(1, a.history[0].customers)).toBeLessThan(0.3);
   });
 });

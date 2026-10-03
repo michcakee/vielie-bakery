@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { DECOR, DECOR_ORDER, LEVELS, STAGES, UPGRADES, UPGRADE_ORDER } from '../../data/catalog';
 import { GOALS, LOCATIONS, LOCATION_ORDER, SEGMENTS } from '../../data/world';
-import { activeRivals, businessStage, countOf, depreciationPerDay, levelOf, marketTraffic, rent } from '../../engine/economy';
+import { activeRivals, businessStage, countOf, depreciationPerDay, laborTrays, levelOf, marketTraffic, ovenCapacity, rent } from '../../engine/economy';
 import { valuation } from '../../engine/finance';
 import { goalProgress } from '../../engine/progression';
 import { canShop } from '../../engine/state';
@@ -81,6 +81,9 @@ export function BuildPanel() {
           </b>
           <span className="small">{u.blurb}</span>
           <span className="small effect">{u.effect}</span>
+          {(u.trays ?? 0) > 0 && owned < u.max && laborTrays(s) < ovenCapacity(s) + (u.trays ?? 0) - 0.5 && (
+            <span className="small warn">You can bake about {Math.floor(laborTrays(s))} trays a morning yourself, so you’ll need a baker (Staff) to fill this oven.</span>
+          )}
           {business && (
             <span className="tiny muted">
               Capital expense: lasts ~{u.life} years, so about {money2(depreciationPerDay(cost, u.life))} a day of <Tip concept="depreciation">depreciation</Tip>

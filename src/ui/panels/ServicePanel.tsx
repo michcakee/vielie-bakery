@@ -240,7 +240,7 @@ export function GoalMeter({ compact = false }: { compact?: boolean }) {
 export function ServicePanel({ paused, setPaused, speed, setSpeed, activeId, setActiveId }: { paused: boolean; setPaused: (p: boolean) => void; speed: number; setSpeed: (n: number) => void; activeId: number | null; setActiveId: (id: number | null) => void }) {
   const { state: s, dispatch } = useGame();
   const svc = s.service!;
-  const waiting = svc.visits.filter((v) => v.status === 'waiting' && !v.servedBy).sort((a, b) => (a.waitStart ?? 0) - (b.waitStart ?? 0));
+  const waiting = svc.visits.filter((v) => v.status === 'waiting' && (!v.servedBy || v.servedBy === 'player')).sort((a, b) => (a.waitStart ?? 0) - (b.waitStart ?? 0));
   const active = waiting.find((v) => v.id === activeId) ?? null;
   const coming = svc.visits.filter((v) => v.status === 'walking').length;
   const pct = svc.clock / CONFIG.dayMinutes;
@@ -264,6 +264,8 @@ export function ServicePanel({ paused, setPaused, speed, setSpeed, activeId, set
       dispatch({ type: 'serve', visitId: v.id });
     } else {
       play('pop');
+      // Starting an order reserves it: nobody else takes it while you build it.
+      dispatch({ type: 'claim', visitId: v.id });
       setActiveId(v.id);
     }
   };
@@ -320,6 +322,11 @@ export function ServicePanel({ paused, setPaused, speed, setSpeed, activeId, set
         <details className="svc-more">
           <summary>More</summary>
           <div className="svc-more-items">
+            {s.staff.length > 0 && !svc.auto && (
+              <Btn kind="ghost" onClick={() => dispatch({ type: 'setStaffMode', mode: (s.staffMode ?? 'help') === 'help' ? 'all' : 'help' })} title="Who takes new orders">
+                {(s.staffMode ?? 'help') === 'help' ? 'Team: take every order' : 'Team: leave orders for me'}
+              </Btn>
+            )}
             <Btn kind="ghost" onClick={() => dispatch({ type: 'skipToClose' })} title="Finish the day instantly">
               Skip to closing
             </Btn>
@@ -334,7 +341,10 @@ export function ServicePanel({ paused, setPaused, speed, setSpeed, activeId, set
         <Assembly
           key={active.id}
           visit={active}
-          onCancel={() => setActiveId(null)}
+          onCancel={() => {
+            dispatch({ type: 'claim', visitId: active.id, release: true });
+            setActiveId(null);
+          }}
           onDone={(process) => {
             dispatch({ type: 'serve', visitId: active.id, process });
             play('coin');

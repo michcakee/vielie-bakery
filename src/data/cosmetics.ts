@@ -27,7 +27,22 @@ export const COSMETICS: CosmeticDef[] = [
   { id: 'flowerCrown', kind: 'accessory', index: 10, name: 'Flower crown', cost: 12 },
   { id: 'goldCounter', kind: 'counter', index: 4, name: 'Gold counter', cost: 15 },
   { id: 'crown', kind: 'accessory', index: 11, name: 'Crown', cost: 20 },
+  { id: 'mintWalls', kind: 'wall', index: 7, name: 'Mint walls', cost: 22 },
+  { id: 'blueTiles', kind: 'floor', index: 5, name: 'Blue tiles', cost: 25 },
+  { id: 'mintCounter', kind: 'counter', index: 5, name: 'Mint counter', cost: 28 },
+  { id: 'lemonWalls', kind: 'wall', index: 8, name: 'Lemon walls', cost: 32 },
+  { id: 'greenTiles', kind: 'floor', index: 6, name: 'Green tiles', cost: 36 },
+  { id: 'marbleCounter', kind: 'counter', index: 6, name: 'Marble counter', cost: 42 },
+  { id: 'duskWalls', kind: 'wall', index: 9, name: 'Dusk walls', cost: 50 },
+  { id: 'honeyWood', kind: 'floor', index: 7, name: 'Honey wood floor', cost: 60 },
+  { id: 'lavenderCounter', kind: 'counter', index: 7, name: 'Lavender counter', cost: 75 },
 ];
+
+/** How many choices each paint list has (the lists themselves are drawn in ui/pixel/scene.ts). */
+export const STYLE_COUNTS = { wall: 10, pattern: 4, floor: 8, counter: 8 } as const;
+
+/** Bà's tip jar: once every look is bought, stars still turn into cash for the bakery. */
+export const STAR_CASH = { stars: 10, cash: 150 };
 
 export function cosmeticFor(kind: CosmeticKind, index: number): CosmeticDef | undefined {
   return COSMETICS.find((c) => c.kind === kind && c.index === index);

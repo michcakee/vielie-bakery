@@ -43,7 +43,7 @@ import {
 } from './economy';
 import { EVENTS, eventFor, refreshKinds, visibleChoices } from './events';
 import { pickChallenge, settleChallenge } from './challenge';
-import { allowedLook, allowedStyle, COSMETICS, owns, starsToSpend } from '../data/cosmetics';
+import { allowedLook, allowedStyle, COSMETICS, owns, STAR_CASH, starsToSpend, STYLE_COUNTS } from '../data/cosmetics';
 import { arcDayEnd } from './arc';
 import { bondCapacity, borrowingLimit, creditLimit, creditLineRate, investorTerms, makeLoan, quoteLoan, valuation } from './finance';
 import { suggestedTrays, forecast, ingredientsNeeded } from './forecast';
@@ -310,6 +310,10 @@ export type Action =
   | { type: 'skipToClose' }
   | { type: 'tick'; minutes: number }
   | { type: 'serve'; visitId: number; process?: number }
+  /** The player started making an order: nobody else takes it. `release` hands it back. */
+  | { type: 'claim'; visitId: number; release?: boolean }
+  | { type: 'setStaffMode'; mode: 'help' | 'all' }
+  | { type: 'starsForCash' }
   | { type: 'lastCall'; on: boolean }
   | { type: 'closeEarly' }
   | { type: 'leftover'; key: ProductId | 'baguette'; choice: LeftoverChoice }
@@ -1139,9 +1143,25 @@ function reduce(s: GameState, a: Action): GameState {
     case 'bake': {
       // Quick bake is earned, like auto-cook in Genshin: practise a recipe by hand first, and it only
       // ever comes out at normal quality. Baking by hand can reach perfect.
-      if (a.quick) return quickBakeReady(s, a.item) ? bake(s, a.item, QUICK_BAKE.quality) : s;
-      const next = bake(s, a.item, clamp(a.process, 0, 100));
+      const counted = (n: GameState) => (n === s ? s : { ...n, questProgress: { ...n.questProgress, traysBaked: (n.questProgress.traysBaked ?? 0) + 1 } });
+      if (a.quick) return quickBakeReady(s, a.item) ? counted(bake(s, a.item, QUICK_BAKE.quality)) : s;
+      const next = counted(bake(s, a.item, clamp(a.process, 0, 100)));
       return next === s ? s : { ...next, questProgress: { ...next.questProgress, [`handBakes_${a.item}`]: (next.questProgress[`handBakes_${a.item}`] ?? 0) + 1 } };
+    }
+    case 'claim': {
+      if (s.phase !== 'service' || !s.service) return s;
+      const v = s.service.visits.find((x) => x.id === a.visitId);
+      if (!v || v.status !== 'waiting') return s;
+      if (a.release) return v.servedBy === 'player' ? { ...s, service: { ...s.service, visits: s.service.visits.map((x) => (x.id === v.id ? { ...x, servedBy: undefined } : x)) } } : s;
+      if (v.servedBy) return s;
+      return { ...s, service: { ...s.service, visits: s.service.visits.map((x) => (x.id === v.id ? { ...x, servedBy: 'player' } : x)) } };
+    }
+    case 'setStaffMode':
+      return a.mode === 'help' || a.mode === 'all' ? { ...s, staffMode: a.mode } : s;
+    case 'starsForCash': {
+      if (starsToSpend(s) < STAR_CASH.stars) return s;
+      const next = { ...s, cash: round2(s.cash + STAR_CASH.cash), questProgress: { ...s.questProgress, starsSpent: (s.questProgress.starsSpent ?? 0) + STAR_CASH.stars } };
+      return toast(next, 'info', `Bà’s tip jar: +$${STAR_CASH.cash}`, `${STAR_CASH.stars} stars turned into cash for the bakery.`);
     }
     case 'autoBake':
       return autoBake(s);
@@ -1186,7 +1206,8 @@ function reduce(s: GameState, a: Action): GameState {
       return runDay(s);
     case 'handOver': {
       if (s.phase !== 'service' || !s.service || s.service.auto) return s;
-      const svc = { ...s.service, auto: true, servers: [{ id: 'owner', busyUntil: s.service.clock, visitId: null, quality: ECON.service.ownerAutoQuality, served: 0 }, ...s.service.servers] };
+      const visits = s.service.visits.map((v) => (v.servedBy === 'player' && v.status === 'waiting' ? { ...v, servedBy: undefined } : v));
+      const svc = { ...s.service, auto: true, visits, servers: [{ id: 'owner', busyUntil: s.service.clock, visitId: null, quality: ECON.service.ownerAutoQuality, served: 0 }, ...s.service.servers] };
       return { ...s, service: svc };
     }
     case 'takeBack': {
@@ -1249,7 +1270,8 @@ function reduce(s: GameState, a: Action): GameState {
     case 'sellEquipment':
       return sellEquipment(s, a.uid);
     case 'setStyle': {
-      const style = { ...(s.style ?? DEFAULT_STYLE), [a.key]: Math.max(0, Math.min(7, Math.round(a.value))) };
+      if (!(a.key in STYLE_COUNTS) || !Number.isFinite(a.value)) return s;
+      const style = { ...(s.style ?? DEFAULT_STYLE), [a.key]: Math.max(0, Math.min(STYLE_COUNTS[a.key] - 1, Math.round(a.value))) };
       return allowedStyle(s, style) ? { ...s, style } : s;
     }
     case 'moveDecor': {

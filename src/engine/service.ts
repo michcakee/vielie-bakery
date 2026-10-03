@@ -497,6 +497,14 @@ function canServe(s: GameState, serverId: string, kind: ProductKind): boolean {
   return e.role === 'helper' || (e.role === 'cashier' && kind === 'tray') || (e.role === 'barista' && kind === 'drink') || (e.role === 'cook' && kind === 'sandwich');
 }
 
+/** In "help" mode, staff leave this many orders waiting for the player at a time. */
+export const STAFF_LEAVES = 2;
+
+/** How long staff wait before taking an order left for the player, in game minutes. */
+export function staffWait(v: Pick<Visit, 'patience'>): number {
+  return Math.min(20, v.patience * 0.3);
+}
+
 function dispatchServers(s: GameState): GameState {
   let next = s;
   const clock = next.service!.clock;
@@ -508,9 +516,15 @@ function dispatchServers(s: GameState): GameState {
     }
   }
   const waiting = next.service!.visits.filter((v) => v.status === 'waiting' && !v.servedBy).sort((a, b) => (a.waitStart ?? 0) - (b.waitStart ?? 0));
+  // "Help when I'm busy": staff leave the two oldest orders for the player for a short while and take
+  // everything else at once, so the player always has something to make and the line keeps moving.
+  const leaveForPlayer = !next.service!.auto && (next.staffMode ?? 'help') === 'help' && next.staff.length > 0;
+  const forPlayer = new Set(leaveForPlayer ? waiting.slice(0, STAFF_LEAVES).map((v) => v.id) : []);
   for (const v of waiting) {
     const kind = PRODUCTS[v.wants].kind;
-    const free = next.service!.servers.filter((x) => x.visitId === null && canServe(next, x.id, kind) && !(x.id === 'ba' && v.who === KEVIN.id));
+    const waited = clock - (v.waitStart ?? clock);
+    const playersTurn = forPlayer.has(v.id) && waited < staffWait(v);
+    const free = next.service!.servers.filter((x) => x.visitId === null && canServe(next, x.id, kind) && !(x.id === 'ba' && v.who === KEVIN.id) && !(playersTurn && x.id.startsWith('staff:')));
     if (!free.length) continue;
     const srv = free.find((x) => x.id !== 'owner') ?? free[0];
     const minutes = minutesFor(next, srv.id, kind) * (v.qty > 1 && kind === 'tray' ? 1 + 0.25 * (v.qty - 1) : 1);

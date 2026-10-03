@@ -171,6 +171,7 @@ function OvenCard() {
   return (
     <Card
       className="oven-card"
+      spot="bake"
       title="Oven"
       icon="hot"
       aside={
@@ -230,17 +231,25 @@ function OvenCard() {
                     <span className="muted small">
                       Makes {inf.yield} · {money2(unit)} each · you have {have}
                     </span>
-                    <span className="recipe-label small">Made with:</span>
-                    <span className="recipe">
-                      {(Object.entries(inf.recipe) as [IngredientId, number][]).map(([id, n]) => (
-                        <span key={id} className={`ing-chip ${s.pantry[id].qty < n ? 'short' : ''}`}>
-                          <Sprite name={id} scale={2} /> {INGREDIENTS[id].name} <b>×{n}</b>
-                          <em>
-                            have {s.pantry[id].qty}
-                          </em>
-                        </span>
-                      ))}
-                    </span>
+                    {missing.length === 0 ? (
+                      <span className="recipe-line small">
+                        <Sprite name="check" scale={1} /> Made with {(Object.entries(inf.recipe) as [IngredientId, number][]).map(([id, n]) => `${INGREDIENTS[id].name.toLowerCase()} ×${n}`).join(', ')}: all in stock
+                      </span>
+                    ) : (
+                      <>
+                      <span className="recipe-label small">Made with:</span>
+                      <span className="recipe">
+                        {(Object.entries(inf.recipe) as [IngredientId, number][]).map(([id, n]) => (
+                          <span key={id} className={`ing-chip ${s.pantry[id].qty < n ? 'short' : ''}`}>
+                            <Sprite name={id} scale={2} /> {INGREDIENTS[id].name} <b>×{n}</b>
+                            <em>
+                              have {s.pantry[id].qty}
+                            </em>
+                          </span>
+                        ))}
+                      </span>
+                      </>
+                    )}
                     {missing.length > 0 && <BuyMissing recipe={inf.recipe} />}
                   </div>
                   <div className="bake-actions">
@@ -556,7 +565,7 @@ function MenuCard() {
   );
 }
 
-const SECTION_OF: Record<string, 'bake' | 'prices' | 'menu' | 'plan'> = { price: 'prices', predict: 'prices', menu: 'menu', deals: 'menu', plan: 'plan' };
+const SECTION_OF: Record<string, 'bake' | 'prices' | 'menu' | 'plan'> = { bake: 'bake', price: 'prices', predict: 'prices', menu: 'menu', deals: 'menu', plan: 'plan' };
 
 export function KitchenPanel() {
   const { state: s, business, feature } = useGame();

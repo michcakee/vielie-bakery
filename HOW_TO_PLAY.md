@@ -238,3 +238,14 @@ On Android, the back button closes windows and sheets, then returns to Today.
 - **English everywhere.** Only Bà speaks Vietnamese (with English underneath). Food keeps its Vietnamese name.
 - **The michcake is the last recipe.** It unlocks at the top level, Bakery Legend. The Gress recipes are gone; an older save simply loads without them.
 - **On a computer:** the main menu works with the arrow keys and Enter, **Esc** opens a pause menu, and **F** (or the Fullscreen button) fills the screen. Browsers that support it show **Install game** to play it like a desktop app.
+
+## Round 6 changes
+
+- **The market, step by step.** The Market opens with "How the market works": buy → it waits in your pantry → bake it in the Kitchen → sell it when you open. Each ingredient says what it's **for**, and after you buy something a **Go bake** button takes you to the oven. Bà's market lesson now ends with baking what you bought.
+- **Your team leaves orders for you.** After you hire, staff leave the two oldest orders for you and serve everyone else; if you don't get to one in a few seconds, a helper steps in. Prefer they take everything? Staff tab → "Takes every order" (or More during the day). An order you've started making is always yours.
+- **The game tells you what's holding you back.** The top of "Before you open" and the report's Tomorrow page name the biggest problem: losing money (and which cost is to blame), people finding the case empty (and whether you need an oven or a baker), people giving up in the queue, or prices too high. A bigger oven now says when you'd also need a baker to fill it.
+- **Hiring checks with you.** If Bà thinks someone won't pay for themselves yet, Hire asks first.
+- **Losing money is explained.** On a day the bakery loses money, the report lists the biggest costs.
+- **Slower levels, a longer road to the michcake** (around day 130–150), then **legend goals**: sell 100 michcakes, a five-day 3-star streak, a $1,000 day and more.
+- **More in the star shop:** nine new wall, floor and counter paints, and **Bà's tip jar** turns 10★ into $150 whenever you like.
+- **Smaller things:** a broken oven says when waiting means no pastries; customers are a little more forgiving on price in your first days; recipe rows in the Kitchen fold into one line when everything is in stock.

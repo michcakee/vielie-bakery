@@ -1,3 +1,4 @@
+import { biggestProblem } from '../../engine/advice';
 import { BAGUETTE, LEVELS, PRODUCTS, PRODUCT_ORDER, UPGRADES, WEATHER } from '../../data/catalog';
 import { ECON } from '../../data/config';
 import { REGULARS } from '../../data/people';
@@ -27,7 +28,10 @@ export type Tab = 'today' | 'kitchen' | 'market' | 'staff' | 'customers' | 'grow
 
 export function readiness(s: GameState) {
   const menu = onMenu(s);
-  const warnings: { text: string; tab: Tab; spot?: string }[] = [];
+  const warnings: { text: string; tab: Tab; spot?: string; big?: boolean }[] = [];
+  // The one thing holding the bakery back most, from the last few days, goes first.
+  const problem = biggestProblem(s);
+  if (problem) warnings.push({ text: problem.text, tab: problem.tab, spot: problem.spot, big: true });
   if (s.equipment.every((e) => !e.kind.startsWith('oven'))) warnings.push({ text: 'You have no oven yet. Buy one in Growth before you can bake anything.', tab: 'growth' });
   if (s.baguettes.qty < 6 && menu.includes('banhMi'))
     warnings.push(canBakeTray(s, BAGUETTE.recipe) ? { text: 'Bake a tray of baguettes, or bánh mì will sell out.', tab: 'kitchen', spot: 'bake-baguette' } : { text: 'Out of flour for baguettes. Buy some at the market.', tab: 'market', spot: 'stock-up' });
@@ -214,7 +218,7 @@ export function HomePanel({ goTo, onOpen, onRunDay, onQuests }: { goTo: (t: Tab)
               <b className="todo-head">Before you open</b>
               <ul className="warnings">
                 {warnings.slice(0, 2).map((w) => (
-                  <li key={w.text}>
+                  <li key={w.text} className={w.big ? 'big-problem' : ''}>
                     <Sprite name="bell" scale={2} />
                     <span>{w.text}</span>
                     <button type="button" className="link-btn" onClick={() => (w.spot ? showMe(w.tab, w.spot) : goTo(w.tab))}>

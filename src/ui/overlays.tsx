@@ -1,3 +1,4 @@
+import { biggestProblem } from '../engine/advice';
 import { ChallengeChip } from './Challenge';
 import { Collection, collectionCount } from './Collection';
 import { StarShop } from './StarShop';
@@ -231,6 +232,7 @@ export function DayReport() {
               ? 'Busy counter, thin wallet. Check your prices and what you threw away.'
               : 'A tough day. Bake what sells and keep the line moving.';
   const pages = ['Stars', 'Money', 'Tomorrow'];
+  const problem = biggestProblem(s);
   const why = r.stars !== undefined && r.stars < 3 && t.goal ? missedStars(t) : [];
   const short = r.stars !== undefined && r.stars < 3 && t.goal ? t.goal[r.stars] - (t.revenue + t.tips) : 0;
   const busier = WEATHER[s.market.tomorrow].traffic / WEATHER[t.weather].traffic;
@@ -327,6 +329,23 @@ export function DayReport() {
           </b>
         </div>
       </div>
+      {is.netProfit < 0 && (
+        <div className="why-loss">
+          <b>Why the bakery lost money today</b>
+          <ul>
+            {[{ label: 'Ingredients', value: is.cogs }, ...is.opexLines.map((l) => ({ label: l.label, value: l.value }))]
+              .filter((l) => l.value > 0.5)
+              .sort((a, b) => b.value - a.value)
+              .slice(0, 3)
+              .map((l) => (
+                <li key={l.label}>
+                  {l.label}: <b>{money(l.value)}</b>
+                </li>
+              ))}
+          </ul>
+          <span className="small muted">Sales were {money(is.revenue)}. These were the biggest costs.</span>
+        </div>
+      )}
       <div className="report-mini">
         <span>
           <Sprite name="people" scale={2} /> {t.served} served of {t.customers}
@@ -415,6 +434,11 @@ export function DayReport() {
         </div>
         <p className="small">{WEATHER[s.market.tomorrow].tip}</p>
       </div>
+      {problem && (
+        <p className="big-problem-note">
+          <Sprite name="bell" scale={2} /> <b>Biggest thing to fix:</b> {problem.text}
+        </p>
+      )}
       {tryTomorrow(s) && (
         <p className="try-next">
           <Sprite name="spark" scale={2} /> <b>Try this tomorrow:</b> {tryTomorrow(s)}

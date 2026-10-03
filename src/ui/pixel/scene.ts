@@ -66,6 +66,9 @@ export const WALLS = [
   { name: 'Butter', c: '#f3f1cb', accent: '#eee3a8' },
   { name: 'Rose', c: '#f8e1e8', accent: '#f4b9cb' },
   { name: 'Lavender', c: '#ece4f5', accent: '#d6c8ea' },
+  { name: 'Mint', c: '#e2f3e8', accent: '#c3e4cf' },
+  { name: 'Lemon', c: '#fbf3c8', accent: '#f4e39a' },
+  { name: 'Dusk', c: '#e4e2f0', accent: '#c9c4e0' },
 ];
 export const PATTERNS = ['Stripes', 'Plain', 'Dots', 'Checks'];
 export const FLOORS = [
@@ -74,6 +77,9 @@ export const FLOORS = [
   { name: 'Terracotta', a: '#e0a57c', b: '#d69870', line: '#b9795a', tiles: true },
   { name: 'Dark wood', a: '#b98363', b: '#b98363', line: '#8f6249', tiles: false },
   { name: 'Pink tiles', a: '#f8e6ea', b: '#f1cfd8', line: '#e4b6c2', tiles: true },
+  { name: 'Blue tiles', a: '#e9f0f8', b: '#d3e0f0', line: '#b6c7de', tiles: true },
+  { name: 'Green tiles', a: '#e8f0d8', b: '#d3e2b8', line: '#b8cb98', tiles: true },
+  { name: 'Honey wood', a: '#e8c48e', b: '#e8c48e', line: '#c49a62', tiles: false },
 ];
 export const COUNTERS = [
   { name: 'Wood and green', body: '#d9b07a', top: '#4f7d46' },
@@ -81,6 +87,9 @@ export const COUNTERS = [
   { name: 'Blue', body: '#e1e8f5', top: '#8fb0bd' },
   { name: 'Wood', body: '#e0b072', top: '#a87545' },
   { name: 'Gold', body: '#f3e2b0', top: '#e3b23c' },
+  { name: 'Mint', body: '#e2f3e8', top: '#4f9d7a' },
+  { name: 'Marble', body: '#f3f2ee', top: '#9aa0a6' },
+  { name: 'Lavender', body: '#ece4f5', top: '#8a6fb8' },
 ];
 /** Where movable decorations can go (stage px, top-left of the sprite). */
 export const FLOOR_SPOTS = [

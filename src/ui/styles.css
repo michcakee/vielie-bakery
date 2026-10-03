@@ -6751,3 +6751,121 @@ html[data-motion='reduced'] .menu-cursor {
   background: var(--pink);
   box-shadow: var(--shadow);
 }
+
+/* Market: the four steps from buying to selling, and what to do right after a purchase. */
+.market-how {
+  border: 3px solid var(--ink);
+  border-radius: var(--r);
+  background: var(--butter);
+  padding: 8px 12px;
+}
+.market-how summary {
+  cursor: pointer;
+  font-family: var(--pixel);
+  font-size: 20px;
+}
+.flow-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  list-style: none;
+  margin: 8px 0 2px;
+  padding: 0;
+  counter-reset: flow;
+}
+.flow-steps li {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  text-align: center;
+  font-size: 15px;
+  line-height: 1.2;
+}
+.flow-steps li b {
+  font-family: var(--pixel);
+  font-size: 18px;
+}
+.flow-steps li:not(:last-child)::after {
+  content: '→';
+  position: absolute;
+  right: -10px;
+  top: 10px;
+  font-family: var(--pixel);
+  color: var(--crust);
+}
+@media (max-width: 560px) {
+  .flow-steps {
+    grid-template-columns: 1fr 1fr;
+  }
+  .flow-steps li:nth-child(2)::after {
+    content: '';
+  }
+}
+.bought-next {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0;
+  padding: 8px 10px;
+  border: 3px solid var(--ink);
+  border-radius: var(--r);
+  background: var(--aqua);
+}
+.bought-next span {
+  flex: 1;
+}
+.used-for {
+  color: var(--pine);
+}
+/* Kitchen: one line when every ingredient is in stock. */
+.recipe-line {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  color: var(--slate);
+}
+/* The biggest problem, at the top of the checklist and on the report. */
+.warnings li.big-problem {
+  background: var(--pink);
+}
+.big-problem-note {
+  padding: 8px 10px;
+  border: 3px solid var(--ink);
+  border-radius: var(--r);
+  background: var(--pink);
+}
+.why-loss {
+  margin: 8px 0;
+  padding: 8px 12px;
+  border: 3px solid var(--ink);
+  border-radius: var(--r);
+  background: var(--pink);
+}
+.why-loss ul {
+  margin: 4px 0;
+  padding-left: 18px;
+}
+/* Staff: who serves first. */
+.staff-mode {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.staff-mode .seg button {
+  flex: 1;
+}
+.tip-jar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0;
+  padding: 10px 12px;
+  border: 3px solid var(--ink);
+  border-radius: var(--r);
+  background: var(--butter);
+}
+.tip-jar > span {
+  display: grid;
+  flex: 1;
+}

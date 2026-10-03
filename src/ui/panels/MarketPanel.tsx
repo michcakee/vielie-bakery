@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useGuide } from '../Guide';
 import { BAGUETTE, INGREDIENTS, INGREDIENT_ORDER, LOYALTY, PRODUCTS, PRODUCT_ORDER, SUPPLIERS, SUPPLIER_ORDER } from '../../data/catalog';
 import { ECON } from '../../data/config';
 import { bulkDiscount, coldCapacity, dryCapacity, effectActive, inStock, levelOf, loyaltyDiscount, onMenu, packPrice, storageUse } from '../../engine/economy';
@@ -76,6 +77,8 @@ export function MarketPanel() {
   const [sup, setSup] = useState<SupplierId>('cho');
   const [size, setSize] = useState(1);
   const [pops, setPops] = useState<{ id: number; ing: IngredientId; n: number }[]>([]);
+  const [bought, setBought] = useState<{ ing: IngredientId; n: number; later: boolean } | null>(null);
+  const { showMe } = useGuide();
   const [editing, setEditing] = useState<IngredientId | null>(null);
   const [contract, setContract] = useState<{ ing: IngredientId; packs: number; weeks: number }>({ ing: 'flour', packs: 2, weeks: 8 });
   const shopping = canShop(s) && !s.events.length;
@@ -97,12 +100,47 @@ export function MarketPanel() {
       play('pop');
       const pop = { id: Date.now() + Math.random(), ing: id, n: INGREDIENTS[id].pack * packs };
       setPops((p) => [...p.slice(-4), pop]);
+      setBought({ ing: id, n: pop.n, later: SUPPLIERS[sup].leadDays > 0 });
       window.setTimeout(() => setPops((p) => p.filter((x) => x.id !== pop.id)), 900);
     } else if (before === s.pantry[id].qty + s.deliveries.length) play('oops');
   };
 
+  // Which recipes on the menu use each ingredient (flour also makes the baguettes for bánh mì).
+  const usedFor = (id: IngredientId) => {
+    const names = onMenu(s).filter((p) => PRODUCTS[p].recipe[id]).map((p) => PRODUCTS[p].name);
+    if (BAGUETTE.recipe[id]) names.unshift('Baguettes (for bánh mì)');
+    return names;
+  };
+  const newbie = s.allUnlocked === false && s.day <= 14;
+
   return (
     <div className="panel-stack">
+      <details className="market-how" open={newbie}>
+        <summary>How the market works</summary>
+        <ol className="flow-steps">
+          <li>
+            <Sprite name="bag" scale={3} />
+            <b>Buy</b>
+            <span>Tap a price to buy ingredients.</span>
+          </li>
+          <li>
+            <Sprite name="box" scale={3} />
+            <b>Store</b>
+            <span>They wait in your pantry: the shelf or the fridge.</span>
+          </li>
+          <li>
+            <Sprite name="hot" scale={3} />
+            <b>Bake</b>
+            <span>In the Kitchen, turn them into pastries and baguettes.</span>
+          </li>
+          <li>
+            <Sprite name="coin" scale={3} />
+            <b>Sell</b>
+            <span>Open the shop. Bánh mì and drinks use the pantry as you make them.</span>
+          </li>
+        </ol>
+      </details>
+
       <Card className="paper" title="Market news" icon="shop">
         <p className="headline">{s.market.headline}</p>
         {business && <p className="small muted">Ingredient prices overall are {((s.macro.priceIndex - 1) * 100).toFixed(1)}% higher than when you opened, from inflation.</p>}
@@ -112,7 +150,9 @@ export function MarketPanel() {
         <div className="storage">
           <div>
             <span className="small store-head">
-              <Sprite name="box" scale={2} /> <b>Dry shelf</b>: {list.filter((id) => !INGREDIENTS[id].cold).map((id) => INGREDIENTS[id].name.toLowerCase()).join(', ')}
+              <Sprite name="box" scale={2} /> <span>
+                <b>Dry shelf:</b> {list.filter((id) => !INGREDIENTS[id].cold).map((id) => INGREDIENTS[id].name.toLowerCase()).join(', ')}
+              </span>
             </span>
             <Meter value={dryUse / dryCap} tone={dryUse > dryCap ? 'bad' : dryUse > dryCap * 0.8 ? 'meh' : 'good'} label="Dry storage used" />
             <span className="tiny">
@@ -121,7 +161,9 @@ export function MarketPanel() {
           </div>
           <div>
             <span className="small store-head">
-              <Sprite name="ice" scale={2} /> <b>Fridge</b>: {list.filter((id) => INGREDIENTS[id].cold).map((id) => INGREDIENTS[id].name.toLowerCase()).join(', ')}
+              <Sprite name="ice" scale={2} /> <span>
+                <b>Fridge:</b> {list.filter((id) => INGREDIENTS[id].cold).map((id) => INGREDIENTS[id].name.toLowerCase()).join(', ')}
+              </span>
             </span>
             <Meter value={coldUse / coldCap} tone={coldUse > coldCap ? 'bad' : coldUse > coldCap * 0.8 ? 'meh' : 'good'} label="Cold storage used" />
             <span className="tiny">
@@ -173,6 +215,27 @@ export function MarketPanel() {
             </button>
           ))}
         </div>
+        {bought && (
+          <div className="bought-next" role="status">
+            <Sprite name={bought.ing} scale={2} />
+            <span>
+              {bought.later ? (
+                <>
+                  <b>Ordered!</b> {bought.n} {INGREDIENTS[bought.ing].unit}s of {INGREDIENTS[bought.ing].name.toLowerCase()} arrive tomorrow morning.
+                </>
+              ) : (
+                <>
+                  <b>Got it!</b> {bought.n} {INGREDIENTS[bought.ing].unit}s of {INGREDIENTS[bought.ing].name.toLowerCase()} went into your pantry. Next: bake with it in the Kitchen.
+                </>
+              )}
+            </span>
+            {!bought.later && (
+              <Btn kind="primary" onClick={() => showMe('kitchen', 'bake')}>
+                Go bake
+              </Btn>
+            )}
+          </div>
+        )}
         {!shopping && <p className="warn small">{s.events.length ? 'Answer today\'s news first.' : 'The market is closed while your shop is open.'}</p>}
         <ul className="market-list">
           {list.map((id) => {
@@ -213,6 +276,7 @@ export function MarketPanel() {
                       </span>
                     )}
                   </span>
+                  {usedFor(id).length > 0 && <span className="small used-for">For: {usedFor(id).join(', ')}</span>}
                   <span className="small muted">
                     {packs} pack{packs > 1 ? 's' : ''} = {d.pack * packs} {d.unit}s{d.spoil > 0 ? ` · ${business ? `loses ~${Math.round(d.spoil * 100)}% a night` : 'goes off over time'}` : ''}
                   </span>

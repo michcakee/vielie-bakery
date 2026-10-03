@@ -593,6 +593,8 @@ export interface GameState {
   bakeryName: string;
   /** What the player asked to be called. Stays on this device. */
   playerName?: string;
+  /** At the counter, staff leave new orders for the player first ('help') or take every order at once ('all'). */
+  staffMode?: 'help' | 'all';
   look: Look;
   day: number;
   phase: Phase;

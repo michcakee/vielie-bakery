@@ -1,4 +1,4 @@
-import { COSMETICS, owns, starsToSpend, type CosmeticDef } from '../data/cosmetics';
+import { COSMETICS, owns, STAR_CASH, starsToSpend, type CosmeticDef } from '../data/cosmetics';
 import { useGame } from './GameContext';
 import { Btn } from './kit';
 import { LookChanger } from './LookEditor';
@@ -53,6 +53,16 @@ export function StarShop() {
           );
         })}
       </ul>
+      <div className="tip-jar">
+        <Sprite name="coin" scale={3} />
+        <span>
+          <b>Bà’s tip jar</b>
+          <span className="small">Turn {STAR_CASH.stars}★ into ${STAR_CASH.cash} for the bakery, as often as you like.</span>
+        </span>
+        <Btn kind={stars >= STAR_CASH.stars ? 'primary' : 'plain'} disabled={stars < STAR_CASH.stars} onClick={() => dispatch({ type: 'starsForCash' })} sfx="coin">
+          {STAR_CASH.stars}★ → ${STAR_CASH.cash}
+        </Btn>
+      </div>
       <h2>Your look</h2>
       <LookChanger big={5} />
     </div>

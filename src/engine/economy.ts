@@ -315,7 +315,13 @@ export function willingToPay(s: GameState, p: ProductId, budget: number, quality
   if (ecoMinded) w *= 0.85 + (0.35 * ecoScore(s)) / 100;
   if (loyal) w *= ECON.demand.loyalWTP;
   // The daily special is a treat people came for: they pay its higher price as readily as the usual one.
-  return w * festivalWTP(s, p, seg) * specialMult(s, p);
+  return w * festivalWTP(s, p, seg) * specialMult(s, p) * openingWeek(s);
+}
+
+/** A brand-new guided bakery: neighbours are curious and a little more forgiving on price for the first days. */
+export function openingWeek(s: Pick<GameState, 'day' | 'allUnlocked'>): number {
+  if (s.allUnlocked !== false) return 1;
+  return s.day <= 3 ? 1.12 : s.day <= 5 ? 1.06 : 1;
 }
 
 export const specialMult = (s: Pick<GameState, 'special'>, p: ProductId) => (s.special === p ? ECON.service.dailySpecial.mult : 1);

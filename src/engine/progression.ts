@@ -1,5 +1,5 @@
 import { checkChallenge } from './challenge';
-import { DECOR, LEVELS, PRODUCTS, PRODUCT_ORDER, UNLOCK_SCHEDULE, UPGRADES } from '../data/catalog';
+import { DECOR, DECOR_ORDER, LEVELS, PRODUCTS, PRODUCT_ORDER, UNLOCK_SCHEDULE, UPGRADES } from '../data/catalog';
 import { ECON } from '../data/config';
 import { REGULARS } from '../data/people';
 import { move } from './accounting';
@@ -21,6 +21,8 @@ export interface QuestDef {
   rewardText: string;
   /** Hidden until this system unlocks. */
   needs?: FeatureId;
+  /** Hidden until this level: the legend goals after the last recipe. */
+  minLevel?: number;
 }
 
 const best = (s: GameState, f: (h: GameState['history'][number]) => number) => Math.max(0, ...s.history.map(f));
@@ -43,10 +45,32 @@ export const QUESTS: QuestDef[] = [
   { id: 'coffeeTime', title: 'Coffee time', text: 'Sell 200 cà phê sữa đá.', target: 200, progress: (s) => s.lifetime.sold.caPhe, reward: { cash: 120, xp: 60 }, rewardText: '$120' },
   { id: 'expand', needs: 'growth.equipment', title: 'Room to grow', text: 'Open the coffee corner.', target: 1, progress: (s) => (s.upgrades.includes('corner') ? 1 : 0), reward: { xp: 100, decor: 'rug' }, rewardText: 'A woven rug' },
   { id: 'secondShop', needs: 'growth.branches', title: 'Second shop', text: 'Open a second location.', target: 1, progress: (s) => s.branches.length, reward: { xp: 200 }, rewardText: 'Big XP' },
+  // ------------------------------------------------ legend goals: after the michcake, the bakery's big dreams
+  { id: 'legendMichcake', minLevel: 8, title: 'The legendary cake', text: 'Sell 100 michcakes.', target: 100, progress: (s) => s.lifetime.sold.michcake ?? 0, reward: { cash: 1000, xp: 300 }, rewardText: '$1,000' },
+  { id: 'legendStreak', minLevel: 8, title: 'Star streak', text: 'Earn 3 stars five days in a row.', target: 5, progress: (s) => starStreak(s), reward: { cash: 600, xp: 250 }, rewardText: '$600' },
+  { id: 'legendBigDay', minLevel: 8, title: 'A thousand-dollar day', text: 'Sell $1,000 in a single day.', target: 1000, progress: (s) => Math.floor(best(s, (h) => h.revenue)), reward: { cash: 800, xp: 250 }, rewardText: '$800' },
+  { id: 'legendGold', minLevel: 8, title: 'Everyone’s favourite', text: 'Earn gold badges from 3 regulars.', target: 3, progress: (s) => s.questProgress.goldRegulars ?? 0, reward: { cash: 700, xp: 250 }, rewardText: '$700' },
+  { id: 'legendDecor', minLevel: 8, needs: 'growth.decor', title: 'Dream shop', text: 'Own every decoration.', target: DECOR_ORDER.length, progress: (s) => DECOR_ORDER.filter((d) => s.decor.includes(d)).length, reward: { cash: 500, xp: 200 }, rewardText: '$500' },
+  { id: 'legendCommunity', minLevel: 8, title: 'Heart of the lane', text: 'Reach community 90.', target: 90, progress: (s) => Math.floor(s.community), reward: { cash: 600, xp: 250 }, rewardText: '$600' },
+  { id: 'legendServed', minLevel: 8, title: 'Ten thousand smiles', text: 'Serve 10,000 customers in all.', target: 10000, progress: (s) => s.lifetime.served, reward: { cash: 1500, xp: 400 }, rewardText: '$1,500' },
 ];
 
+/** The longest run of 3-star days so far. */
+function starStreak(s: GameState): number {
+  let run = 0;
+  let longest = 0;
+  for (const h of s.history) {
+    run = h.stars === 3 ? run + 1 : 0;
+    longest = Math.max(longest, run);
+  }
+  return longest;
+}
+
 export function activeQuests(s: GameState, n = 3): QuestDef[] {
-  return QUESTS.filter((q) => !s.quests.includes(q.id) && (!q.needs || featureOn(s, q.needs))).slice(0, n);
+  const level = levelOf(s.xp);
+  const open = QUESTS.filter((q) => !s.quests.includes(q.id) && (!q.needs || featureOn(s, q.needs)) && (q.minLevel ?? 0) <= level);
+  // Legend goals go first once they open, so they aren't hidden behind an old, slow quest.
+  return [...open.filter((q) => q.minLevel), ...open.filter((q) => !q.minLevel)].slice(0, n);
 }
 
 export interface AchievementDef {

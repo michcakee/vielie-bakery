@@ -165,7 +165,7 @@ export function IntroCard() {
 export const TAB_HELP: Record<TabId, { what: string; icon: string }> = {
   today: { what: 'Your day at a glance. Check the goal, then open the doors!', icon: 'house' },
   kitchen: { what: 'Bake trays for the pastry case and set your prices.', icon: 'hot' },
-  market: { what: 'Buy ingredients. No flour, no bread!', icon: 'bag' },
+  market: { what: 'Buy ingredients here. They go in your pantry, then you bake them in the Kitchen', icon: 'bag' },
   staff: { what: 'Hire helpers when customers give up waiting.', icon: 'people' },
   customers: { what: 'Who comes in, what they love, and the bakeries you compete with.', icon: 'heart' },
   growth: { what: 'Spend money to make more money: ovens, decorations, more shops.', icon: 'plant' },

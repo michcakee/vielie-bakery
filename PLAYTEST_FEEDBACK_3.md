@@ -56,3 +56,20 @@ No crashes, invalid numbers or broken events turned up in about 900 simulated da
 6. **Shorter Kitchen rows on phones:** fold the ingredient chips into one line ("4 ingredients, all in stock") that opens on tap.
 7. **Make "wait for the repair" say "no pastries for 4 days"** when it's your only oven.
 8. **Ease day-1 prices** slightly (5–10%) so the first impression is happy customers, and let the price lesson do the teaching.
+
+## Follow-up: what was changed (same day)
+
+| Finding | Change |
+| --- | --- |
+| Everything over by day 90–100 | Levels 3–8 need more XP (L8 at 21,000), so the michcake lands around day 130–155; seven **legend goals** open at level 8 and are listed first. |
+| Business stops growing | `biggestProblem` (`src/engine/advice.ts`) names the bottleneck on Today and the report: an empty case points to a baker when the oven has spare room, or to the next oven (with a "you'll also need a baker" note) when it doesn't. Growth's oven cards say the same. |
+| Hiring takes the game away | Staff mode "leaves orders for me first" (default): the two oldest orders wait up to 20 game minutes for the player; everything else is served at once. An order the player opens is claimed and never taken. "Takes every order" is one tap away. Campaign check: hand-made orders went from 1–9 to 11–17 a day, with no rise in people giving up. |
+| Stars pile up | Nine more paints (22–75★) and a repeatable tip jar (10★ → $150). |
+| Over-hiring bankrupts you | Hire asks for confirmation when Bà thinks the person won't pay; losing-money advice names wages; the report lists the biggest costs on a losing day. In the rerun, none of the three campaigns went bankrupt (the keen one ended day 421 with about $47,800). |
+| Only oven out for 4 days | The "wait" choice now says "Your only oven: no pastries and no new baguettes for 4 days." |
+| A third of day-1 customers say "too expensive" | Guided games: +12% willingness to pay on days 1–3, +6% on days 4–5. |
+| Long Kitchen rows | A recipe row is one line when every ingredient is in stock. |
+| Market confusing for young players | A four-step "how the market works" strip, "For:" on every ingredient, a "Go bake" next step after buying, and a second lesson step that has you bake. Lesson wording reworked for contracts, the safety fund, equipment, the plan, training, combos, ads, packaging and the Test Kitchen. |
+| Investors teaser said level 3 | Now says level 5, which is the real gate. |
+
+Not changed: two stars on most days (the 3-star goal is 1.2× your recent average, which is meant to need a great day), and the floating "Open the shop" button.

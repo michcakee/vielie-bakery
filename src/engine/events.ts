@@ -68,6 +68,12 @@ function oldestEquipment(s: GameState) {
   return [...s.equipment].filter((e) => !e.broken && UPGRADES[e.kind].group !== 'room').sort((a, b) => a.boughtDay - b.boughtDay)[0] ?? null;
 }
 
+/** True when this piece of equipment is the only working oven. */
+function onlyOven(s: GameState, uid: number): boolean {
+  const ovens = s.equipment.filter((q) => !q.broken && (UPGRADES[q.kind].trays ?? 0) > 0);
+  return ovens.length === 1 && ovens[0].uid === uid;
+}
+
 export const EVENTS: Record<string, EventDef> = {
   coffeeRumour: {
     id: 'coffeeRumour',
@@ -475,7 +481,7 @@ export const EVENTS: Record<string, EventDef> = {
       const repair = Math.round(e.cost * 0.22);
       return [
         { id: 'repair', label: `Repair it (${money(repair)})`, detail: 'Back to work today.', cost: repair, apply: (x) => paid(x, repair, false, (y) => y, 'maintenance') },
-        { id: 'wait', label: `Cheaper repair in 4 days (${money(Math.round(repair * 0.4))})`, detail: 'Do without it until then.', apply: (x) => addEffect({ ...x, equipment: x.equipment.map((q) => (q.uid === e.uid ? { ...q, broken: true } : q)), upgrades: refreshKinds(x.equipment.map((q) => (q.uid === e.uid ? { ...q, broken: true } : q))) }, 'repairDue', 4, { uid: e.uid, cost: Math.round(repair * 0.4) }) },
+        { id: 'wait', label: `Cheaper repair in 4 days (${money(Math.round(repair * 0.4))})`, detail: onlyOven(s, e.uid) ? 'Your only oven: no pastries and no new baguettes for 4 days.' : 'Do without it until then.', apply: (x) => addEffect({ ...x, equipment: x.equipment.map((q) => (q.uid === e.uid ? { ...q, broken: true } : q)), upgrades: refreshKinds(x.equipment.map((q) => (q.uid === e.uid ? { ...q, broken: true } : q))) }, 'repairDue', 4, { uid: e.uid, cost: Math.round(repair * 0.4) }) },
       ];
     },
   },

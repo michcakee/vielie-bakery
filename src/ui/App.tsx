@@ -301,11 +301,14 @@ function Game({ onQuit }: { onQuit: () => void }) {
           <div className="scene-box">
           <BakeryScene
             onCustomer={(v) => {
-              if (v.servedBy) return;
+              if (v.servedBy && v.servedBy !== 'player') return;
               if (PRODUCTS[v.wants].kind === 'tray') {
                 play('coin');
                 dispatch({ type: 'serve', visitId: v.id });
-              } else setActiveId(v.id);
+              } else {
+                dispatch({ type: 'claim', visitId: v.id });
+                setActiveId(v.id);
+              }
             }}
           />
           {s.phase === 'morning' && !intro && s.events.length === 0 && !tutorialOn(s) && (

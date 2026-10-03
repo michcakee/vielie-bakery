@@ -209,6 +209,12 @@ function Game({ onQuit }: { onQuit: () => void }) {
     [drawer, activeId, tab, s.phase],
   );
 
+  // Whatever tab you're looking at counts as seen: its NEW badges clear.
+  const newHere = (s.newFeatures ?? []).some((f) => FEATURE[f].tab === tab);
+  useEffect(() => {
+    if (newHere && s.phase !== 'service') dispatch({ type: 'hint', id: `tab:${tab}` });
+  }, [newHere, tab, s.phase, dispatch]);
+
   const rate = (prefs.relaxed ? 4 : 6) * speed;
   const running = s.phase === 'service' && !paused && !hidden && drawer === null;
   useServiceClock(running, rate);

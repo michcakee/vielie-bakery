@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useLayoutEffect, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useState, type ReactNode } from 'react';
 import { FEATURE, type TabId } from '../data/unlocks';
 import { introStep } from '../engine/unlocks';
 import { useGame } from './GameContext';
@@ -19,6 +19,7 @@ export const useGuide = () => useContext(GuideCtx);
 export function GuideProvider({ goTo, children }: { goTo: (t: TabId) => void; children: ReactNode }) {
   const [spot, setSpot] = useState<string | null>(null);
   const { state: s } = useGame();
+  const endSpot = useCallback(() => setSpot(null), []);
   const showMe = (tab?: TabId, anchor?: string) => {
     if (tab) goTo(tab);
     setSpot(anchor ?? null);
@@ -29,7 +30,7 @@ export function GuideProvider({ goTo, children }: { goTo: (t: TabId) => void; ch
   return (
     <GuideCtx.Provider value={{ showMe }}>
       {children}
-      {spot && <Spotlight anchor={spot} onDone={() => setSpot(null)} />}
+      {spot && <Spotlight anchor={spot} onDone={endSpot} />}
     </GuideCtx.Provider>
   );
 }
@@ -93,7 +94,8 @@ export function IntroCard() {
   const { state: s, dispatch, prefs } = useGame();
   const { showMe } = useGuide();
   const intro = s.intro;
-  if (!intro?.active || (s.phase !== 'morning' && s.phase !== 'report')) return null;
+  // One voice at a time: a morning event is answered first, then the intro quest speaks.
+  if (!intro?.active || s.events.length > 0 || (s.phase !== 'morning' && s.phase !== 'report')) return null;
   const f = FEATURE[intro.active];
   const at = introStep(s);
   return (

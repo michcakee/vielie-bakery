@@ -307,7 +307,7 @@ export function ServicePanel({ paused, setPaused, speed, setSpeed, activeId, set
           const n = PRODUCTS[p].kind === 'tray' ? s.display[p].qty : makeable(s, p);
           return (
             <span key={p} className={`stock-chip ${n === 0 ? 'out' : n < 4 ? 'low' : ''}`} title={PRODUCTS[p].name}>
-              <Sprite name={p} scale={2} />
+              <Sprite name={PRODUCTS[p].kind === 'tray' && n > 0 && s.display[p].quality < 45 ? `${p}:burnt` : p} scale={2} />
               <b>{n}</b>
               {n === 0 && <span className="sr-only">sold out</span>}
             </span>

@@ -24,8 +24,8 @@ function EmployeeRow({ e }: { e: Employee }) {
           {e.name} <span className="muted">· {ROLES[e.role].name}</span>
         </b>
         <span className="small">
-          Skill {'★'.repeat(e.skill)}
-          {'☆'.repeat(5 - e.skill)} · productivity {Math.round(prod * 100)}% · {e.served} served · since day {e.hiredDay}
+          Skill {Array.from({ length: e.skill }).map((_, i) => (<span key={i} className="star-on"><Sprite name="star" scale={2} /></span>))}
+          {Array.from({ length: 5 - e.skill }).map((_, i) => (<span key={i} className="star-off"><Sprite name="star" scale={2} /></span>))} · productivity {Math.round(prod * 100)}% · {e.served} served · since day {e.hiredDay}
         </span>
         <span className="small">Morale</span>
         <Meter value={e.morale / 100} tone={e.morale < 35 ? 'bad' : e.morale < 60 ? 'meh' : 'good'} label={`${e.name}'s morale`} />
@@ -145,8 +145,8 @@ export function StaffPanel() {
                       {a.name} <span className="muted">· {ROLES[a.role].name}</span>
                     </b>
                     <span className="small">
-                      Skill {'★'.repeat(a.skill)}
-                      {'☆'.repeat(5 - a.skill)} · asks {money2(a.wage)}/hour
+                      Skill {Array.from({ length: a.skill }).map((_, i) => (<span key={i} className="star-on"><Sprite name="star" scale={2} /></span>))}
+                      {Array.from({ length: 5 - a.skill }).map((_, i) => (<span key={i} className="star-off"><Sprite name="star" scale={2} /></span>))} · asks {money2(a.wage)}/hour
                     </span>
                     <span className="small">{ROLES[a.role].blurb}</span>
                     <span className="small marginal">

@@ -1405,11 +1405,13 @@ kbd {
 }
 .sparkles::before,
 .sparkles::after {
-  content: '✦';
+  content: '';
   position: absolute;
-  color: var(--peach);
-  font-size: 20px;
-  text-shadow: 0 0 4px #fff;
+  width: 16px;
+  height: 10px;
+  background: var(--px-spark) no-repeat;
+  background-size: 16px 10px;
+  image-rendering: pixelated;
   /* 0.8 s per on/off cycle = 1.25 flashes a second, under the 3/s seizure-safety limit */
   animation: twinkle 0.8s steps(2) infinite;
 }
@@ -2931,7 +2933,7 @@ textarea {
   height: auto !important;
 }
 .ext-walker .person-sprite {
-  aspect-ratio: 12 / 19;
+  aspect-ratio: 16 / 24;
   height: auto !important;
   background-size: 200% 100% !important;
   /* The sprite is sized in %, so the walk frame must step by a frame width in %, not the inline px. */
@@ -4633,4 +4635,18 @@ html[data-motion='reduced'] .hud-stat.cash img {
 .touch-spark .s3 {
   --dx: 14px;
   --dy: 8px;
+}
+
+/* ---------- Phase 3: sprite cells ---------- */
+.flip-x {
+  transform: scaleX(-1);
+}
+.star-on,
+.star-off {
+  display: inline-block;
+  line-height: 0;
+}
+.star-off {
+  opacity: 0.25;
+  filter: grayscale(1);
 }

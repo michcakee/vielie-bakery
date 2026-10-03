@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react';
 import type { Look } from '../../engine/types';
-import { personSheet, spriteURL } from './render';
+import { personSheet, spriteURL, PERSON_W } from './render';
 
 interface Props {
   name: string;
@@ -38,11 +38,11 @@ export function Person({ look, scale = 2, walking = false, className, style, lab
       aria-hidden={label ? undefined : true}
       className={`person-sprite ${walking ? 'is-walking' : ''} ${className ?? ''}`}
       style={{
-        width: 12 * scale,
+        width: PERSON_W * scale,
         height: s.h * scale,
         backgroundImage: s.url ? `url(${s.url})` : undefined,
-        backgroundSize: `${24 * scale}px ${s.h * scale}px`,
-        ['--step' as string]: `${-12 * scale}px`,
+        backgroundSize: `${PERSON_W * 2 * scale}px ${s.h * scale}px`,
+        ['--step' as string]: `${-PERSON_W * scale}px`,
         ...style,
       }}
     />

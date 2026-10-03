@@ -38,17 +38,40 @@ function makeCanvas(w: number, h: number): [HTMLCanvasElement, CanvasRenderingCo
 
 const EMPTY = { url: '', w: 16, h: 16 };
 
+/** Burnt food: every warm colour drops to its charred neighbour. */
+const BURNT: Record<string, string> = { y: 'K', Y: 'K', k: 'K', K: 'N', b: 'N', n: 'N', w: 'E', c: 'E', e: 'E', l: 'G', g: 'G', G: 'o', p: 'u', P: 'u', r: 'R', R: 'o', i: 'E', I: 'E', t: 'G' };
+
+function variantRows(rows: string[], variant: string | undefined, w: number): string[] {
+  if (variant === 'burnt') return rows.map((r) => [...r].map((ch) => BURNT[ch] ?? ch).join(''));
+  if (variant === 'perfect') {
+    // a few sparkle pixels in the empty corners
+    const out = rows.map((r) => r.padEnd(w, '.'));
+    const dots: [number, number][] = [[1, 1], [w - 2, 2], [2, rows.length - 3], [w - 3, rows.length - 2]];
+    for (const [x, y] of dots) if (out[y] && out[y][x] === '.') out[y] = out[y].slice(0, x) + 'y' + out[y].slice(x + 1);
+    return out;
+  }
+  return rows;
+}
+
+/**
+ * Every sprite is drawn into a fixed cell so items line up: 16-wide art becomes a 16×16 cell,
+ * 8-wide icons an 8×8 cell (centred); other props keep their size. `name:burnt` and
+ * `name:perfect` are variants of the same drawing.
+ */
 export function spriteURL(name: string): { url: string; w: number; h: number } {
   const hit = cache.get(name);
   if (hit) return hit;
-  const rows = SPRITES[name];
-  if (!rows) return EMPTY;
-  const w = Math.max(...rows.map((r) => r.length));
-  const h = rows.length;
-  const made = makeCanvas(w, h);
-  if (!made) return { ...EMPTY, w, h };
-  paint(made[1], [rows], SPRITE_COLORS);
-  const out = { url: made[0].toDataURL(), w, h };
+  const [base, variant] = name.split(':');
+  const raw = SPRITES[base];
+  if (!raw) return EMPTY;
+  const w = Math.max(...raw.map((r) => r.length));
+  const h = raw.length;
+  const cw = w === 16 ? 16 : w === 8 ? 8 : w;
+  const ch = w === 16 ? 16 : w === 8 ? 8 : h;
+  const made = makeCanvas(cw, ch);
+  if (!made) return { ...EMPTY, w: cw, h: ch };
+  paint(made[1], [variantRows(raw, variant, w)], SPRITE_COLORS, Math.floor((cw - w) / 2), Math.floor((ch - h) / 2));
+  const out = { url: made[0].toDataURL(), w: cw, h: ch };
   cache.set(name, out);
   return out;
 }
@@ -126,22 +149,26 @@ function personColors(look: Look): Record<string, string> {
 
 const lookKey = (l: Look) => `${l.skin}.${l.hair}.${l.hairColor}.${l.shirt}.${l.apron}.${l.accessory}`;
 
-/** Two-frame sprite sheet (idle/step) for a character, 24×19. */
+/** Person cell: two cells tall, feet on the cell's bottom row. */
+export const PERSON_W = 16;
+export const PERSON_H = 24;
+
+/** Two-frame sprite sheet (idle/step) for a character, two 16×24 cells side by side. */
 export function personSheet(look: Look): { url: string; w: number; h: number } {
   const key = `person:${lookKey(look)}`;
   const hit = cache.get(key);
   if (hit) return hit;
-  const made = makeCanvas(24, 19);
-  if (!made) return { url: '', w: 24, h: 19 };
+  const made = makeCanvas(PERSON_W * 2, PERSON_H);
+  if (!made) return { url: '', w: PERSON_W * 2, h: PERSON_H };
   const colors = personColors(look);
   const hair = HAIR[look.hair % HAIR.length];
   const acc = ACCESSORIES[look.accessory % ACCESSORIES.length];
   const longBehind = look.hair % HAIR.length === 3;
   for (const [i, legs] of [LEGS_A, LEGS_B].entries()) {
     const layers = longBehind ? [hair, [...BODY, ...legs], hair.slice(0, 5), acc] : [[...BODY, ...legs], hair, acc];
-    paint(made[1], layers, colors, i * 12, 0);
+    paint(made[1], layers, colors, i * PERSON_W + 2, PERSON_H - 19);
   }
-  const out = { url: made[0].toDataURL(), w: 24, h: 19 };
+  const out = { url: made[0].toDataURL(), w: PERSON_W * 2, h: PERSON_H };
   cache.set(key, out);
   return out;
 }

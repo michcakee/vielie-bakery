@@ -6,6 +6,7 @@ import { lightPhase } from '../../engine/time';
 import type { GameState, Mood, ProductId, Visit } from '../../engine/types';
 import { useGame } from '../GameContext';
 import { drawCounter, drawRoom, LAYOUT, STAGE_H, STAGE_W, type Light, type SceneOpts } from '../pixel/scene';
+import { PERSON_H } from '../pixel/render';
 import { Person, Sprite } from '../pixel/Sprite';
 import { money2 } from '../../lib/format';
 
@@ -186,11 +187,11 @@ export function BakeryScene({ onCustomer, baking = false, caption }: Props) {
 
         {/* staff */}
         {s.staff.some((e) => e.branch === null && e.role === 'cashier') && (
-          <div className="staff bob" style={{ left: LAYOUT.helper.x, top: LAYOUT.helper.feet - 19 }}>
+          <div className="staff bob" style={{ left: LAYOUT.helper.x, top: LAYOUT.helper.feet - PERSON_H }}>
             <Person look={{ skin: 1, hair: 1, hairColor: 6, shirt: 6, apron: 1, accessory: 5 }} scale={1} />
           </div>
         )}
-        <div className={`staff player ${open ? 'bob' : ''}`} style={{ left: LAYOUT.player.x, top: LAYOUT.player.feet - 19 }}>
+        <div className={`staff player ${open ? 'bob' : ''}`} style={{ left: LAYOUT.player.x, top: LAYOUT.player.feet - PERSON_H }}>
           <Person look={s.look} scale={1} />
         </div>
 
@@ -200,7 +201,7 @@ export function BakeryScene({ onCustomer, baking = false, caption }: Props) {
         <div className="case" style={{ left: LAYOUT.case.x + 1, top: LAYOUT.case.y + 2 }}>
           {trays.map((p) => (
             <div key={p} className="case-item">
-              <Sprite name={p} scale={1} className={s.display[p].fresh && s.display[p].fresh! >= s.day * 100 ? 'fresh' : ''} />
+              <Sprite name={s.display[p].quality < 45 ? `${p}:burnt` : s.display[p].quality >= 95 ? `${p}:perfect` : p} scale={1} className={s.display[p].fresh && s.display[p].fresh! >= s.day * 100 ? 'fresh' : ''} />
               <span className="case-count">{s.display[p].qty}</span>
             </div>
           ))}
@@ -225,7 +226,7 @@ export function BakeryScene({ onCustomer, baking = false, caption }: Props) {
 
         {/* customers */}
         {placed.map(({ v, x, walking, leaving }) => {
-          const top = LAYOUT.queueY - 19;
+          const top = LAYOUT.queueY - PERSON_H;
           const waiting = v.status === 'waiting';
           const patience = waiting ? 1 - (clock - (v.waitStart ?? clock)) / v.patience : 1;
           return (

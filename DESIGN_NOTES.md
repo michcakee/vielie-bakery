@@ -292,3 +292,12 @@ Hooks added to game logic: none
 Known issues: bánh bao, chè and mooncake have no sprite yet (Phase 3); border-image panels can't show rounded CSS corners, so everything is pixel-notched by design
 Next step proposed: Phase 3 (fixed 16×16 cells, missing sprites, burnt and perfect variants, glyphs to sprites)
 ```
+
+```
+Phase 3 – done
+Changed: src/ui/pixel/render.ts (fixed 16×16 / 8×8 cells, :burnt and :perfect variants, 16×24 person cells), src/ui/pixel/Sprite.tsx, src/ui/pixel/sprites.ts (bánh bao, chè, mooncake, pork, beans, pandan, lotus), src/ui/scene/BakeryScene.tsx (feet on the floor, burnt/perfect trays in the case), src/ui/panels/ServicePanel.tsx (burnt chips), src/ui/panels/StaffPanel.tsx + src/ui/LookEditor.tsx + styles (★☆‹›✦ glyphs replaced by sprites)
+New assets: none (all drawn in code)
+Hooks added to game logic: none (burnt = tray quality under 45, perfect = 95+, both already in state)
+Known issues: light direction and per-material shade counts were not hand-audited across all 97 sprites; night-sky colours are approximations
+Next step proposed: Phase 4 (oven ding, burnt smoke, coin arc, customer hop, level-up confetti, new sounds)
+```

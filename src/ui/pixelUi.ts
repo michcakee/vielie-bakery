@@ -61,6 +61,8 @@ export function initPixelUi() {
     root.setProperty(`--px-${name}`, toURL(panelRows(true), { o: ink, f: fill, s: ink }));
     root.setProperty(`--px-${name}-flat`, toURL(panelRows(false), { o: ink, f: fill, s: ink }));
   }
+  const spark = spriteURL('spark');
+  if (spark.url) root.setProperty('--px-spark', `url(${spark.url})`);
   // cursor: a small pointing hand, hotspot at the fingertip
   const hand = spriteURL('cursorHand');
   if (hand.url) root.setProperty('--px-cursor', `url(${hand.url}) 4 1`);

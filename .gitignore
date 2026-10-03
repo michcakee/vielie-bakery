@@ -19,3 +19,4 @@ coverage
 key.properties
 google-services.json
 GoogleService-Info.plist
+.playwright-mcp/

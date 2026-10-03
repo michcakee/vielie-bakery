@@ -1,22 +1,22 @@
 /* Viet Bake Shop v2: warm pixel-art cozy UI */
 :root {
-  /* pastel-16 by polyphrog (Lospec): the only colours allowed in UI chrome */
-  --ink: #58525a;
-  --slate: #777f8f;
-  --stone: #a2a6a9;
-  --oat: #d6cec2;
-  --cream: #eeede3;
-  --peach: #f5d1b6;
-  --apricot: #eab281;
-  --crust: #bf796d;
-  --butter: #e3e19f;
-  --rose: #ea7286;
-  --pink: #f4a4bf;
-  --lavender: #a07ca7;
-  --periwinkle: #a3b2d2;
-  --aqua: #bfded8;
-  --matcha: #a9c484;
-  --pine: #5d937b;
+  /* Garden bakery palette: sage and forest greens, warm cream and wood. The only colours allowed in UI chrome. */
+  --ink: #3e4a36;
+  --slate: #6b7560;
+  --stone: #aab39a;
+  --oat: #e2d6b4;
+  --cream: #f7f0dc;
+  --peach: #f2e2bd;
+  --apricot: #e0b072;
+  --crust: #a87545;
+  --butter: #eee3a8;
+  --rose: #d97a62;
+  --pink: #efb6a0;
+  --lavender: #9c8fb4;
+  --periwinkle: #b8cfd6;
+  --aqua: #dde7c4;
+  --matcha: #9dbf78;
+  --pine: #4f7d46;
   /* legacy names still used across the stylesheet, mapped onto the palette */
   --ink-soft: var(--slate);
   --muted: var(--slate);
@@ -65,8 +65,8 @@ body {
   color: var(--ink);
   background-color: var(--bg);
   background-image:
-    radial-gradient(circle at 12px 12px, rgba(79, 156, 148, 0.13) 3px, transparent 4px),
-    radial-gradient(circle at 0 0, rgba(194, 69, 61, 0.08) 4px, transparent 5px),
+    radial-gradient(circle at 12px 12px, rgba(111, 158, 88, 0.14) 3px, transparent 4px),
+    radial-gradient(circle at 0 0, rgba(224, 176, 114, 0.14) 4px, transparent 5px),
     linear-gradient(45deg, rgba(255, 255, 255, 0.25) 25%, transparent 25%, transparent 75%, rgba(255, 255, 255, 0.25) 75%);
   background-size: 24px 24px, 24px 24px, 48px 48px;
   min-height: 100vh;
@@ -5333,7 +5333,7 @@ html[data-motion='reduced'] .title-logo span {
   gap: 4px;
   margin: 0 0 10px;
   padding: 8px 10px;
-  background: var(--butter, #e3e19f);
+  background: var(--butter, #eee3a8);
   border: 3px solid var(--ink);
   border-radius: var(--r);
   box-shadow: var(--shadow-sm);
@@ -5395,7 +5395,7 @@ html[data-motion='reduced'] .title-logo span {
   background: var(--butter);
 }
 .special-tag.twist-rush {
-  background: var(--pink, #f4a4bf);
+  background: var(--pink, #efb6a0);
 }
 /* The ingredient this customer doesn't want: still on the counter, but crossed out. */
 .step-btn.left-out {
@@ -5532,8 +5532,8 @@ html[data-motion='reduced'] .title-logo span {
 }
 .paint-btn {
   position: absolute;
-  right: 10px;
-  top: 10px;
+  left: 10px;
+  bottom: 12px;
   z-index: 4;
   display: inline-flex;
   gap: 4px;

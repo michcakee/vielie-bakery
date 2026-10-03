@@ -104,8 +104,8 @@ const STYLES: HairStyle[] = [
       g.ellipse(20.8, 20, 2.6, 6.5, h, 'hair');
     },
     extra: (g, h) => {
-      g.rect(1, 13, 3, 14, '#ea7286', 'acc');
-      g.rect(20, 13, 22, 14, '#ea7286', 'acc');
+      g.rect(1, 13, 3, 14, '#d97a62', 'acc');
+      g.rect(20, 13, 22, 14, '#d97a62', 'acc');
       g.set(12, 2, h, 'hair');
       g.set(13, 1, h, 'hair');
       g.set(14, 1, h, 'hair');
@@ -143,7 +143,7 @@ function accessory(g: Grid, id: number) {
     }
     case 3: {
       // Moto helmet
-      const c = '#5d937b';
+      const c = '#4f7d46';
       g.ellipse(CX, 10, 10.8, 8.4, c, 'acc', (_x, y) => y <= 11);
       g.row(12, 1, 22, mix(c, INK, 0.45), 'acc');
       g.row(5, 6, 9, mix(c, '#ffffff', 0.6), 'acc');
@@ -154,7 +154,7 @@ function accessory(g: Grid, id: number) {
       // Baker's hat: a puffy top and a band
       g.ellipse(CX, 3.5, 8, 3.6, '#ffffff', 'acc');
       g.rect(5, 5, 18, 8, '#ffffff', 'acc');
-      g.row(8, 5, 18, '#d6cec2', 'acc');
+      g.row(8, 5, 18, '#e2d6b4', 'acc');
       for (const x of [8, 12, 16]) g.rect(x, 5, x, 6, '#e6e0d6', 'acc');
       break;
     }

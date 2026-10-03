@@ -40,23 +40,23 @@ function toURL(rows: string[], colors: Record<string, string>): string {
 }
 
 const FILLS: Record<string, string> = {
-  cream: '#eeede3',
-  peach: '#f5d1b6',
+  cream: '#f7f0dc',
+  peach: '#f2e2bd',
   white: '#ffffff',
-  aqua: '#bfded8',
-  rose: '#ea7286',
-  periwinkle: '#a3b2d2',
-  matcha: '#a9c484',
-  stone: '#a2a6a9',
-  butter: '#e3e19f',
-  pink: '#f4a4bf',
+  aqua: '#dde7c4',
+  rose: '#d97a62',
+  periwinkle: '#b8cfd6',
+  matcha: '#9dbf78',
+  stone: '#aab39a',
+  butter: '#eee3a8',
+  pink: '#efb6a0',
 };
 
 /** Set every panel and cursor as a CSS variable on <html>. Safe to call once at start-up. */
 export function initPixelUi() {
   if (typeof document === 'undefined') return;
   const root = document.documentElement.style;
-  const ink = '#58525a';
+  const ink = '#3e4a36';
   for (const [name, fill] of Object.entries(FILLS)) {
     root.setProperty(`--px-${name}`, toURL(panelRows(true), { o: ink, f: fill, s: ink }));
     root.setProperty(`--px-${name}-flat`, toURL(panelRows(false), { o: ink, f: fill, s: ink }));
@@ -71,7 +71,7 @@ export function initPixelUi() {
 /** Palette confetti from the top of the screen for level-ups. Skipped under reduced motion. */
 export function confetti(count = 28) {
   if (typeof document === 'undefined' || document.documentElement.dataset.motion === 'reduced') return;
-  const colours = ['#ea7286', '#f4a4bf', '#e3e19f', '#a9c484', '#a3b2d2', '#eab281', '#bfded8'];
+  const colours = ['#d97a62', '#efb6a0', '#eee3a8', '#9dbf78', '#b8cfd6', '#e0b072', '#dde7c4'];
   const box = document.createElement('div');
   box.className = 'confetti';
   for (let i = 0; i < count; i++) {

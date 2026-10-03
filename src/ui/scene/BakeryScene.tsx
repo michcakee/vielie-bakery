@@ -3,9 +3,9 @@ import { CONFIG, PRODUCTS } from '../../data/catalog';
 import { translate } from '../../data/people';
 import { competitorOpen, isTet, onMenu } from '../../engine/economy';
 import { lightPhase } from '../../engine/time';
-import type { GameState, Mood, ProductId, Visit } from '../../engine/types';
+import type { GameState, Look, Mood, ProductId, RoleId, Visit } from '../../engine/types';
 import { useGame } from '../GameContext';
-import { drawCounter, drawRoom, LAYOUT, STAGE_H, STAGE_W, type Light, type SceneOpts } from '../pixel/scene';
+import { drawCounter, drawRoom, LAMPS_X, LAYOUT, STAGE_H, STAGE_W, type Light, type SceneOpts } from '../pixel/scene';
 import { PERSON_H } from '../pixel/render';
 import { Person, Sprite } from '../pixel/Sprite';
 import { money2 } from '../../lib/format';
@@ -64,6 +64,121 @@ function useStageScale(ref: React.RefObject<HTMLDivElement>) {
     return () => ro.disconnect();
   }, [ref]);
   return scale;
+}
+
+/** Bà's look: grey bun, glasses, green apron. */
+export const BA_LOOK: Look = { skin: 1, hair: 1, hairColor: 6, shirt: 5, apron: 0, accessory: 1 };
+
+/** Where each kind of worker stands when they aren't serving anyone (stage px; feet = bottom). */
+const STATIONS: Record<RoleId | 'ba', { x: number; feet: number }> = {
+  cashier: { x: 196, feet: 106 },
+  helper: { x: 160, feet: 104 },
+  barista: { x: 170, feet: 100 },
+  cook: { x: 140, feet: 104 },
+  baker: { x: 213, feet: 103 },
+  pastryChef: { x: 222, feet: 105 },
+  manager: { x: 124, feet: 104 },
+  marketer: { x: 34, feet: 110 },
+  delivery: { x: 8, feet: 98 },
+  ba: { x: 152, feet: 104 },
+};
+
+interface Worker {
+  id: string;
+  role: RoleId | 'ba';
+  look: Look;
+  name: string;
+  home: { x: number; feet: number };
+  serving: Visit | null;
+  busyUntil: number;
+}
+
+function workersOnShift(s: GameState): Worker[] {
+  const svc = s.service;
+  const slot = (id: string) => svc?.servers.find((x) => x.id === id);
+  const visitOf = (id: string) => {
+    const sl = slot(id);
+    return sl && sl.visitId !== null ? (svc!.visits.find((v) => v.id === sl.visitId) ?? null) : null;
+  };
+  const out: Worker[] = s.staff
+    .filter((e) => e.branch === null)
+    .slice(0, 6)
+    .map((e, i) => {
+      const home = STATIONS[e.role] ?? STATIONS.helper;
+      const id = `staff:${e.id}`;
+      // two workers with the same job stand side by side
+      const twin = s.staff.filter((x) => x.branch === null && x.role === e.role).findIndex((x) => x.id === e.id);
+      return { id, role: e.role, look: e.look, name: e.name, home: { x: home.x - twin * 11 + (i % 2), feet: home.feet }, serving: visitOf(id), busyUntil: slot(id)?.busyUntil ?? 0 };
+    });
+  // "Bà, help!" (the owner slot) and Bà handing out pastries are the same Bà on screen.
+  const ba = slot('owner') ?? slot('ba');
+  if (ba) {
+    const busy = [slot('owner'), slot('ba')].find((x) => x && x.visitId !== null);
+    out.push({ id: 'ba', role: 'ba', look: BA_LOOK, name: 'Bà', home: STATIONS.ba, serving: busy ? visitOf(busy.id) : null, busyUntil: busy?.busyUntil ?? ba.busyUntil });
+  }
+  return out;
+}
+
+/**
+ * Workers walk in through the door when the shop opens, wait at their station, and walk to the
+ * counter to serve. Moves are timed by distance so nobody zooms across the room.
+ */
+function StaffLayer({ s, open, ovenOn, reduced }: { s: GameState; open: boolean; ovenOn: boolean; reduced: boolean }) {
+  const clock = s.service?.clock ?? 0;
+  const workers = workersOnShift(s);
+  const started = useRef(new Map<string, { visit: number | null; clock: number }>());
+  const motion = useRef(new Map<string, { x: number; at: number; dur: number }>());
+  const [, redraw] = useState(0);
+  // When the clock stands still (paused, closing up), redraw once a walk ends so feet stop moving.
+  useEffect(() => {
+    let left = 0;
+    for (const m of motion.current.values()) left = Math.max(left, m.at + m.dur - performance.now());
+    if (left <= 0) return;
+    const id = setTimeout(() => redraw((n) => n + 1), left + 30);
+    return () => clearTimeout(id);
+  });
+  const now = performance.now();
+  let lane = 0;
+  return (
+    <>
+      {workers.map((w, i) => {
+        const vid = w.serving?.id ?? null;
+        const prev = started.current.get(w.id);
+        if (!prev || prev.visit !== vid) started.current.set(w.id, { visit: vid, clock });
+        const st = started.current.get(w.id)!;
+        const serving = open && w.serving;
+        // Staggered arrival: the first few minutes of the day, each worker is still on the way in.
+        const arriving = open && !serving && w.id !== 'ba' && clock < 4 + i * 5;
+        const x = serving ? LAYOUT.queueX[0] + 4 - 13 * lane++ : arriving ? LAYOUT.doorX : w.home.x;
+        const feet = serving ? 106 : w.home.feet;
+        const m = motion.current.get(w.id);
+        if (!m || m.x !== x) motion.current.set(w.id, { x, at: now, dur: !m || reduced || arriving ? 0 : Math.min(2400, 250 + Math.abs(x - m.x) * 12) });
+        const mv = motion.current.get(w.id)!;
+        const moving = now - mv.at < mv.dur;
+        const span = Math.max(0.5, w.busyUntil - st.clock);
+        const progress = serving ? Math.min(1, Math.max(0, (clock - st.clock) / span)) : 0;
+        const baking = !serving && ovenOn && (w.role === 'baker' || w.role === 'pastryChef');
+        return (
+          <div
+            key={w.id}
+            className={`staff worker ${serving ? 'is-serving' : ''} ${baking ? 'is-baking' : ''} ${arriving ? 'is-away' : ''} ${!moving && (open || baking) ? 'bob' : ''}`}
+            style={{ left: x, top: feet - PERSON_H, transitionDuration: `${mv.dur}ms` }}
+          >
+            <Person look={w.look} scale={1} walking={moving} />
+            {serving && (
+              <span className="making">
+                <Sprite name={w.serving!.wants} scale={1} />
+                <i style={{ width: `${progress * 100}%` }} />
+              </span>
+            )}
+          </div>
+        );
+      })}
+      <div className={`staff player ${open ? 'bob' : ''}`} style={{ left: LAYOUT.player.x, top: LAYOUT.player.feet - PERSON_H }}>
+        <Person look={s.look} scale={1} />
+      </div>
+    </>
+  );
 }
 
 interface Props {
@@ -146,8 +261,9 @@ export function BakeryScene({ onCustomer, baking = false, caption }: Props) {
 
 
         {/* ceiling: lights, lanterns, fan, bird */}
-        <div className="lamp" style={{ left: 66 }} />
-        <div className="lamp" style={{ left: 138 }} />
+        {LAMPS_X.map((lx) => (
+          <div key={lx} className="lamp" style={{ left: lx + 4 }} />
+        ))}
         {s.decor.includes('stringLights') && (
           <div className="string-lights">
             {Array.from({ length: 18 }).map((_, i) => (
@@ -188,15 +304,8 @@ export function BakeryScene({ onCustomer, baking = false, caption }: Props) {
           </div>
         )}
 
-        {/* staff */}
-        {s.staff.some((e) => e.branch === null && e.role === 'cashier') && (
-          <div className="staff bob" style={{ left: LAYOUT.helper.x, top: LAYOUT.helper.feet - PERSON_H }}>
-            <Person look={{ skin: 1, hair: 1, hairColor: 6, shirt: 6, apron: 1, accessory: 5 }} scale={1} />
-          </div>
-        )}
-        <div className={`staff player ${open ? 'bob' : ''}`} style={{ left: LAYOUT.player.x, top: LAYOUT.player.feet - PERSON_H }}>
-          <Person look={s.look} scale={1} />
-        </div>
+        {/* staff: everyone on shift stands at their station and walks to the counter to serve */}
+        <StaffLayer s={s} open={open} ovenOn={ovenOn} reduced={reduced} />
 
         <canvas ref={counterRef} width={STAGE_W} height={STAGE_H} className="layer" />
 
@@ -273,7 +382,7 @@ export function BakeryScene({ onCustomer, baking = false, caption }: Props) {
       </div>
 
       {/* Text lives outside the scaled stage so browsers never shrink it below a readable size. */}
-      <div className="stage-text" aria-hidden="true">
+      <div className="stage-text" aria-hidden="true" style={{ width: STAGE_W * scale, marginLeft: (-STAGE_W / 2) * scale }}>
         {s.decor.includes('sign') && (
           <div className="neon" style={{ left: 64 * scale, top: 9 * scale, fontSize: Math.max(10, 5 * scale) }}>
             Bánh mì

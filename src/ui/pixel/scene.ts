@@ -27,6 +27,9 @@ export const LAYOUT = {
   doorX: 10,
 };
 
+/** Left edge of each pendant lamp's shade; its glow centres on lx + 4. */
+export const LAMPS_X = [12, 160];
+
 export type Light = 0 | 1 | 2 | 3 | 4;
 
 export interface SceneOpts {
@@ -183,8 +186,8 @@ export function drawRoom(ctx: CanvasRenderingContext2D, o: SceneOpts) {
     rect(ctx, x, 79, 1, 14, ROOM.dadoLine);
   }
   rect(ctx, 0, 75, STAGE_W, 1, PAL.ink);
-  // pendant lamps
-  for (const lx of [62, 160]) {
+  // pendant lamps: one over the door, one between the menu and the oven, never over the glass
+  for (const lx of LAMPS_X) {
     rect(ctx, lx + 4, 7, 1, 9, PAL.ink);
     rect(ctx, lx, 16, 9, 1, PAL.ink);
     rect(ctx, lx - 1, 17, 11, 4, ROOM.lamp);
@@ -214,6 +217,13 @@ export function drawRoom(ctx: CanvasRenderingContext2D, o: SceneOpts) {
   const W = L.window;
   box(ctx, W.x, W.y, W.w, W.h, ROOM.frame);
   drawStreet(ctx, o);
+  // a little shine on each pane so it reads as glass
+  ctx.fillStyle = 'rgba(255,255,255,0.45)';
+  for (const px of [W.x + 4, W.x + W.w / 2 + 3])
+    for (let i = 0; i < 6; i++) {
+      ctx.fillRect(px + i, W.y + 9 - i, 1, 1);
+      ctx.fillRect(px + 3 + i, W.y + 12 - i, 1, 1);
+    }
   rect(ctx, W.x + W.w / 2 - 1, W.y, 2, W.h, ROOM.frame);
   rect(ctx, W.x - 2, W.y + W.h, W.w + 4, 3, ROOM.sill);
   if (o.upgrades.includes('garden'))
@@ -327,8 +337,13 @@ export function drawCounter(ctx: CanvasRenderingContext2D, o: SceneOpts) {
     rect(ctx, x + 3, K.y + 8, 3, 3, ROOM.trim);
   }
   const S = LAYOUT.case;
-  rect(ctx, S.x, S.y, S.w, S.h, PAL.ink);
-  rect(ctx, S.x + 1, S.y + 1, S.w - 2, S.h - 2, o.upgrades.includes('display') ? '#eeede3' : '#eeede3');
+  // Glass you can see through: whoever works behind the case shows, a little misty.
+  ctx.clearRect(S.x + 1, S.y + 1, S.w - 2, S.h - 5);
+  rect(ctx, S.x, S.y, S.w, 1, PAL.ink);
+  rect(ctx, S.x, S.y, 1, S.h, PAL.ink);
+  rect(ctx, S.x + S.w - 1, S.y, 1, S.h, PAL.ink);
+  rect(ctx, S.x, S.y + S.h - 1, S.w, 1, PAL.ink);
+  rect(ctx, S.x + 1, S.y + 1, S.w - 2, S.h - 5, 'rgba(238,237,227,0.55)');
   rect(ctx, S.x + 1, S.y + S.h - 4, S.w - 2, 3, ROOM.caseBase);
   for (let i = 0; i < 4; i++) rect(ctx, S.x + 4 + i * 2, S.y + 2 + i, 1, 4, 'rgba(255,255,255,0.9)');
   if (o.upgrades.includes('display')) rect(ctx, S.x + 1, S.y + 1, S.w - 2, 1, PAL.mango);

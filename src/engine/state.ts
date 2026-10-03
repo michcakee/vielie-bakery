@@ -294,6 +294,7 @@ export type Action =
   | { type: 'open' }
   | { type: 'runDay' }
   | { type: 'handOver' }
+  | { type: 'takeBack' }
   | { type: 'skipToClose' }
   | { type: 'tick'; minutes: number }
   | { type: 'serve'; visitId: number; process?: number }
@@ -1143,6 +1144,13 @@ function reduce(s: GameState, a: Action): GameState {
       if (s.phase !== 'service' || !s.service || s.service.auto) return s;
       const svc = { ...s.service, auto: true, servers: [{ id: 'owner', busyUntil: s.service.clock, visitId: null, quality: ECON.service.ownerAutoQuality, served: 0 }, ...s.service.servers] };
       return { ...s, service: svc };
+    }
+    case 'takeBack': {
+      if (s.phase !== 'service' || !s.service || !s.service.auto) return s;
+      const owner = s.service.servers.find((x) => x.id === 'owner');
+      // Whatever Bà was in the middle of goes back in the line for you.
+      const visits = s.service.visits.map((v) => (owner && v.id === owner.visitId && v.status === 'waiting' ? { ...v, servedBy: undefined } : v));
+      return { ...s, service: { ...s.service, auto: false, visits, servers: s.service.servers.filter((x) => x.id !== 'owner') } };
     }
     case 'skipToClose': {
       if (s.phase !== 'service' || !s.service) return s;

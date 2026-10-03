@@ -1,6 +1,7 @@
 import type { Look } from '../../engine/types';
 import { APRONS, HAIR_COLORS, PAL, PANTS, SHIRTS, SKINS, SKIN_SHADE, SPRITE_COLORS } from './palette';
 import { SPRITES } from './sprites';
+import { ACCESSORY_ART, BODY_STAND, BODY_STEP, HAIR_BACK, HAIR_FRONT } from './people';
 
 const cache = new Map<string, { url: string; w: number; h: number }>();
 
@@ -78,45 +79,8 @@ export function spriteURL(name: string): { url: string; w: number; h: number } {
 
 // ------------------------------------------------------------------ people
 
-const BODY = [
-  '............',
-  '............',
-  '...oooooo...',
-  '..osssssso..',
-  '..osssssso..',
-  '..osesseso..',
-  '..ocssssco..',
-  '..ossmmsso..',
-  '...oSSSSo...',
-  '..otttttto..',
-  '.otTaaaaTto.',
-  '.otTaaaaTto.',
-  '.osTaaaaTso.',
-  '..oTaaaaTo..',
-  '..opAAAApo..',
-  '..oppppppo..',
-];
-const LEGS_A = ['..oppooppo..', '..offooffo..', '...oo..oo...'];
-const LEGS_B = ['..offooppo..', '...oo.offo..', '.......oo...'];
-
-const HAIR: string[][] = [
-  ['...oooooo...', '..ohhhhhho..', '.ohhHhhhhho.', '.ohhhhhhhho.', '.oh......ho.', '.oh......ho.', '.oh......ho.', '.ohh....hho.', '.oo......oo.'],
-  ['....oooo....', '...ohHhho...', '..oohhhhoo..', '.ohhhhhhhho.', '.ohhh..hhho.'],
-  ['............', '...oooooo...', '..ohhHhhho..', '.ohhhhhhhho.', '..ohh..hho..', '..oh....ho..'],
-  ['...oooooo...', '..ohhhhhho..', '.ohhhhhhhho.', '.ohhHhhhhho.', '.ohh.hh.hho.', '.oh......ho.', '.oh......ho.', '.oh......ho.', '.oh......ho.', '.oh......ho.', '.oh......ho.', '.oo......oo.'],
-];
-
-const ACCESSORIES: string[][] = [
-  [],
-  ['', '', '', '', '...oo..oo...', '.....oo.....'],
-  ['', '........pp..', '.......pyp..', '........pp..'],
-  ['...oooooo...', '..oGGGGGGo..', '.oGGwGGGGGo.', 'oooooooooooo'],
-  ['..owwwwwwo..', '..owwwwwwo..', '..oeeeeeeo..'],
-  ['', '...oooooo...', '..orrrrrro..', '.orrrwrrrro.', '.or......ro.'],
-];
-
 export const HAIR_STYLES = ['Bob', 'Bun', 'Short', 'Long'];
-export const ACCESSORY_NAMES = ['None', 'Glasses', 'Flower clip', 'Helmet', 'Baker\'s hat', 'Headscarf'];
+export const ACCESSORY_NAMES = ['None', 'Glasses', 'Flower clip', 'Helmet', 'Baker\'s hat', 'Headscarf', 'Nón lá'];
 
 function personColors(look: Look): Record<string, string> {
   const skin = SKINS[look.skin % SKINS.length];
@@ -125,35 +89,39 @@ function personColors(look: Look): Record<string, string> {
   const hair = HAIR_COLORS[look.hairColor % HAIR_COLORS.length];
   return {
     o: PAL.ink,
-    e: PAL.ink,
+    e: '#3b3340',
+    W: '#ffffff',
+    b: shade(hair, -0.2),
     s: skin,
     S: SKIN_SHADE[look.skin % SKIN_SHADE.length],
-    c: '#f29a8e',
+    c: '#f4a3a0',
     m: '#a8584a',
     t: shirt,
     T: shade(shirt, -0.18),
     a: apron,
     A: shade(apron, -0.15),
     p: PANTS[(look.shirt + look.skin) % PANTS.length],
-    f: PAL.inkSoft,
+    f: '#3b3340',
     h: hair,
-    H: shade(hair, 0.25),
-    G: PAL.forest,
-    w: PAL.coconut,
-    E: PAL.stone,
+    H: shade(hair, 0.3),
+    j: shade(hair, -0.25),
+    G: PAL.pandan,
+    w: '#ffffff',
+    E: '#d6cec2',
     r: PAL.red,
     y: PAL.mango,
-    P: PAL.peach,
+    k: PAL.pink,
+    n: '#e8d39a',
   };
 }
 
 const lookKey = (l: Look) => `${l.skin}.${l.hair}.${l.hairColor}.${l.shirt}.${l.apron}.${l.accessory}`;
 
-/** Person cell: two cells tall, feet on the cell's bottom row. */
+/** Person cell: 16×32, feet on the bottom row. */
 export const PERSON_W = 16;
-export const PERSON_H = 24;
+export const PERSON_H = 32;
 
-/** Two-frame sprite sheet (idle/step) for a character, two 16×24 cells side by side. */
+/** Two-frame sprite sheet (stand/step) for a character, two 16×32 cells side by side. */
 export function personSheet(look: Look): { url: string; w: number; h: number } {
   const key = `person:${lookKey(look)}`;
   const hit = cache.get(key);
@@ -161,12 +129,12 @@ export function personSheet(look: Look): { url: string; w: number; h: number } {
   const made = makeCanvas(PERSON_W * 2, PERSON_H);
   if (!made) return { url: '', w: PERSON_W * 2, h: PERSON_H };
   const colors = personColors(look);
-  const hair = HAIR[look.hair % HAIR.length];
-  const acc = ACCESSORIES[look.accessory % ACCESSORIES.length];
-  const longBehind = look.hair % HAIR.length === 3;
-  for (const [i, legs] of [LEGS_A, LEGS_B].entries()) {
-    const layers = longBehind ? [hair, [...BODY, ...legs], hair.slice(0, 5), acc] : [[...BODY, ...legs], hair, acc];
-    paint(made[1], layers, colors, i * PERSON_W + 2, PERSON_H - 19);
+  const style = look.hair % HAIR_FRONT.length;
+  const back = HAIR_BACK[style];
+  const acc = ACCESSORY_ART[look.accessory % ACCESSORY_ART.length];
+  for (const [i, body] of [BODY_STAND, BODY_STEP].entries()) {
+    const layers = [...(back ? [back] : []), body, HAIR_FRONT[style], acc];
+    paint(made[1], layers, colors, i * PERSON_W, PERSON_H - body.length);
   }
   const out = { url: made[0].toDataURL(), w: PERSON_W * 2, h: PERSON_H };
   cache.set(key, out);

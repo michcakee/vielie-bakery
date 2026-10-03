@@ -43,11 +43,11 @@ Everything below is about turning one shop into a business.
 | | **Play the day** (Mở cửa!) | **Let the team run today** |
 | --- | --- | --- |
 | How | Real time, 7am–7pm, about 3 minutes (2 at full speed) | Instant |
-| You | Serve customers, assemble orders, call last call | Make the decisions; your team (or the autopilot) serves |
-| Quality | Your skill: perfect assembly beats the autopilot | Depends on your staff's skill and morale |
+| You | Serve customers, assemble orders, call last call | Make the decisions; your team (or Bà) serves |
+| Quality | Your skill: perfect assembly beats Bà's steady pace | Depends on your staff's skill and morale |
 | Good for | Early days, busy festival days, fun | Long-term play, testing a strategy |
 
-You can switch mid-day from the **More** button: **Let Bà help at the counter** lets Bà and the team serve everyone while you keep watching (you can still jump in), and **Skip to closing** finishes the day instantly. **Let the team run today** unlocks around day 15.
+You can switch any time during the day. Tap **Bà, help!** next to the pause button and Bà serves everyone while you watch; you can still tap any order to jump in, and **I'll serve** takes the counter back. **Skip to closing** (under **More**) finishes the day instantly. **Let Bà run today** (or **Let the team run today** once you've hired someone) runs a whole day from the morning screen; it unlocks after your first hire, or around day 16.
 
 ---
 

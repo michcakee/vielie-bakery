@@ -21,7 +21,7 @@ We aim to meet [WCAG 2.1 level AA](https://www.w3.org/TR/WCAG21/) wherever a fas
 - **Keyboard.** Every control is a real button or input. In service, number keys pick a customer and Space pauses. In the oven game, Space or Enter takes the tray out. There's a "Skip to controls" link.
 - **Screen readers.** Buttons, meters and the star goal have labels, and order results are announced.
 - **Phones.** Buttons are at least 44 pixels tall on touch screens, and nothing needs a two-finger gesture or a hover.
-- **No timing traps.** You can skip the oven game with **Quick bake**. During service you can **Let Bà help at the counter** or **Skip to closing**. For a whole day you can let the team or the autopilot run it.
+- **No timing traps.** You can skip the oven game with **Quick bake**. During service you can tap **Bà, help!** (and **I'll serve** to take back over) or **Skip to closing**. For a whole day you can let Bà or the team run it.
 
 ## Supported environments
 

@@ -385,7 +385,7 @@ function PlanCard() {
   const ovens = ovenCapacity(s);
   const people = laborTrays(s);
   return (
-    <Card title="Production plan" icon="note" spot="plan" fresh={fresh('kitchen.plan')} aside={<span className="small muted">Used on team / autopilot days</span>}>
+    <Card title="Production plan" icon="note" spot="plan" fresh={fresh('kitchen.plan')} aside={<span className="small muted">Used when Bà or the team runs the day</span>}>
       <p className="small">
         Capacity: ovens {ovens} trays, team {people} trays, so <b>{Math.min(ovens, people)}</b> a morning. {ovens < people ? 'Ovens are the bottleneck.' : ovens > people ? 'People are the bottleneck.' : ''}
       </p>

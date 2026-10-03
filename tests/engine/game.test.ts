@@ -37,6 +37,25 @@ describe('first day (Family Business)', () => {
     expect(s.prepaidRent).toBeGreaterThan(0);
   });
 
+  it('Bà can take the counter and hand it back mid-order', () => {
+    let s = act(createNewGame(2), { type: 'setup', name: 'Nhà Bà', look: createNewGame(2).look }, { type: 'open' }, { type: 'tick', minutes: 15 });
+    s = act(s, { type: 'handOver' });
+    expect(s.service!.auto).toBe(true);
+    s = act(s, { type: 'tick', minutes: 1 });
+    const taken = s.service!.servers.find((x) => x.id === 'owner')!.visitId;
+    s = act(s, { type: 'takeBack' });
+    expect(s.service!.auto).toBe(false);
+    expect(s.service!.servers.some((x) => x.id === 'owner')).toBe(false);
+    // the order Bà was making is back in the line, and you can serve it
+    expect(taken).not.toBeNull();
+    const v = s.service!.visits.find((x) => x.id === taken)!;
+    expect(v.status).toBe('waiting');
+    expect(v.servedBy).toBeUndefined();
+    const served = s.lifetime.served;
+    s = act(s, { type: 'serve', visitId: v.id, process: 100 });
+    expect(s.lifetime.served).toBe(served + 1);
+  });
+
   it('Linh walks in almost immediately and orders a bánh mì', () => {
     let s = act(createNewGame(2), { type: 'setup', name: 'Nhà Bà', look: createNewGame(2).look }, { type: 'open' });
     expect(s.service!.visits[0].name).toBe('Linh');

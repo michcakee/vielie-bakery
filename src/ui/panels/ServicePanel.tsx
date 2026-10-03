@@ -236,6 +236,9 @@ export function ServicePanel({ paused, setPaused, speed, setSpeed, activeId, set
   const lastCoin = [...svc.fx].reverse().find((f) => f.kind === 'coin' && f.visitId !== undefined && svc.clock - f.at < 14);
   const graded = lastCoin ? svc.visits.find((v) => v.id === lastCoin.visitId && v.status === 'done' && v.grade && v.servedBy === 'player') : undefined;
 
+  // After the first customer, Bà points out that she can take the counter (once per game).
+  const baTip = s.allUnlocked === false && s.lifetime.served >= 1 && !svc.auto && !s.hints.includes('baHelpTip');
+
   useEffect(() => {
     if (activeId !== null && !active) setActiveId(null);
   }, [activeId, active, setActiveId]);
@@ -281,17 +284,25 @@ export function ServicePanel({ paused, setPaused, speed, setSpeed, activeId, set
         <Btn kind="ghost" onClick={() => setSpeed(speed === 1 ? 2 : 1)} aria-pressed={speed === 2} aria-label={speed === 2 ? 'Fast speed' : 'Normal speed'}>
           <Sprite name="fast" scale={2} /> <span className="btn-text">{speed === 2 ? 'Fast' : 'Normal'}</span>
         </Btn>
+        <Btn
+          kind={svc.auto ? 'primary' : 'go'}
+          className={`ba-help-btn ${baTip ? 'glow' : ''}`}
+          data-spot="ba-help"
+          aria-pressed={svc.auto}
+          title={svc.auto ? 'Take the counter back' : 'Bà serves everyone for you; tap again to take over'}
+          onClick={() => {
+            dispatch({ type: svc.auto ? 'takeBack' : 'handOver' });
+            if (!s.hints.includes('baHelpTip')) dispatch({ type: 'hint', id: 'baHelpTip' });
+          }}
+        >
+          {svc.auto ? 'I’ll serve' : 'Bà, help!'}
+        </Btn>
         <Btn kind={svc.lastCall ? 'primary' : 'plain'} disabled={!canLastCall} onClick={() => dispatch({ type: 'lastCall', on: !svc.lastCall })} aria-pressed={svc.lastCall} title="Pastries 40% off for the last hour">
           {svc.lastCall ? 'LAST CALL! −40%' : canLastCall ? 'Last call' : 'Last call 5pm'}
         </Btn>
         <details className="svc-more">
           <summary>More</summary>
           <div className="svc-more-items">
-            {!svc.auto && (
-              <Btn kind="ghost" onClick={() => dispatch({ type: 'handOver' })} title="Bà and your team serve everyone; you can still jump in">
-                Let Bà help at the counter
-              </Btn>
-            )}
             <Btn kind="ghost" onClick={() => dispatch({ type: 'skipToClose' })} title="Finish the day instantly">
               Skip to closing
             </Btn>
@@ -316,6 +327,21 @@ export function ServicePanel({ paused, setPaused, speed, setSpeed, activeId, set
       ) : (
         <div className="orders" aria-live="polite">
           {graded && <GradeCard key={graded.id} visit={graded} />}
+          {baTip && (
+            <div className="coach-tip" role="note">
+              <p>
+                <b>Busy?</b> Tap <b>Bà, help!</b> and Bà serves everyone for you. Tap <b>I’ll serve</b> to jump back in. On a slow day, <b>Skip to closing</b> under More finishes the day for you.
+              </p>
+              <button type="button" className="link-btn" onClick={() => dispatch({ type: 'hint', id: 'baHelpTip' })}>
+                Got it
+              </button>
+            </div>
+          )}
+          {svc.auto && (
+            <p className="ba-helps small">
+              <Sprite name="heart" scale={2} /> Bà is running the counter. Tap any order below to jump in, or tap <b>I’ll serve</b>.
+            </p>
+          )}
           {svc.servers.some((x) => x.id === 'ba') && !svc.auto && s.day <= 10 && (
             <p className="ba-helps small">
               <Sprite name="flan" scale={2} /> Bà is handing out the pastries. You make the bánh mì and drinks!

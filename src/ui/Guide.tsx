@@ -188,6 +188,7 @@ export function WhatNow({ onClose, goTo, todo }: { onClose: () => void; goTo: (t
       { text: 'Tap a customer’s order. Pastries are one tap. Bánh mì and drinks: tap the steps in order (the glowing one is next).' },
       { text: 'Serve the person with the worried face first, before they leave!' },
       { text: 'Fill the star bar at the top: more sales, more stars.' },
+      { text: 'Too busy? Tap Bà, help! and Bà serves for you. Tap I’ll serve to take over again.' },
     );
   else if (phase === 'closing') now.push({ text: 'Choose what to do with leftovers. Donating makes the neighbours happy.' });
   else now.push({ text: 'Read how the day went, then tap the button at the bottom for the next morning.' });

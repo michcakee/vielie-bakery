@@ -41,10 +41,10 @@
   --shadow-sm: 0 2px 0 var(--ink);
   --r: 6px;
   --font: 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --pixel: 'Pixelify Sans', 'Be Vietnam Pro', system-ui, sans-serif;
-  --title: 'Press Start 2P', 'Pixelify Sans', monospace;
+  --pixel: 'Clear Digits', 'Pixelify Sans', 'Be Vietnam Pro', system-ui, sans-serif;
+  --title: 'Clear Digits', 'Press Start 2P', 'Pixelify Sans', monospace;
   /* Cube display face, used on headings and numbers (set in caps for the pixel-sign look). */
-  --cube: 'Pixelify Sans', 'Be Vietnam Pro', system-ui, sans-serif;
+  --cube: 'Clear Digits', 'Pixelify Sans', 'Be Vietnam Pro', system-ui, sans-serif;
   color-scheme: light;
 }
 
@@ -779,6 +779,43 @@ kbd {
 .staff {
   line-height: 0;
 }
+/* Workers walk between the door, their station and the counter; the walk cycle plays while they move. */
+.staff.worker {
+  transition-property: left, top;
+  transition-timing-function: linear;
+}
+/* Not in yet: waiting just outside the door. */
+.staff.worker.is-away {
+  visibility: hidden;
+}
+.staff.is-serving.bob,
+.staff.is-baking.bob {
+  animation-duration: 0.5s;
+}
+.making {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 1px);
+  transform: translateX(-50%);
+  background: #fff;
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+  padding: 1px 1px 2px;
+  line-height: 0;
+  animation: pop-in 200ms steps(4);
+}
+.making i {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--mango);
+}
+@media (prefers-reduced-motion: reduce) {
+  .staff.worker {
+    transition: none;
+  }
+}
 .cust {
   line-height: 0;
   transition: left 140ms linear;
@@ -891,18 +928,18 @@ kbd {
   line-height: 0;
   transform: rotate(-12deg);
 }
+/* Only the glow; the lamp itself is drawn on the room canvas. */
 .lamp {
-  top: 7px;
-  width: 6px;
-  height: 14px;
-  background: linear-gradient(var(--ink) 0 8px, var(--mango) 8px);
-  border-radius: 0 0 3px 3px;
+  top: 21px;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
 }
 .lamp::after {
   content: '';
   position: absolute;
-  left: -14px;
-  top: 10px;
+  left: -17px;
+  top: -4px;
   width: 34px;
   height: 30px;
   background: radial-gradient(closest-side, rgba(255, 220, 140, 0.35), transparent);
@@ -1031,7 +1068,9 @@ kbd {
 
 .stage-text {
   position: absolute;
-  inset: 0;
+  top: 0;
+  bottom: 0;
+  left: 50%;
   pointer-events: none;
 }
 .stage-text > * {
@@ -1053,6 +1092,14 @@ kbd {
   gap: 4px;
   white-space: nowrap;
   overflow: hidden;
+}
+.board-row span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.board-row span:last-child {
+  flex: none;
 }
 .neon {
   font-family: var(--pixel);
@@ -3394,15 +3441,18 @@ html {
   opacity: 0.55;
 }
 .coach-steps .num {
-  font-family: var(--pixel);
-  font-size: 20px;
-  text-align: center;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 1;
   background: var(--mango);
   border: 2px solid var(--ink);
   border-radius: 50%;
   width: 24px;
   height: 24px;
-  line-height: 18px;
 }
 .open-choices {
   display: flex;
@@ -5266,3 +5316,63 @@ html[data-motion='reduced'] .title-logo span {
   .toast { top: 8px; bottom: auto; }
 }
 .crash-screen { display: grid; gap: 12px; justify-items: center; max-width: 480px; margin: 15vh auto; padding: 16px; text-align: center; }
+
+/* ---------- Bà's help at the counter ---------- */
+.ba-help-btn.glow {
+  animation: ba-glow 1.2s ease-in-out infinite;
+}
+@keyframes ba-glow {
+  50% {
+    box-shadow: 0 0 0 4px var(--mango), var(--shadow-sm);
+  }
+}
+.coach-tip {
+  display: grid;
+  gap: 4px;
+  margin: 0 0 10px;
+  padding: 8px 10px;
+  background: var(--butter, #e3e19f);
+  border: 3px solid var(--ink);
+  border-radius: var(--r);
+  box-shadow: var(--shadow-sm);
+}
+.coach-tip p {
+  margin: 0;
+}
+.coach-tip .link-btn {
+  justify-self: end;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ba-help-btn.glow {
+    animation: none;
+    box-shadow: 0 0 0 4px var(--mango), var(--shadow-sm);
+  }
+}
+
+/* ---------- Bà's lessons path ---------- */
+.lesson-part {
+  margin: 0 0 8px;
+  font-family: var(--cube);
+  font-weight: 700;
+  color: var(--forest);
+}
+.lesson-path .coach-steps li.locked {
+  opacity: 0.6;
+}
+.lesson-path .coach-steps li.try {
+  font-weight: 600;
+}
+.lesson-path .meter {
+  margin: 10px 0 4px;
+}
+
+.lesson-path.folded summary {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  cursor: pointer;
+  font-weight: 600;
+}
+.lesson-path.folded[open] summary {
+  margin-bottom: 10px;
+}

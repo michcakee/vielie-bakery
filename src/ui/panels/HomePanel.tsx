@@ -15,7 +15,8 @@ import { Btn, Card, Meter, Tip } from '../kit';
 import { Person, Sprite } from '../pixel/Sprite';
 import { IntroCard, useGuide } from '../Guide';
 import { dailyGoal } from '../../engine/goals';
-import { tabOn } from '../../engine/unlocks';
+import { nextFeature, tabOn } from '../../engine/unlocks';
+import { FEATURE, FEATURES, type FeatureId } from '../../data/unlocks';
 
 export type Tab = 'today' | 'kitchen' | 'market' | 'staff' | 'customers' | 'growth' | 'money' | 'analytics' | 'eco';
 
@@ -207,7 +208,7 @@ export function HomePanel({ goTo, onOpen, onRunDay }: { goTo: (t: Tab) => void; 
           </div>
         </Card>
       )}
-      {!s.intro?.active && !lesson && <NextUp />}
+      {!s.intro?.active && !lesson && (s.allUnlocked === false ? <LessonPath /> : <NextUp />)}
 
       {lesson ? null : firstDay ? (
         <Card className="ba-note" title="A note from Bà" icon="note">
@@ -243,13 +244,13 @@ export function HomePanel({ goTo, onOpen, onRunDay }: { goTo: (t: Tab) => void; 
             </Btn>
             {delegate && (
             <Btn kind="primary" onClick={onRunDay} disabled={s.events.length > 0} sfx="bell" data-spot="team-day">
-              {teamCanRun ? 'Let the team run today' : 'Skip ahead: autopilot day'}
+              {teamCanRun ? 'Let the team run today' : 'Let Bà run today'}
             </Btn>
             )}
           </div>
           {delegate && <p className="small muted">
             {teamCanRun
-              ? 'Your team bakes from the plan in the Kitchen, restocks from the forecast and serves everyone they can, instantly. You serve better than the autopilot, but your time is limited too.'
+              ? 'Your team (and Bà) bake from the plan in the Kitchen, restock and serve everyone they can. The day finishes straight away. You serve better than they do, so jump in on busy days.'
               : 'The autopilot bakes, restocks and serves for you at a fair, slightly slower pace. Handy for long games; you\'ll learn more running the counter yourself at first.'}
           </p>}
         </Card>
@@ -301,11 +302,80 @@ export function HomePanel({ goTo, onOpen, onRunDay }: { goTo: (t: Tab) => void; 
       </Card>
       )}
 
+      {!lesson && s.intro?.active && s.allUnlocked === false && <LessonPath folded />}
+
       <p className="small muted">
         Pantry check: {Object.entries(s.pantry).filter(([, p]) => p.qty > 0).length} ingredients in stock
         {s.deliveries.length ? ` · ${s.deliveries.length} deliveries on the way (${s.deliveries.map((d) => INGREDIENTS[d.ingredient].name.toLowerCase()).join(', ')})` : ''}. Rent: about {money(rent(s) * 30)} a month, paid on the 1st.
       </p>
     </div>
+  );
+}
+
+const PARTS = ['', 'The basics', 'Regulars and your first helper', 'Reading the money', 'Supply and money', 'The wider world', 'Growing up'];
+
+/**
+ * Guided games: the tutorial as a path. One part at a time, each lesson ticked off,
+ * postponed ones a tap away, locked ones with the day they arrive.
+ */
+function LessonPath({ folded = false }: { folded?: boolean }) {
+  const { state: s, dispatch } = useGame();
+  const next = nextFeature(s);
+  if (!next) return folded ? null : <NextUp />;
+  const part = FEATURE[next.id].chapter;
+  const have = new Set(s.features ?? []);
+  const done = new Set(s.intro?.done ?? []);
+  const lessons = FEATURES.filter((f) => f.chapter === part);
+  const rows = [
+    ...(part === 1 ? [{ id: 'first', name: 'Your first day: bake, serve, close up', state: s.history.length > 0 ? 'done' : 'now', when: '' }] : []),
+    ...lessons.map((f) => {
+      const state = done.has(f.id) ? 'done' : s.intro?.active === f.id ? 'now' : have.has(f.id) ? 'try' : 'locked';
+      const day = f.id === next.id ? next.day : Math.max(f.fallbackDay, s.day + 1);
+      return { id: f.id, name: f.name, state, when: day <= s.day + 1 ? 'tomorrow' : `day ${day}` };
+    }),
+  ];
+  const finished = rows.filter((r) => r.state === 'done').length;
+  const n = nextUnlock(s);
+  const list = (
+    <ol className="coach-steps">
+      {rows.map((r, i) => (
+        <li key={r.id} className={r.state}>
+          {r.state === 'done' ? <Sprite name="check" scale={2} /> : r.state === 'locked' ? <Sprite name="lock" scale={2} /> : <span className="num">{i + 1}</span>}
+          <span>
+            {r.name}
+            {r.state === 'locked' && <span className="small muted"> · {r.when}</span>}
+            {r.state === 'now' && <span className="small muted"> · now</span>}
+            {r.state === 'try' && (
+              <>
+                {' '}
+                <button type="button" className="link-btn" onClick={() => dispatch({ type: 'introStart', id: r.id as FeatureId })}>
+                  Start
+                </button>
+              </>
+            )}
+          </span>
+        </li>
+      ))}
+    </ol>
+  );
+  if (folded)
+    return (
+      <details className="card lesson-path folded">
+        <summary>
+          <Sprite name="book" scale={2} /> Bà’s lessons: {finished} of {rows.length} done in part {part}
+        </summary>
+        {list}
+      </details>
+    );
+  return (
+    <Card className="lesson-path" title="Bà’s lessons" icon="book" spot="lessons" aside={<span className="small muted">Part {part} of 6</span>}>
+      <p className="lesson-part">{PARTS[part]}</p>
+      {list}
+      <Meter value={finished / rows.length} tone="xp" label={`${finished} of ${rows.length} lessons in this part done`} />
+      <p className="small muted">
+        Next up: {n.text} ({n.when})
+      </p>
+    </Card>
   );
 }
 

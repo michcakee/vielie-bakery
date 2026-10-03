@@ -33,8 +33,24 @@ describe('first day (Family Business)', () => {
     expect(s.equipment.map((e) => e.kind)).toEqual(['ovenBasic']);
     expect(s.baguettes.qty).toBeGreaterThan(0);
     expect(s.display.flan.qty).toBe(8);
-    expect(s.unlocked).toEqual(['banhMi', 'caPhe', 'flan']);
+    expect(s.unlocked).toEqual(['banhMi', 'caPhe', 'flan', 'michcake']);
     expect(s.prepaidRent).toBeGreaterThan(0);
+  });
+
+  it('an older save without the michcake loads, gets the recipe and plays a day', () => {
+    const store = new Map<string, string>();
+    const mem = { getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => void store.set(k, v), removeItem: (k: string) => void store.delete(k) };
+    const old = JSON.parse(JSON.stringify(playDay(createNewGame(9)))) as GameState;
+    for (const rec of [old.display, old.prices, old.bakedToday, old.lifetime.sold, old.today.made, old.today.sold, old.today.revenueBy, old.today.cogsBy] as Record<string, unknown>[]) delete rec.michcake;
+    old.unlocked = old.unlocked.filter((p) => p !== 'michcake');
+    old.menu = old.menu.filter((p) => p !== 'michcake');
+    store.set(`${SLOT_PREFIX}1`, JSON.stringify(old));
+    const back = loadGame(1, mem)!;
+    expect(back).not.toBeNull();
+    expect(back.unlocked).toContain('michcake');
+    expect(back.menu).toContain('michcake');
+    expect(back.display.michcake.qty).toBe(0);
+    sane(playDay(back));
   });
 
   it('Bà can take the counter and hand it back mid-order', () => {

@@ -1,7 +1,7 @@
 import type { Look } from '../../engine/types';
 import { SPRITE_COLORS } from './palette';
 import { SPRITES } from './sprites';
-import { CHIBI_H, CHIBI_W, paintChibi } from './chibi';
+import { CHIBI_H, CHIBI_W, paintChibi, paintWink } from './chibi';
 
 const cache = new Map<string, { url: string; w: number; h: number }>();
 
@@ -99,4 +99,17 @@ export function personSheet(look: Look): { url: string; w: number; h: number } {
   const out = { url: made[0].toDataURL(), w: PERSON_W * 2, h: PERSON_H };
   cache.set(key, out);
   return out;
+}
+
+/** A single front-facing frame of a character winking. */
+export function winkURL(look: Look): string {
+  const key = `wink:${lookKey(look)}`;
+  const hit = cache.get(key);
+  if (hit) return hit.url;
+  const made = makeCanvas(PERSON_W, PERSON_H);
+  if (!made) return '';
+  paintWink(made[1], look);
+  const out = { url: made[0].toDataURL(), w: PERSON_W, h: PERSON_H };
+  cache.set(key, out);
+  return out.url;
 }

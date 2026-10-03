@@ -80,8 +80,10 @@ describe('daily challenge', () => {
   it('finishing it pays XP and a little cash, once', () => {
     let s = morning(playDay(start(32)));
     s = { ...s, challenge: { id: 'beforeNoon', target: 1, done: false, day: s.day } };
-    s = act(s, { type: 'open' }, { type: 'tick', minutes: 20 });
+    s = act(s, { type: 'open' });
+    for (let i = 0; i < 60 && !s.service!.visits.some((x) => x.status === 'waiting'); i++) s = act(s, { type: 'tick', minutes: 4 });
     const v = s.service!.visits.find((x) => x.status === 'waiting')!;
+    expect(v).toBeDefined();
     const before = s;
     s = act(s, { type: 'serve', visitId: v.id, process: 100 });
     expect(s.challenge!.done).toBe(true);

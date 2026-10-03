@@ -160,6 +160,28 @@ export const PRODUCTS: Record<ProductId, ProductDef> = {
     labor: 20,
     heritage: 0.7,
   },
+  michcake: {
+    id: 'michcake',
+    name: 'Michcake',
+    en: 'The block cake',
+    kind: 'tray',
+    recipe: { flour: 2, eggs: 3, milk: 1, sugar: 2 },
+    yield: 6,
+    ref: 4.5,
+    popularity: 0.95,
+    times: [0.4, 0.9, 1.4, 1.2],
+    weather: { sunny: 1.05, rainy: 0.95 },
+    difficulty: 1,
+    eco: 3,
+    shelfLife: 2,
+    keeps: true,
+    blurb: 'A square vanilla cake with white frosting and red berries on top. Kids can’t walk past it.',
+    level: 1,
+    ovenWindow: 20,
+    elasticity: 1.2,
+    labor: 22,
+    heritage: 0.2,
+  },
   pateChaud: {
     id: 'pateChaud',
     name: 'Bánh patê sô',
@@ -616,8 +638,8 @@ export const PRODUCTS: Record<ProductId, ProductDef> = {
   },
 };
 
-export const PRODUCT_ORDER: ProductId[] = ['banhMi', 'caPhe', 'flan', 'pateChaud', 'traTac', 'banhBao', 'banhChuoi', 'banhBo', 'che', 'banhKem', 'mutDua', 'banhTrungThu', 'gressCupcake', 'gressTeaLight', 'gressOreo', 'gressCoffee', 'gressHoneycomb', 'gressBoba', 'gressPie', 'gressMilkshake', 'gressCrepe', 'gressCake'];
-export const START_PRODUCTS: ProductId[] = ['banhMi', 'caPhe', 'flan'];
+export const PRODUCT_ORDER: ProductId[] = ['banhMi', 'caPhe', 'flan', 'michcake', 'pateChaud', 'traTac', 'banhBao', 'banhChuoi', 'banhBo', 'che', 'banhKem', 'mutDua', 'banhTrungThu', 'gressCupcake', 'gressTeaLight', 'gressOreo', 'gressCoffee', 'gressHoneycomb', 'gressBoba', 'gressPie', 'gressMilkshake', 'gressCrepe', 'gressCake'];
+export const START_PRODUCTS: ProductId[] = ['banhMi', 'caPhe', 'flan', 'michcake'];
 export const SEASONAL: ProductId[] = ['mutDua', 'banhTrungThu'];
 
 export const BAGUETTE = { recipe: { flour: 3 } as Partial<Record<IngredientId, number>>, yield: 10, ovenWindow: 20, labor: 25 };

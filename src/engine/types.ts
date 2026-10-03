@@ -3,6 +3,7 @@ export type ProductId =
   | 'banhMi'
   | 'caPhe'
   | 'flan'
+  | 'michcake'
   | 'pateChaud'
   | 'traTac'
   | 'banhBao'

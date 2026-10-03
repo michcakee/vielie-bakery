@@ -124,7 +124,12 @@ export function drawExterior(ctx: CanvasRenderingContext2D) {
   // shop window with pastries and door
   b(ctx, x0 + 6, 90, 56, 22, '#f7f0dc');
   r(ctx, x0 + 7, 101, 54, 1, PAL.crust);
-  for (const [i, n] of ['banhMi', 'flan', 'pateChaud'].entries()) paint(ctx, [SPRITES[n]], SPRITE_COLORS, x0 + 8 + i * 17, 86);
+  // each pastry sits on the shelf: line its lowest drawn row up with the shelf top
+  for (const [i, n] of ['banhMi', 'michcake', 'flan'].entries()) {
+    const rows = SPRITES[n];
+    const last = rows.reduce((k, row, y) => (/[^.]/.test(row) ? y : k), 0);
+    paint(ctx, [rows], SPRITE_COLORS, x0 + 8 + i * 17, 101 - (last + 1));
+  }
   r(ctx, x0 + 10, 92, 3, 6, 'rgba(255,255,255,0.7)');
   b(ctx, x0 + 68, 88, 24, 24, '#9dbf78');
   b(ctx, x0 + 71, 91, 18, 10, '#f7f0dc');
@@ -163,7 +168,6 @@ export function drawExterior(ctx: CanvasRenderingContext2D) {
     r(ctx, sx + 1, 110, 1, 3, PAL.teal);
     r(ctx, sx + 4, 110, 1, 3, PAL.teal);
   }
-  paint(ctx, [SPRITES.moto], SPRITE_COLORS, 150, 101);
 }
 
 const WALKERS: Look[] = [

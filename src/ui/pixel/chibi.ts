@@ -198,7 +198,7 @@ function accessory(g: Grid, id: number, back = false) {
   }
 }
 
-function drawPerson(look: Look, step: boolean, back = false): Grid {
+function drawPerson(look: Look, step: boolean, back = false, wink = false): Grid {
   const g = new Grid();
   const skin = SKINS[look.skin % SKINS.length];
   const skinShade = SKIN_SHADE[look.skin % SKIN_SHADE.length];
@@ -278,6 +278,13 @@ function drawPerson(look: Look, step: boolean, back = false): Grid {
     g.set(20, 16, skin, 'skin');
     // Big anime eyes: a dark lash line, a white shine, and an iris that gets lighter toward the bottom.
     for (const x0 of [7, 14]) {
+      if (wink && x0 === 14) {
+        // a happy closed eye, like ^
+        g.set(x0, 18, INK, 'eye');
+        g.set(x0 + 1, 17, INK, 'eye');
+        g.set(x0 + 2, 18, INK, 'eye');
+        continue;
+      }
       g.row(16, x0, x0 + 2, INK, 'eye');
       g.set(x0, 17, '#ffffff', 'eye');
       g.set(x0 + 1, 17, mix(eye, INK, 0.3), 'eye');
@@ -289,6 +296,11 @@ function drawPerson(look: Look, step: boolean, back = false): Grid {
     }
     for (const x of [5, 6, 17, 18]) g.set(x, 20, mix(skin, '#f26d7d', 0.45), 'skin');
     g.row(21, 11, 12, '#b5564d', 'skin');
+    if (wink) {
+      // and a big smile
+      g.set(10, 20, '#b5564d', 'skin');
+      g.set(13, 20, '#b5564d', 'skin');
+    }
 
     // 4. hair over the forehead, with the shadow it casts on the face
     for (let x = 4; x <= 19; x++) {
@@ -327,6 +339,18 @@ function drawPerson(look: Look, step: boolean, back = false): Grid {
       out.set(x, y, c, p.r);
     }
   return out;
+}
+
+/** One front-facing frame, winking. */
+export function paintWink(ctx: CanvasRenderingContext2D, look: Look) {
+  const g = drawPerson(look, false, false, true);
+  for (let y = 0; y < CHIBI_H; y++)
+    for (let x = 0; x < CHIBI_W; x++) {
+      const p = g.get(x, y);
+      if (!p) continue;
+      ctx.fillStyle = p.c;
+      ctx.fillRect(x, y, 1, 1);
+    }
 }
 
 /** Paint the sheet: stand and step side by side, facing front on the top row and away on the bottom row. */

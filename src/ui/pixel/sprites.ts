@@ -47,6 +47,22 @@ export const SPRITES: Record<string, string[]> = {
     '..oeeeeeeeeeeo..',
     '...oooooooooo...',
   ],
+  // A blocky cake: white frosting with red berries, dripping down tan sides, a darker base.
+  michcake: [
+    '................',
+    '................',
+    '..oooooooooooo..',
+    '.owwpwwwwwwpwwo.',
+    '.owwwwwwpwwwwwo.',
+    '.owpwwwwwwwwpwo.',
+    '.owwwwwpwwwwwwo.',
+    '.owwkwwwkwwwkwo.',
+    '.okkkwkkkkwkkko.',
+    '.okkkkkkkkkkkko.',
+    '.okkkkkkkkkkkko.',
+    '.oKKKKKKKKKKKKo.',
+    '..oooooooooooo..',
+  ],
   pateChaud: [
     '................',
     '................',

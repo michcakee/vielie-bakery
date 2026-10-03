@@ -694,16 +694,21 @@ kbd {
 }
 /* People on the street are across the road, so they're smaller than people in the shop.
    The scale sits on the sprite, not the mover, because the mover's walk animation owns `transform`. */
+/* Street life is drawn at street scale: across the road, people are small and stay on the pavement,
+   and scooters stay down on the road instead of covering the buildings' windows. */
 .mover.walker .person-sprite {
-  transform: scale(0.36);
-  transform-origin: bottom center;
+  zoom: 0.24;
+}
+.mover.moto img,
+.mover.cat img {
+  zoom: 0.55;
 }
 .mover.moto {
-  bottom: 1px;
+  bottom: 0;
   animation: drive 9s linear infinite;
 }
 .mover.moto.m2 {
-  bottom: -2px;
+  bottom: 3px;
   animation-duration: 6.5s;
   animation-delay: -3s;
 }
@@ -2848,7 +2853,7 @@ textarea {
 .loading-scene {
   position: relative;
   width: 260px;
-  height: 140px;
+  height: 150px;
 }
 .loading-oven {
   position: absolute;
@@ -2874,16 +2879,131 @@ textarea {
   position: absolute;
   left: 0;
   bottom: 0;
-  animation: carry 1.6s ease-in-out infinite alternate;
+  line-height: 0;
+  /* walk to the oven, then stay there */
+  animation: carry 0.75s ease-in-out forwards;
 }
+.loading-baker .person-sprite.is-walking {
+  animation-iteration-count: 2;
+}
+/* then slide the baguettes into the oven… */
+.loading-tray {
+  animation: into-oven 0.35s ease-in 0.8s forwards;
+}
+@keyframes into-oven {
+  to {
+    transform: translate(76px, -30px) scale(0.6);
+    opacity: 0;
+  }
+}
+/* …and turn round with a wink and a heart */
+.loading-wink {
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  animation: show 0.01s linear 1.25s forwards;
+}
+/* She says it: a round bubble up to her right, in purple, with dots trailing back to her. */
+.loading-sign {
+  position: absolute;
+  left: 84px;
+  top: -26px;
+  white-space: nowrap;
+  font-family: var(--pixel);
+  font-size: 18px;
+  line-height: 1;
+  color: #7a4fa3;
+  background: #fff;
+  border: 3px solid var(--ink);
+  border-radius: 50%;
+  padding: 14px 16px;
+  box-shadow: var(--shadow-sm);
+  opacity: 0;
+  transform-origin: 0 100%;
+  animation: sign-pop 0.45s ease-out 1.45s forwards;
+}
+.loading-sign::before,
+.loading-sign::after {
+  content: '';
+  position: absolute;
+  background: #fff;
+  border: 3px solid var(--ink);
+  border-radius: 50%;
+}
+.loading-sign::before {
+  left: 2px;
+  bottom: -12px;
+  width: 12px;
+  height: 12px;
+}
+.loading-sign::after {
+  left: -10px;
+  bottom: -22px;
+  width: 7px;
+  height: 7px;
+}
+@keyframes sign-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.5);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(-3px) scale(1.08);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+html[data-motion='reduced'] .loading-sign {
+  animation: none;
+  opacity: 1;
+}
+.loading-heart {
+  /* on the other side of her head from the speech bubble's tail, so they never touch */
+  position: absolute;
+  left: -18px;
+  top: 34px;
+  line-height: 0;
+  opacity: 0;
+  animation: heart-pop 0.6s ease-out 1.3s forwards;
+}
+@keyframes show {
+  to {
+    opacity: 1;
+  }
+}
+@keyframes heart-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.4);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-4px) scale(1.2);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(-6px) scale(1);
+  }
+}
+html[data-motion='reduced'] .loading-baker,
+html[data-motion='reduced'] .loading-tray,
+html[data-motion='reduced'] .loading-heart {
+  animation: none;
+}
+/* The baguettes sit in her hands, in front of her apron (the sprite is 24×36 at 4×; hands are at row 29). */
 .loading-tray {
   position: absolute;
-  right: -34px;
-  top: 40px;
+  left: 24px;
+  top: 98px;
+  line-height: 0;
 }
 @keyframes carry {
   to {
-    transform: translateX(70px);
+    transform: translateX(48px);
   }
 }
 .loading p {
@@ -3303,6 +3423,9 @@ textarea {
   .title-screen {
     grid-template-columns: 1fr;
     padding: 16px;
+    /* Keep the picture and the text together in the middle, not split to the top and bottom. */
+    align-content: center;
+    gap: 20px;
   }
   .say {
     font-size: 15px;
@@ -4862,7 +4985,7 @@ html[data-motion='reduced'] .bell-bounce {
 /* ---------- Phase 5: ambient life ---------- */
 /* a cat crosses the window every so often (long cycle, mostly idle off-screen) */
 .mover.cat {
-  bottom: 0;
+  bottom: 6px;
   animation: cat-walk 48s linear infinite;
   animation-delay: -10s;
 }

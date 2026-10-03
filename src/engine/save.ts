@@ -1,4 +1,4 @@
-import { INGREDIENTS, INGREDIENT_ORDER, PRODUCTS, PRODUCT_ORDER, UPGRADES } from '../data/catalog';
+import { START_PRODUCTS, INGREDIENTS, INGREDIENT_ORDER, PRODUCTS, PRODUCT_ORDER, UPGRADES } from '../data/catalog';
 import { balanceSheet } from './accounting';
 import { refreshKinds } from './events';
 import { createNewGame, SAVE_VERSION } from './state';
@@ -48,6 +48,13 @@ export function fillNewContent(data: unknown): void {
       if (m && !finite(m[p])) m[p] = 0;
     }
   }
+  // Starting recipes added later (the michcake) go straight onto older bakeries' menus.
+  if (Array.isArray(s.unlocked) && Array.isArray(s.menu))
+    for (const p of START_PRODUCTS)
+      if (!s.unlocked.includes(p)) {
+        s.unlocked.push(p);
+        if (!s.menu.includes(p)) s.menu.push(p);
+      }
   for (const id of INGREDIENT_ORDER) {
     const def = INGREDIENTS[id];
     if (!s.pantry[id]) s.pantry[id] = { qty: 0, avgCost: def.price / def.pack, quality: 70, eco: 50 };

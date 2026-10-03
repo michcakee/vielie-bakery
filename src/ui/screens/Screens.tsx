@@ -10,14 +10,17 @@ import { useGame } from '../GameContext';
 import { Btn } from '../kit';
 import { LookEditor } from '../LookEditor';
 import { Person, Sprite } from '../pixel/Sprite';
+import { PERSON_H, PERSON_W, winkURL } from '../pixel/render';
 import { Exterior } from './Exterior';
+
+const BAKER: Look = { ...DEFAULT_LOOK, apron: 0, accessory: 4 };
 
 export function Loading({ onDone }: { onDone: () => void }) {
   const { reduced } = useGame();
   const [stage, setStage] = useState(0);
   useEffect(() => {
     const a = window.setTimeout(() => setStage(1), reduced ? 100 : 900);
-    const b = window.setTimeout(onDone, reduced ? 200 : 1700);
+    const b = window.setTimeout(onDone, reduced ? 200 : 2800);
     return () => {
       window.clearTimeout(a);
       window.clearTimeout(b);
@@ -30,7 +33,12 @@ export function Loading({ onDone }: { onDone: () => void }) {
           <span className="loading-fire" />
         </span>
         <span className="loading-baker">
-          <Person look={{ ...DEFAULT_LOOK, apron: 0, accessory: 4 }} scale={5} walking />
+          <Person look={BAKER} scale={4} walking />
+          <img className="loading-wink px" src={winkURL(BAKER)} width={PERSON_W * 4} height={PERSON_H * 4} alt="" />
+          <span className="loading-sign">by mich! &lt;3</span>
+          <span className="loading-heart">
+            <Sprite name="heart" scale={3} />
+          </span>
           <span className="loading-tray">
             <Sprite name="baguette" scale={3} />
           </span>

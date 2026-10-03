@@ -4,12 +4,13 @@ import { ecoScore, isTet, levelProgress, weekdayIndex } from '../engine/economy'
 import { clockLabel } from '../engine/time';
 import { money, money2 } from '../lib/format';
 import { useGame } from './GameContext';
+import { featureOn } from '../engine/unlocks';
 import { Meter, useTween } from './kit';
 import { Sprite } from './pixel/Sprite';
 
 const WEATHER_ICON = { sunny: 'sun', cloudy: 'cloud', rainy: 'rain', hot: 'hot', cool: 'cool' } as const;
 
-export function Hud({ onQuests, onSettings, questCount }: { onQuests: () => void; onSettings: () => void; questCount: number }) {
+export function Hud({ onQuests, onSettings, onHelp, questCount }: { onQuests: () => void; onSettings: () => void; onHelp: () => void; questCount: number }) {
   const { state: s, reduced } = useGame();
   const cash = useTween(s.cash, 500, reduced);
   // Money earned while the shop is open floats up from the cash figure.
@@ -60,16 +61,20 @@ export function Hud({ onQuests, onSettings, questCount }: { onQuests: () => void
           <b>{Math.round(s.reputation)}</b>
           <span className="sr-only">reputation</span>
         </span>
+        {featureOn(s, 'eco.all') && (
         <span className="hud-stat" title="Eco score: sourcing, waste and packaging">
           <Sprite name="leaf" scale={3} />
           <b>{eco}</b>
           <span className="sr-only">eco score</span>
         </span>
+        )}
+        {featureOn(s, 'customers.regulars') && (
         <span className="hud-stat" title="Community: donations, good service and being a good neighbour">
           <Sprite name="heart" scale={3} />
           <b>{Math.round(s.community)}</b>
           <span className="sr-only">community</span>
         </span>
+        )}
       </div>
       <div className="hud-level" title={`${lp.into} / ${lp.span} XP to the next level`}>
         <span className="lvl-badge">Lv {lp.level}</span>
@@ -77,9 +82,11 @@ export function Hud({ onQuests, onSettings, questCount }: { onQuests: () => void
         <Meter value={lp.into / lp.span} tone="xp" label="Progress to next level" />
       </div>
       <div className="hud-buttons">
+        <button type="button" className="icon-btn help-btn" onClick={onHelp} aria-label="What should I do now?">
+          ?
+        </button>
         <button type="button" className="icon-btn" onClick={onQuests} aria-label={`Quests and achievements, ${questCount} active`}>
           <Sprite name="book" scale={3} />
-          <span className="badge">{questCount}</span>
         </button>
         <button type="button" className="icon-btn" onClick={onSettings} aria-label="Settings and saving">
           <Sprite name="gear" scale={3} />

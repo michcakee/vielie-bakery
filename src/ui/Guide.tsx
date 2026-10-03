@@ -88,8 +88,8 @@ function Spotlight({ anchor, onDone }: { anchor: string; onDone: () => void }) {
   if (!rect) return null;
   const above = rect.top > 56;
   return (
-    <div className="spot-arrow" aria-hidden="true" style={{ left: rect.left + rect.width / 2 - 16, top: above ? rect.top - 40 : rect.bottom + 8 }}>
-      <Sprite name="arrow" scale={4} className={above ? 'point-down' : 'point-up'} />
+    <div className="spot-arrow" aria-hidden="true" style={{ left: rect.left + rect.width / 2 - 24, top: above ? rect.top - 56 : rect.bottom + 8 }}>
+      <Sprite name="arrow" scale={6} className={above ? "point-down" : "point-up"} />
     </div>
   );
 }
@@ -134,5 +134,98 @@ export function IntroCard() {
         <span className="small muted">{intro.replay ? 'Replaying: no reward this time.' : `Reward: ${f.intro.xp} XP`}</span>
       </div>
     </Card>
+  );
+}
+
+/** One line at the top of every tab: what it's for, in kid words. */
+export const TAB_HELP: Record<TabId, { what: string; icon: string }> = {
+  today: { what: 'Your day at a glance. Check the goal, then open the doors!', icon: 'house' },
+  kitchen: { what: 'Bake trays for the pastry case and set your prices.', icon: 'hot' },
+  market: { what: 'Buy ingredients. No flour, no bread!', icon: 'bag' },
+  staff: { what: 'Hire helpers when customers give up waiting.', icon: 'people' },
+  customers: { what: 'Who comes in, what they love, and the bakeries you compete with.', icon: 'heart' },
+  growth: { what: 'Spend money to make more money: ovens, decorations, more shops.', icon: 'plant' },
+  money: { what: 'Did we make money? Sales minus costs = profit.', icon: 'coin' },
+  analytics: { what: 'Find out why a day went well or badly.', icon: 'chart' },
+  eco: { what: 'Be kind to the planet: less waste, greener packaging.', icon: 'leaf' },
+};
+
+export function TabHelp({ tab }: { tab: TabId }) {
+  const h = TAB_HELP[tab];
+  return (
+    <p className="tab-help">
+      <Sprite name={h.icon} scale={2} /> {h.what}
+    </p>
+  );
+}
+
+const DAY_STEPS = [
+  { id: 'morning', icon: 'hot', text: 'Get ready', sub: 'Bake and buy' },
+  { id: 'service', icon: 'shop', text: 'Open', sub: 'Serve customers' },
+  { id: 'closing', icon: 'trash', text: 'Close', sub: 'Leftovers' },
+  { id: 'report', icon: 'star', text: 'Report', sub: 'Stars and money' },
+] as const;
+
+/** The "What now?" sheet: how a day works, and the one or two things to do right now. */
+export function WhatNow({ onClose, goTo, todo }: { onClose: () => void; goTo: (t: TabId) => void; todo: { text: string; tab: TabId }[] }) {
+  const { state: s } = useGame();
+  const { showMe } = useGuide();
+  const intro = s.intro?.active ? FEATURE[s.intro.active] : null;
+  const at = intro ? introStep(s) : -1;
+  const step = intro && at >= 0 ? intro.intro.steps[at] : null;
+  const phase = s.phase === 'ended' || s.phase === 'setup' ? 'morning' : s.phase;
+  const now: { text: string; tab?: TabId; spot?: string }[] = [];
+  if (s.events.length) now.push({ text: 'Answer the news card first: pick one choice.' });
+  else if (phase === 'morning') {
+    if (step) now.push({ text: step.text, tab: step.tab, spot: step.spot });
+    for (const w of todo.slice(0, 2)) now.push({ text: w.text, tab: w.tab });
+    now.push({ text: 'When you’re ready, open the doors (Mở cửa!) on the Today tab.', tab: 'today', spot: 'open' });
+  } else if (phase === 'service')
+    now.push(
+      { text: 'Tap a customer’s order. Pastries are one tap. Bánh mì and drinks: tap the steps in order (the glowing one is next).' },
+      { text: 'Serve the person with the worried face first, before they leave!' },
+      { text: 'Fill the star bar at the top: more sales, more stars.' },
+    );
+  else if (phase === 'closing') now.push({ text: 'Choose what to do with leftovers. Donating makes the neighbours happy.' });
+  else now.push({ text: 'Read how the day went, then tap the button at the bottom for the next morning.' });
+  return (
+    <div className="confirm-veil" onClick={onClose}>
+      <div className="confirm-sheet what-now" role="dialog" aria-modal="true" aria-label="What should I do now?" onClick={(e) => e.stopPropagation()}>
+        <h3>What now?</h3>
+        <ol className="day-steps" aria-label="How a day works">
+          {DAY_STEPS.map((d) => (
+            <li key={d.id} className={d.id === phase ? 'on' : ''}>
+              <Sprite name={d.icon} scale={3} />
+              <b>{d.text}</b>
+              <span>{d.sub}</span>
+            </li>
+          ))}
+        </ol>
+        <ul className="now-list">
+          {now.map((n, i) => (
+            <li key={i}>
+              <span>{n.text}</span>
+              {(n.tab || n.spot) && (
+                <Btn
+                  kind="ghost"
+                  onClick={() => {
+                    onClose();
+                    if (n.spot) showMe(n.tab, n.spot);
+                    else if (n.tab) goTo(n.tab);
+                  }}
+                >
+                  Show me
+                </Btn>
+              )}
+            </li>
+          ))}
+        </ul>
+        <div className="btn-row">
+          <Btn kind="primary" onClick={onClose}>
+            Got it!
+          </Btn>
+        </div>
+      </div>
+    </div>
   );
 }

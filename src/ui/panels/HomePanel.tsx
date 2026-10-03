@@ -19,7 +19,7 @@ import { tabOn } from '../../engine/unlocks';
 
 export type Tab = 'today' | 'kitchen' | 'market' | 'staff' | 'customers' | 'growth' | 'money' | 'analytics' | 'eco';
 
-function readiness(s: GameState) {
+export function readiness(s: GameState) {
   const menu = onMenu(s);
   const warnings: { text: string; tab: Tab }[] = [];
   if (s.equipment.every((e) => !e.kind.startsWith('oven'))) warnings.push({ text: 'You have no oven yet. Buy one in Growth before you can bake anything.', tab: 'growth' });
@@ -113,6 +113,8 @@ export function HomePanel({ goTo, onOpen, onRunDay }: { goTo: (t: Tab) => void; 
   const delegate = feature('today.teamDay');
   const stage = businessStage(s);
   const catering = s.effects.find((e) => e.id === 'catering' && Number(e.data?.day) === s.day);
+  // While Bà's first lesson runs, it is the only voice on this page.
+  const lesson = s.allUnlocked === false && s.history.length === 0 && !s.hints.includes('coachDone');
 
   return (
     <div className="panel-stack">
@@ -162,6 +164,7 @@ export function HomePanel({ goTo, onOpen, onRunDay }: { goTo: (t: Tab) => void; 
         )}
       </div>
 
+      <Coach />
       <IntroCard />
       <Card className={`economy-card regime-${s.macro.regime}`} title={feature('analytics.economy') ? regime.name : `Day ${s.day}`} icon="chart" aside={<span className="small muted">{dateLabel(s.day)}</span>}>
         {feature('analytics.economy') && <p className="small">{regime.forYou}</p>}
@@ -184,7 +187,6 @@ export function HomePanel({ goTo, onOpen, onRunDay }: { goTo: (t: Tab) => void; 
         </p>
       </Card>
 
-      <Coach />
       {s.special && (
         <Card className="special-card" title="Today’s special" icon="star" spot="special" fresh={fresh('today.special')} aside={<span className="small muted">pays ×{ECON.service.dailySpecial.mult}</span>}>
           <div className="special-row">
@@ -196,9 +198,9 @@ export function HomePanel({ goTo, onOpen, onRunDay }: { goTo: (t: Tab) => void; 
           </div>
         </Card>
       )}
-      {!s.intro?.active && <NextUp />}
+      {!s.intro?.active && !lesson && <NextUp />}
 
-      {firstDay ? (
+      {lesson ? null : firstDay ? (
         <Card className="ba-note" title="A note from Bà" icon="note">
           <p className="handwrite">Con ơi, the bakery is yours now. I left you baguettes, a tray of flan and enough for coffee. Open the doors, and someone will be hungry soon. Thương con.</p>
           <p className="small muted">"My dear, the bakery is yours now…" — Bà (grandma)</p>
@@ -260,6 +262,7 @@ export function HomePanel({ goTo, onOpen, onRunDay }: { goTo: (t: Tab) => void; 
         </Card>
       )}
 
+      {!lesson && (
       <Card title="Quests" icon="book">
         <ul className="quests">
           {quests.map((q) => {
@@ -287,6 +290,7 @@ export function HomePanel({ goTo, onOpen, onRunDay }: { goTo: (t: Tab) => void; 
           </div>
         )}
       </Card>
+      )}
 
       {feature('customers.regulars') && <Neighbours />}
       <p className="small muted">

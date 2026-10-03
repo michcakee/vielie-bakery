@@ -17,7 +17,7 @@ import { BuildPanel } from './panels/BuildPanel';
 import { CustomersPanel } from './panels/CustomersPanel';
 import { EcoPanel } from './panels/EcoPanel';
 import { FinancesPanel } from './panels/FinancesPanel';
-import { HomePanel, type Tab } from './panels/HomePanel';
+import { HomePanel, readiness, type Tab } from './panels/HomePanel';
 import { KitchenPanel } from './panels/KitchenPanel';
 import { MarketPanel } from './panels/MarketPanel';
 import { ServicePanel } from './panels/ServicePanel';
@@ -25,7 +25,7 @@ import { StaffPanel } from './panels/StaffPanel';
 import { Sprite } from './pixel/Sprite';
 import { BakeryScene } from './scene/BakeryScene';
 import { IntroLines, Loading, NewGame, Setup, Title } from './screens/Screens';
-import { GuideProvider } from './Guide';
+import { GuideProvider, TabHelp, WhatNow } from './Guide';
 import { FEATURE } from '../data/unlocks';
 import { introStep, nextFeature, tabOn } from '../engine/unlocks';
 import { Settings } from './Settings';
@@ -37,7 +37,7 @@ const TABS: { id: Tab; label: string; vi: string; icon: string; mobile: boolean 
   { id: 'staff', label: 'Staff', vi: 'Nhân viên', icon: 'people', mobile: false },
   { id: 'customers', label: 'Customers', vi: 'Khách', icon: 'heart', mobile: false },
   { id: 'growth', label: 'Growth', vi: 'Mở rộng', icon: 'plant', mobile: false },
-  { id: 'money', label: 'Finances', vi: 'Tài chính', icon: 'coin', mobile: true },
+  { id: 'money', label: 'Money', vi: 'Tài chính', icon: 'coin', mobile: true },
   { id: 'analytics', label: 'Analytics', vi: 'Phân tích', icon: 'chart', mobile: false },
   { id: 'eco', label: 'Eco', vi: 'Xanh', icon: 'leaf', mobile: false },
 ];
@@ -176,7 +176,7 @@ function Game({ onQuit }: { onQuit: () => void }) {
   const [paused, setPaused] = useState(false);
   const [speed, setSpeed] = useState(1);
   const [activeId, setActiveId] = useState<number | null>(null);
-  const [drawer, setDrawer] = useState<'quests' | 'settings' | 'more' | null>(null);
+  const [drawer, setDrawer] = useState<'quests' | 'settings' | 'more' | 'help' | null>(null);
   const [hidden, setHidden] = useState(false);
   const intro = s.phase === 'morning' && s.day === 1 && s.history.length === 0 && !s.hints.includes('intro') && s.scenario === 'family';
 
@@ -262,7 +262,7 @@ function Game({ onQuit }: { onQuit: () => void }) {
       <a className="skip-link" href="#panel">
         Skip to controls
       </a>
-      <Hud onQuests={() => setDrawer('quests')} onSettings={() => setDrawer('settings')} questCount={activeQuests(s).length} />
+      <Hud onQuests={() => setDrawer('quests')} onSettings={() => setDrawer('settings')} onHelp={() => setDrawer('help')} questCount={activeQuests(s).length} />
       <div className="layout">
         <section className="scene-col" aria-label="Your bakery">
           <BakeryScene
@@ -346,6 +346,7 @@ function Game({ onQuit }: { onQuit: () => void }) {
               <ClosingPanel />
             ) : (
               <>
+                {tab !== 'today' && <TabHelp tab={tab} />}
                 {tab === 'today' && <HomePanel goTo={goTo} onOpen={open} onRunDay={() => dispatch({ type: 'runDay' })} />}
                 {tab === 'kitchen' && <KitchenPanel />}
                 {tab === 'market' && <MarketPanel />}
@@ -384,6 +385,7 @@ function Game({ onQuit }: { onQuit: () => void }) {
       <Toasts />
       {s.ending && <Ending onQuit={onQuit} />}
       {drawer === 'quests' && <QuestBook onClose={() => setDrawer(null)} />}
+      {drawer === 'help' && <WhatNow onClose={() => setDrawer(null)} goTo={goTo} todo={s.phase === 'morning' ? readiness(s) : []} />}
       {drawer === 'settings' && <Settings onClose={() => setDrawer(null)} onQuit={onQuit} />}
       {drawer === 'more' && (
         <Modal label="More sections" onClose={() => setDrawer(null)} className="drawer sheet">

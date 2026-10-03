@@ -99,7 +99,7 @@ function Spotlight({ anchor, onDone }: { anchor: string; onDone: () => void }) {
 
 /** The active intro quest: a character, one or two short lines, the step to do, Show me and Later. */
 export function IntroCard() {
-  const { state: s, dispatch, prefs } = useGame();
+  const { state: s, dispatch } = useGame();
   const { showMe } = useGuide();
   const intro = s.intro;
   // One voice at a time: a morning event is answered first, then the lesson speaks.
@@ -124,10 +124,17 @@ export function IntroCard() {
           Later
         </button>
       </div>
-      <p className="handwrite lesson-line" lang="vi">
-        {f.intro.vi}
-      </p>
-      {prefs.translations && <p className="small muted lesson-en">“{f.intro.en}”</p>}
+      {/* Only Bà speaks Vietnamese; everyone else's line is shown in English. */}
+      {f.intro.who === 'Bà' ? (
+        <>
+          <p className="handwrite lesson-line" lang="vi">
+            {f.intro.vi}
+          </p>
+          <p className="small muted lesson-en">“{f.intro.en}”</p>
+        </>
+      ) : (
+        <p className="handwrite lesson-line">“{f.intro.en}”</p>
+      )}
       {now && (
         <p className="tut-text">
           <b>
@@ -196,7 +203,7 @@ export function WhatNow({ onClose, goTo, todo }: { onClose: () => void; goTo: (t
   else if (phase === 'morning') {
     if (step) now.push({ text: step.text, tab: step.tab, spot: step.spot });
     for (const w of todo.slice(0, 2)) now.push({ text: w.text, tab: w.tab, spot: w.spot });
-    now.push({ text: 'When you’re ready, open the doors (Mở cửa!) on the Today tab.', tab: 'today', spot: 'open' });
+    now.push({ text: 'When you’re ready, open the shop on the Today tab.', tab: 'today', spot: 'open' });
   } else if (phase === 'service')
     now.push(
       { text: 'Tap a customer’s order. Pastries are one tap. Bánh mì and drinks: tap the steps in order (the glowing one is next).' },

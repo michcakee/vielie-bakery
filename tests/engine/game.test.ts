@@ -33,23 +33,23 @@ describe('first day (Family Business)', () => {
     expect(s.equipment.map((e) => e.kind)).toEqual(['ovenBasic']);
     expect(s.baguettes.qty).toBeGreaterThan(0);
     expect(s.display.flan.qty).toBe(8);
-    expect(s.unlocked).toEqual(['banhMi', 'caPhe', 'flan', 'michcake']);
+    expect(s.unlocked).toEqual(['banhMi', 'caPhe', 'flan', 'banhMiQue']);
     expect(s.prepaidRent).toBeGreaterThan(0);
   });
 
-  it('an older save without the michcake loads, gets the recipe and plays a day', () => {
+  it('an older save without the bánh mì que loads, gets the recipe and plays a day', () => {
     const store = new Map<string, string>();
     const mem = { getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => void store.set(k, v), removeItem: (k: string) => void store.delete(k) };
     const old = JSON.parse(JSON.stringify(playDay(createNewGame(9)))) as GameState;
-    for (const rec of [old.display, old.prices, old.bakedToday, old.lifetime.sold, old.today.made, old.today.sold, old.today.revenueBy, old.today.cogsBy] as Record<string, unknown>[]) delete rec.michcake;
-    old.unlocked = old.unlocked.filter((p) => p !== 'michcake');
-    old.menu = old.menu.filter((p) => p !== 'michcake');
+    for (const rec of [old.display, old.prices, old.bakedToday, old.lifetime.sold, old.today.made, old.today.sold, old.today.revenueBy, old.today.cogsBy] as Record<string, unknown>[]) delete rec.banhMiQue;
+    old.unlocked = old.unlocked.filter((p) => p !== 'banhMiQue');
+    old.menu = old.menu.filter((p) => p !== 'banhMiQue');
     store.set(`${SLOT_PREFIX}1`, JSON.stringify(old));
     const back = loadGame(1, mem)!;
     expect(back).not.toBeNull();
-    expect(back.unlocked).toContain('michcake');
-    expect(back.menu).toContain('michcake');
-    expect(back.display.michcake.qty).toBe(0);
+    expect(back.unlocked).toContain('banhMiQue');
+    expect(back.menu).toContain('banhMiQue');
+    expect(back.display.banhMiQue.qty).toBe(0);
     sane(playDay(back));
   });
 
@@ -72,17 +72,27 @@ describe('first day (Family Business)', () => {
     expect(s.lifetime.served).toBe(served + 1);
   });
 
-  it('Linh walks in almost immediately and orders a bánh mì', () => {
-    let s = act(createNewGame(2), { type: 'setup', name: 'Nhà Bà', look: createNewGame(2).look }, { type: 'open' });
-    expect(s.service!.visits[0].name).toBe('Linh');
+  it('Kevin Nguyen is the very first customer, and the player serves him', () => {
+    let s = act(createNewGame(2), { type: 'setup', name: 'Nhà Bà', look: createNewGame(2).look, player: '  Mich!! ' }, { type: 'open' });
+    expect(s.playerName).toBe('Mich');
+    expect(s.service!.visits[0].name).toBe('Kevin Nguyen');
     s = act(s, { type: 'tick', minutes: 15 });
-    const linh = s.service!.visits[0];
-    expect(linh.status).toBe('waiting');
+    const kevin = s.service!.visits[0];
+    expect(kevin.status).toBe('waiting');
+    expect(kevin.servedBy).toBeUndefined();
     const cash = s.cash;
-    s = act(s, { type: 'serve', visitId: linh.id, process: 100 });
+    s = act(s, { type: 'serve', visitId: kevin.id, process: 100 });
     expect(s.cash).toBeGreaterThan(cash);
-    expect(s.lifetime.sold.banhMi).toBe(1);
-    expect(s.quests).toContain('firstBanhMi');
+    expect(s.lifetime.served).toBe(1);
+  });
+
+  it('in a guided game Kevin orders the bánh mì que you baked, and Bà leaves him to you', () => {
+    let s = createNewGame({ seed: 2, guided: true });
+    s = act(s, { type: 'setup', name: 'Nhà Bà', look: s.look }, { type: 'bake', item: 'banhMiQue', process: 90 }, { type: 'open' }, { type: 'tick', minutes: 20 });
+    const kevin = s.service!.visits.find((v) => v.who === 'kevin')!;
+    expect(kevin.wants).toBe('banhMiQue');
+    expect(kevin.status).toBe('waiting');
+    expect(kevin.servedBy).toBeUndefined();
   });
 
   it('the startup scenario begins with $10,000 and an empty kitchen', () => {
@@ -242,7 +252,7 @@ describe('saving', () => {
     expect(s.cash).toBeCloseTo(660, 2);
     expect(s.prices.banhMi).toBeCloseTo(7, 1);
     expect(s.upgrades).toContain('fridge');
-    expect(s.staff[0].name).toBe('Cô Ba');
+    expect(s.staff[0].name).toBe('Auntie');
     expect(store.getItem(LEGACY_V2_KEY)).not.toBeNull();
     expect(migrateV2({ version: 1 })).toBeNull();
   });

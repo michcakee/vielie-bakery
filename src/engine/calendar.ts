@@ -3,7 +3,8 @@ import { ECON } from '../data/config';
 const { daysPerMonth, monthsPerYear, startYearDay } = ECON.calendar;
 export const YEAR_DAYS = daysPerMonth * monthsPerYear;
 
-export const MONTH_NAMES = ['Tháng Giêng', 'Tháng Hai', 'Tháng Ba', 'Tháng Tư', 'Tháng Năm', 'Tháng Sáu', 'Tháng Bảy', 'Tháng Tám', 'Tháng Chín', 'Tháng Mười', 'Tháng Mười Một', 'Tháng Chạp'];
+/** The lunar year starts with Tết, so months are numbered rather than named January to December. */
+export const MONTH_NAMES = Array.from({ length: 12 }, (_, i) => `Month ${i + 1}`);
 
 export type Season = 'cool' | 'warm' | 'hot' | 'rainy';
 
@@ -70,7 +71,7 @@ export const mooncakeSeason = (day: number) => festivalsOn(day).includes('trungT
 
 export function dateLabel(day: number): string {
   const d = dateOf(day);
-  return `Year ${d.year} · ${d.monthName} ${d.dom}`;
+  return `Year ${d.year} · ${d.monthName}, day ${d.dom}`;
 }
 
 /** Days until the next occurrence of a festival, within a year. */

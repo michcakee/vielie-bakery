@@ -10,7 +10,7 @@ Viet Bake Shop is a single-player game. It is designed to collect nothing about 
 
 ## What stays on your device
 
-Your bakery (the save game) and your settings (sound, text size, and so on) are stored on your device, in the app's local storage. They never leave your device unless you choose to share them:
+Your bakery (the save game, including the bakery name and the first name or nickname you may type) and your settings (sound, text size, and so on) are stored on your device, in the app's local storage. They never leave your device unless you choose to share them:
 
 - **Save codes:** if you copy a save code, it contains only your game data. Where you paste it is up to you.
 - **Email restore link** (web version only): this opens *your own* email app with a link containing your save code. We never see the email or your address.

@@ -24,7 +24,7 @@ export function EcoPanel() {
         </div>
         <Meter value={eco / 100} tone="eco" label="Eco score" />
         <p className="small">
-          Eco-minded customers like Mai pay more at a green bakery. {green ? 'During Green Week there are many more of them.' : ''}
+          Eco-minded customers pay more at a green bakery. {green ? 'During Green Week there are many more of them.' : ''}
         </p>
       </Card>
 

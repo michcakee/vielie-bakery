@@ -29,7 +29,7 @@ No backend, no accounts, no ads, no tracking. It plays offline, and saves stay o
 
 **Sandbox:** six scenarios (Family Business, Startup, Survive the Recession, Rapid Expansion, Community Bakery, Competitive Market), four difficulty levels that change the economy rather than just the numbers, long-term goals, three save slots with automatic backups, and endings: sell to a buyer, retire, or go bankrupt.
 
-**Cozy and Vietnamese:** a tube-house bakery with gạch bông tiles, lanterns and street life; 12 recipes from bánh mì to bánh trung thu; regulars with names and Vietnamese lines (with translations); Tết and Trung Thu.
+**Cozy and Vietnamese:** a tube-house bakery with gạch bông tiles, lanterns and street life; 13 recipes from bánh mì que to bánh trung thu, with the michcake as the final unlock; regulars with habits and favourites; Bà teaching in Vietnamese with English underneath; Tết and Trung Thu.
 
 **For everyone:** casual and business views, adjustable text size, keyboard play, reduced motion, screen-reader labels, and a phone layout with a bottom tab bar.
 

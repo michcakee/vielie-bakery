@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ECON } from '../../data/config';
-import { ROLES, ROLE_ORDER, TRAITS } from '../../data/world';
+import { FRIENDS, ROLES, ROLE_ORDER, TRAITS } from '../../data/world';
 import { laborTrays, ovenCapacity, productivity, trayCapacity, wages } from '../../engine/economy';
 import { hireValue, marketWage } from '../../engine/labor';
 import type { Employee, RoleId } from '../../engine/types';
@@ -11,7 +11,7 @@ import { Btn, Card, Empty, Meter, Stepper, Tip } from '../kit';
 import { Person, Sprite } from '../pixel/Sprite';
 
 function EmployeeRow({ e }: { e: Employee }) {
-  const { state: s, dispatch, prefs } = useGame();
+  const { state: s, dispatch } = useGame();
   const [wage, setWage] = useState(e.wage);
   const going = marketWage(s, e.role, e.skill);
   const prod = productivity(e, s.day);
@@ -31,10 +31,7 @@ function EmployeeRow({ e }: { e: Employee }) {
         {e.trait && (
           <span className="small trait">
             <span className="special-tag trait-tag">{TRAITS[e.trait].name}</span> {TRAITS[e.trait].blurb}
-            <em className="trait-says" lang="vi">
-              “{TRAITS[e.trait].lines[(e.id + s.day) % TRAITS[e.trait].lines.length].vi}”
-            </em>
-            {prefs.translations && <em className="trait-says muted">{TRAITS[e.trait].lines[(e.id + s.day) % TRAITS[e.trait].lines.length].en}</em>}
+            <em className="trait-says">“{TRAITS[e.trait].lines[(e.id + s.day) % TRAITS[e.trait].lines.length].en}”</em>
           </span>
         )}
         <span className="small">Morale</span>
@@ -75,7 +72,9 @@ export function StaffPanel() {
   const [branch, setBranch] = useState<number | null>(null);
   const [all, setAll] = useState(false);
   // Best value first: what they add minus what they cost. Bà recommends the top one if it pays.
-  const ranked = [...s.applicants].map((a) => ({ a, v: hireValue(s, a.role, a.skill) })).sort((x, y) => y.v.addsValue - y.v.cost - (x.v.addsValue - x.v.cost));
+  // Kevin Nguyen, your first customer, always heads the list.
+  const kevin = (name: string) => (name === FRIENDS[0].name ? 1 : 0);
+  const ranked = [...s.applicants].map((a) => ({ a, v: hireValue(s, a.role, a.skill) })).sort((x, y) => kevin(y.a.name) - kevin(x.a.name) || y.v.addsValue - y.v.cost - (x.v.addsValue - x.v.cost));
   const pick = ranked[0] && ranked[0].v.addsValue >= ranked[0].v.cost * 0.6 ? ranked[0].a.id : null;
   const shown = all ? ranked : ranked.slice(0, 3);
   const team = s.staff;
@@ -159,6 +158,7 @@ export function StaffPanel() {
                     <b>
                       {a.name} <span className="muted">· {ROLES[a.role].name}</span>
                       {a.id === pick && <span className="special-tag">Bà’s pick</span>}
+                      {kevin(a.name) === 1 && <span className="special-tag">your first customer</span>}
                     </b>
                     <span className="small">
                       Skill {Array.from({ length: a.skill }).map((_, i) => (<span key={i} className="star-on"><Sprite name="star" scale={2} /></span>))}
@@ -206,7 +206,7 @@ export function StaffPanel() {
         <ul className="role-list">
           {ROLE_ORDER.map((r: RoleId) => (
             <li key={r}>
-              <b>{ROLES[r].name}</b> <span className="muted" lang="vi">({ROLES[r].vi})</span>: {ROLES[r].blurb} <span className="muted">Going rate {money2(marketWage(s, r))}/hour.</span>
+              <b>{ROLES[r].name}</b>: {ROLES[r].blurb} <span className="muted">Going rate {money2(marketWage(s, r))}/hour.</span>
             </li>
           ))}
         </ul>

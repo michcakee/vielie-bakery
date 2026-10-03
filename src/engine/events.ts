@@ -75,7 +75,7 @@ export const EVENTS: Record<string, EventDef> = {
     title: 'Coffee rumours',
     vi: 'Tin đồn cà phê',
     concept: 'hedging',
-    text: () => 'Chú Bảy from the coffee co-op leans over the counter: "The highland harvest was bad. Prices will jump in a few days." Coffee is in every cà phê sữa đá you sell.',
+    text: () => 'The man from the coffee co-op leans over the counter: "The highland harvest was bad. Prices will jump in a few days." Coffee is in every cà phê sữa đá you sell.',
     choices: (s) => [
       {
         id: 'lock',
@@ -147,7 +147,7 @@ export const EVENTS: Record<string, EventDef> = {
     text: (s) => {
       const qty = Number(s.events[0]?.data?.qty ?? 20);
       const pay = Number(s.events[0]?.data?.pay ?? 110);
-      return `Chị Thảo's office wants ${qty} bánh mì picked up tomorrow at noon, for ${money(pay)}. Each one needs a baguette, a slice of chả lụa and pickles. Bake enough baguettes in the morning, or you'll let her down, and they all come out of what walk-ins could have bought.`;
+      return `A nearby office wants ${qty} bánh mì picked up tomorrow at noon, for ${money(pay)}. Each one needs a baguette, a slice of chả lụa and pickles. Bake enough baguettes in the morning, or you'll let her down, and they all come out of what walk-ins could have bought.`;
     },
     choices: (s) => {
       const qty = Number(s.events[0]?.data?.qty ?? 20);
@@ -192,17 +192,17 @@ export const EVENTS: Record<string, EventDef> = {
     concept: 'competition',
     text: (s) => {
       const c = s.competitors.find((x) => x.id === 'coTu');
-      return `Bánh Mì Cô Tư opened across the street. Her bánh mì is $${(c?.prices.banhMi ?? 5.5).toFixed(2)} and her coffee $${(c?.prices.caPhe ?? 4.25).toFixed(2)}. Some customers will be curious; how you respond decides how many stay.`;
+      return `A bánh mì stand opened across the street. Its bánh mì is $${(c?.prices.banhMi ?? 5.5).toFixed(2)} and its coffee $${(c?.prices.caPhe ?? 4.25).toFixed(2)}. Some customers will be curious; how you respond decides how many stay.`;
     },
     choices: (s) => [
-      { id: 'welcome', label: 'Bring Cô Tư a welcome flan', detail: 'Good neighbours share customers and tips. +5 community.', enabled: () => s.display.flan.qty > 0, apply: (x) => learn({ ...x, display: { ...x.display, flan: { ...x.display.flan, qty: x.display.flan.qty - 1 } }, community: bump(x.community, 5), questProgress: { ...x.questProgress, neighbor: 1 } }, 'competition') },
+      { id: 'welcome', label: 'Bring them a welcome flan', detail: 'Good neighbours share customers and tips. +5 community.', enabled: () => s.display.flan.qty > 0, apply: (x) => learn({ ...x, display: { ...x.display, flan: { ...x.display.flan, qty: x.display.flan.qty - 1 } }, community: bump(x.community, 5), questProgress: { ...x.questProgress, neighbor: 1 } }, 'competition') },
       {
         id: 'match',
         label: 'Match her bánh mì price',
         detail: 'Keeps price hunters, but you make less on every sandwich.',
         apply: (x) => {
           const price = x.competitors.find((c) => c.id === 'coTu')?.prices.banhMi ?? 5.5;
-          return learn(decide({ ...x, prices: { ...x.prices, banhMi: price } }, { kind: 'price', product: 'banhMi', text: `Matched Cô Tư's bánh mì price ($${price.toFixed(2)}).`, metric: 'revenue', before: avgRevenue(x, 'banhMi') }), 'competition');
+          return learn(decide({ ...x, prices: { ...x.prices, banhMi: price } }, { kind: 'price', product: 'banhMi', text: `Matched the stand's bánh mì price ($${price.toFixed(2)}).`, metric: 'revenue', before: avgRevenue(x, 'banhMi') }), 'competition');
         },
       },
       { id: 'quality', label: 'Compete on quality', detail: 'Better ingredients and a careful hand keep people coming back.', apply: (x) => learn(x, 'competition') },

@@ -125,7 +125,7 @@ export function drawExterior(ctx: CanvasRenderingContext2D) {
   b(ctx, x0 + 6, 90, 56, 22, '#f7f0dc');
   r(ctx, x0 + 7, 101, 54, 1, PAL.crust);
   // each pastry sits on the shelf: line its lowest drawn row up with the shelf top
-  for (const [i, n] of ['banhMi', 'michcake', 'flan'].entries()) {
+  for (const [i, n] of ['banhMi', 'banhMiQue', 'flan'].entries()) {
     const rows = SPRITES[n];
     const last = rows.reduce((k, row, y) => (/[^.]/.test(row) ? y : k), 0);
     paint(ctx, [rows], SPRITE_COLORS, x0 + 8 + i * 17, 101 - (last + 1));

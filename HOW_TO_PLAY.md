@@ -67,7 +67,7 @@ On a phone, the first four are in the bottom bar and the rest are under **More**
 | **Analytics** | "Why did this happen?", trends, break-even, which products earn the most, forecasts, decision journal |
 | **Eco** | Eco score, waste, packaging, sourcing, community |
 
-Every tab starts with one line saying what it's for. **?** (top bar): what to do right now. **Settings** (gear): business view (more numbers) or casual view, text size, sound, music, reduced motion, translations, save slots and save codes.
+Every tab starts with one line saying what it's for. **?** (top bar): what to do right now. **Settings** (gear): business view (more numbers) or casual view, text size, sound, music, reduced motion, save slots and save codes.
 
 ---
 
@@ -228,3 +228,13 @@ On Android, the back button closes windows and sheets, then returns to Today.
 - **Ingredients and the market.** Each recipe lists its ingredients by name with how many you have; if something's missing, buy it right there. Market rows say Fridge or Shelf, flag LOW, BARGAIN and PRICEY, and show how much you use a day and how long it lasts. The price is the buy button.
 - **Who comes in.** Each customer group has three favourites; every one on your menu brings in more of that group.
 - **Day report.** Three short pages: Stars (and why you missed the next one), Money, and Tomorrow (weather, and whether it'll be busier or quieter).
+
+## Round 5 changes
+
+- **Your name.** The game asks what to call you when you start (a first name or nickname; it never leaves your device).
+- **Bánh mì que comes first.** The first thing you bake is a tray of bánh mì que (crispy breadsticks), and your first customer, **Kevin Nguyen**, orders one. Serve him yourself: Bà leaves him to you.
+- **Kevin wants a job.** When hiring opens (around day 7), Kevin is the first to apply, as a helper who can serve anything.
+- **Everyone else goes by what they do.** Customers are the Office Worker, the Coffee Fan, the Jogger and so on; staff have nicknames like Mochi and Peanut.
+- **English everywhere.** Only Bà speaks Vietnamese (with English underneath). Food keeps its Vietnamese name.
+- **The michcake is the last recipe.** It unlocks at the top level, Bakery Legend. The Gress recipes are gone; an older save simply loads without them.
+- **On a computer:** the main menu works with the arrow keys and Enter, **Esc** opens a pause menu, and **F** (or the Fullscreen button) fills the screen. Browsers that support it show **Install game** to play it like a desktop app.

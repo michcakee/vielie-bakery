@@ -190,44 +190,44 @@ describe('long-term goals and endings', () => {
 });
 
 describe('content added after a save was written', () => {
-  it('a save from before the Gress menu and new ingredients still loads and plays', async () => {
+  it('a save that still has the removed Gress recipes and ingredients loads without them and plays', async () => {
     const { saveGame, loadGame } = await import('../../src/engine/save');
-    // Strip everything the Gress update added from a fresh game, as an older save would lack it.
-    const old = JSON.parse(JSON.stringify(createNewGame(12))) as GameState;
-    for (const p of ['gressCupcake', 'gressTeaLight', 'gressOreo', 'gressCoffee', 'gressHoneycomb', 'gressBoba', 'gressPie', 'gressMilkshake', 'gressCrepe', 'gressCake'] as const) {
-      delete (old.display as Partial<typeof old.display>)[p];
-      delete (old.prices as Partial<typeof old.prices>)[p];
-      delete (old.bakedToday as Partial<typeof old.bakedToday>)[p];
-      delete (old.lifetime.sold as Partial<typeof old.lifetime.sold>)[p];
-      delete (old.today.sold as Partial<typeof old.today.sold>)[p];
-      old.unlocked = old.unlocked.filter((x) => x !== p);
-      old.menu = old.menu.filter((x) => x !== p);
+    const old = JSON.parse(JSON.stringify(createNewGame(12)));
+    for (const p of ['gressCupcake', 'gressBoba']) {
+      old.display[p] = { qty: 3, quality: 70, unitCost: 1 };
+      old.prices[p] = 4;
+      old.bakedToday[p] = 1;
+      old.lifetime.sold[p] = 5;
+      old.today.sold[p] = 1;
+      old.unlocked.push(p);
+      old.menu.push(p);
     }
-    for (const id of ['gress', 'greenApple', 'lychee'] as const) {
-      delete (old.pantry as Partial<typeof old.pantry>)[id];
-      delete (old.market.prices as Partial<typeof old.market.prices>)[id];
-      delete (old.market.walk as Partial<typeof old.market.walk>)[id];
+    for (const id of ['gress', 'greenApple', 'lychee']) {
+      old.pantry[id] = { qty: 4, avgCost: 1, quality: 70, eco: 50 };
+      old.market.prices[id] = 9;
+      old.market.walk[id] = 1;
     }
+    old.special = 'gressCupcake';
     const m = new Map<string, string>();
     const store = { getItem: (k: string) => m.get(k) ?? null, setItem: (k: string, v: string) => void m.set(k, v), removeItem: (k: string) => void m.delete(k) };
-    saveGame(old, 1, store);
+    saveGame(old as GameState, 1, store);
     let back = loadGame(1, store);
     expect(back).not.toBeNull();
-    expect(back!.prices.gressCupcake).toBeGreaterThan(0);
+    expect(JSON.stringify(back)).not.toMatch(/gress[A-Z]|"gress"|lychee|greenApple/);
+    expect(back!.unlocked).toContain('banhMiQue');
     for (let d = 0; d < 5; d++) back = autoDay(back!);
     check(back!);
-    expect(back!.unlocked).toContain('gressCupcake');
   });
 
-  it('the first applicants are always the owner’s friends, in order, until hired', () => {
+  it('Kevin Nguyen is always the first to apply, and keeps applying until hired', () => {
     let s = createNewGame(3);
     for (let d = 0; d < 8 && !s.applicants.length; d++) s = autoDay(s);
-    expect(s.applicants.slice(0, 6).map((a) => a.name)).toEqual(['Vy', 'Sang', 'Hieu', 'Yen Vy', 'Phuong Khanh', 'Vien']);
+    expect(s.applicants[0].name).toBe('Kevin Nguyen');
     s = morning(s);
     s = gameReducer({ ...s, cash: s.cash + 2000 }, { type: 'hire', applicantId: s.applicants[0].id });
-    expect(s.staff.map((e) => e.name)).toContain('Vy');
+    expect(s.staff.map((e) => e.name)).toContain('Kevin Nguyen');
     for (let d = 0; d < 8; d++) s = autoDay(s);
-    expect(s.applicants.slice(0, 5).map((a) => a.name)).toEqual(['Sang', 'Hieu', 'Yen Vy', 'Phuong Khanh', 'Vien']);
+    expect(s.applicants.map((a) => a.name)).not.toContain('Kevin Nguyen');
   });
 });
 
@@ -277,7 +277,7 @@ describe('regulars: badges and the critic', () => {
     if (!minh) {
       // Minh didn't come today; put him in the queue by hand.
       const any = s.service!.visits.find((v) => v.status === 'coming' || v.status === 'walking' || v.status === 'waiting')!;
-      s = { ...s, service: { ...s.service!, visits: s.service!.visits.map((v) => (v.id === any.id ? { ...v, who: 'minh', name: 'Minh', wants: 'caPhe' as const, loyal: true } : v)) } };
+      s = { ...s, service: { ...s.service!, visits: s.service!.visits.map((v) => (v.id === any.id ? { ...v, who: 'minh', name: 'Coffee Fan', wants: 'caPhe' as const, loyal: true } : v)) } };
       minh = s.service!.visits.find((v) => v.who === 'minh');
     }
     for (let i = 0; i < 80 && s.service!.visits.find((v) => v.who === 'minh')!.status !== 'waiting'; i++) s = gameReducer(s, { type: 'tick', minutes: 4 });
@@ -302,22 +302,22 @@ describe('first-week unlock schedule and the next goal', () => {
   it('something new arrives on its scheduled day, and the next unlock is always known', async () => {
     const { nextUnlock } = await import('../../src/engine/progression');
     let s = createNewGame(21);
-    expect(morning(s).unlocked).not.toContain('gressCupcake'); // level 1, but scheduled for the morning of day 4
+    expect(morning(s).unlocked).not.toContain('banhChuoi'); // level 1, but scheduled for the morning of day 4
     for (let d = 0; d < 3; d++) s = autoDay(s); // day 1 → the morning of day 4
     expect(s.day).toBe(4);
-    expect(s.unlocked).toContain('gressCupcake');
+    expect(s.unlocked).toContain('banhChuoi');
     const n1 = nextUnlock(s);
     expect(n1.pct).toBeGreaterThanOrEqual(0);
     expect(n1.pct).toBeLessThanOrEqual(1);
     expect(n1.text.length).toBeGreaterThan(0);
     for (let d = 0; d < 2; d++) s = autoDay(s); // through day 6
     expect(s.day).toBeGreaterThanOrEqual(6);
-    expect(s.unlocked).toContain('gressCupcake');
+    expect(s.unlocked).toContain('banhChuoi');
     expect(s.unlocked).toContain('traTac');
     expect(s.unlockedRegulars).toContain('mai');
     expect(s.decor).toContain('stringLights');
     for (let d = 0; d < 10; d++) s = autoDay(s);
-    expect(s.unlocked).toContain('gressOreo');
+    expect(s.unlocked).toContain('banhBo');
     const late = nextUnlock(s);
     expect(late.text).toMatch(/Level|everything/);
     check(s);

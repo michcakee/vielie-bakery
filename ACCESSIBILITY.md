@@ -12,7 +12,7 @@ We aim to meet [WCAG 2.1 level AA](https://www.w3.org/TR/WCAG21/) wherever a fas
 - **Relaxed pace** is on by default, with slower days and more patient customers. You can **Pause** any time during service.
 - **Text size** controls.
 - **Reduce motion** turns off moving decorations. The game also follows your device's reduced-motion setting.
-- **English under Vietnamese** shows translations in speech bubbles.
+- **Plain English everywhere.** Only Bà speaks Vietnamese (always with English underneath), and food keeps its Vietnamese name with an English description.
 - **Sound effects** and **music** can each be turned off, and nothing in the game depends on hearing a sound.
 - **Break reminder** is an optional gentle note after 30 minutes.
 

@@ -2,7 +2,7 @@ import { dailyGoal } from './goals';
 import { rollTwist, twistBonus, twistLine, twistsOn } from './twists';
 import { CONFIG, PRODUCTS, type ProductKind } from '../data/catalog';
 import { ECON } from '../data/config';
-import { LINES, REGULARS, WALKIN_NAMES } from '../data/people';
+import { KEVIN, LINES, REGULARS, WALKIN_NAMES } from '../data/people';
 import { SEGMENTS, SEGMENT_ORDER, TRAITS } from '../data/world';
 import { accrue, move } from './accounting';
 import {
@@ -110,7 +110,7 @@ export function buildSchedule(s: GameState): Visit[] {
     const isTray = PRODUCTS[wants].kind === 'tray';
     const so = ECON.service.specialOrder;
     let qty = isTray && wants !== 'banhKem' ? Math.max(1, Math.min(4, Math.round(sd.qty + (rand() - 0.5)))) : 1;
-    if (opts.specialOrder) qty = wants === 'banhKem' || wants === 'gressCake' ? 1 : isTray ? so.qty : 2;
+    if (opts.specialOrder) qty = wants === 'banhKem' ? 1 : isTray ? so.qty : 2;
     let budget = opts.budget ?? budgetFromZ(gaussian(rand), sigmaFor(s, wants, segment));
     if (opts.lastCallOnly) budget *= 0.75;
     if (opts.specialOrder) budget *= so.budget;
@@ -141,8 +141,9 @@ export function buildSchedule(s: GameState): Visit[] {
   };
 
   if (s.day === 1 && s.scenario === 'family') {
-    const linh = REGULARS[0];
-    make({ part: 0, arrive: 4, who: linh.id, name: linh.name, look: linh.look, budget: 1.3, patience: 3, wants: 'banhMi', eco: false, segment: 'office' });
+    // The very first customer is always Kevin Nguyen. He orders the first thing you baked.
+    const first: ProductId = offered.includes('banhMiQue') && s.display.banhMiQue.qty > 0 ? 'banhMiQue' : offered.find((p) => PRODUCTS[p].kind === 'tray' && s.display[p].qty > 0) ?? 'banhMi';
+    make({ part: 0, arrive: 4, who: KEVIN.id, name: KEVIN.name, look: KEVIN.look, budget: 1.8, patience: 3, wants: first, eco: false, segment: 'office' });
   }
 
   const walkIns = expectedWalkIns(s);
@@ -167,7 +168,6 @@ export function buildSchedule(s: GameState): Visit[] {
   const inherited = s.scenario === 'family' || s.scenario === 'community' || s.scenario === 'recession';
   for (const r of REGULARS) {
     if ((r.level > level && !s.unlockedRegulars?.includes(r.id)) || (s.day === 1 && r.id !== 'minh')) continue;
-    if (s.day === 1 && r.id === 'linh') continue;
     if (!inherited && (s.visitsByRegular[r.id] ?? 0) === 0 && s.history.length < 5) continue;
     const hearts = s.hearts[r.id] ?? 0;
     const badge = s.badges?.[r.id] ?? 0;
@@ -202,7 +202,7 @@ export function buildSchedule(s: GameState): Visit[] {
   const twisty = twistsOn(s);
   return visits
     .sort((a, b) => a.arrive - b.arrive)
-    .map((v, i) => ({ ...v, id: i + 1, twist: twisty && v.who !== 'linh' && !v.specialOrder ? rollTwist(v.wants, twistRand) : undefined }));
+    .map((v, i) => ({ ...v, id: i + 1, twist: twisty && v.who !== KEVIN.id && !v.specialOrder ? rollTwist(v.wants, twistRand) : undefined }));
 }
 
 export function makeServers(s: GameState, auto: boolean): ServerSlot[] {
@@ -265,7 +265,7 @@ function leave(s: GameState, v: Visit, mood: Mood, line: string): GameState {
 
 function arriveAtCounter(s: GameState, v: Visit, rand: () => number): GameState {
   let wants = v.wants;
-  let line = v.who !== 'walkin' && rand() < 0.5 ? REGULARS.find((r) => r.id === v.who)?.hello : undefined;
+  let line = v.who === KEVIN.id ? KEVIN.hello : v.who !== 'walkin' && rand() < 0.5 ? REGULARS.find((r) => r.id === v.who)?.hello : undefined;
   const sources = v.source ? { ...s.today.sources, [v.source]: { visits: (s.today.sources[v.source]?.visits ?? 0) + 1, revenue: s.today.sources[v.source]?.revenue ?? 0 } } : s.today.sources;
   s = { ...s, today: { ...s.today, segments: segStat(s, v.segment, { visits: 1 }), sources } };
   if (!available(s, wants, 1)) {
@@ -283,7 +283,7 @@ function arriveAtCounter(s: GameState, v: Visit, rand: () => number): GameState 
   if (!line && v.specialOrder) line = pick(rand, LINES.specialOrder);
   // A twist only makes sense for the dish it was asked about.
   const twist = wants === v.wants ? v.twist : undefined;
-  if (twist) line = twistLine(twist).vi;
+  if (twist) line = twistLine(twist);
   if (!line) line = isTet(s.day) && rand() < 0.3 ? pick(rand, LINES.tet) : orderLine(rand, wants);
   return { ...s, service: setVisit(s.service!, v.id, { status: 'waiting', waitStart: s.service!.clock, wants, qty, line, mood: undefined, twist }) };
 }
@@ -391,7 +391,7 @@ export function serve(s: GameState, visitId: number, process?: number, by: strin
   const tip = byBa ? 0 : round2(grade.tip + (v.specialOrder ? paid * ECON.service.specialOrder.tipShare : 0) + twistTip + smileTip);
   const reg = named ? REGULARS.find((r) => r.id === v.who) : undefined;
   const reaction = reg?.reactions ? (grade.stars >= 4 ? reg.reactions.great : grade.stars === 3 ? reg.reactions.ok : reg.reactions.bad) : null;
-  const line = reaction ? pick(rand, reaction) : pick(rand, mood === 'love' ? LINES.love : mood === 'happy' ? LINES.happy : LINES.ok);
+  const line = v.who === KEVIN.id ? KEVIN.thanks : reaction ? pick(rand, reaction) : pick(rand, mood === 'love' ? LINES.love : mood === 'happy' ? LINES.happy : LINES.ok);
 
   next = bookSale(next, p, qty, paid, tip, c.cogs, pack);
   // Combo deal: a buyer of one half may add the other at the discount.
@@ -456,7 +456,7 @@ export function serve(s: GameState, visitId: number, process?: number, by: strin
     next = toast(next, 'achievement', `${v.name} is a ${BADGE_NAMES[badgeWon - 1]} regular!`, badgeWon === 3 ? 'Gold: the highest. They’ll visit more and always tip.' : 'They’ll visit more often, and the badge is yours for good.');
     next = { ...next, questProgress: { ...next.questProgress, goldRegulars: Object.values(badges).filter((b) => b >= 3).length } };
   }
-  if (v.critic && grade.stars === 5) next = toast(next, 'achievement', 'Cô Ngọc is impressed', 'A glowing write-up. Reputation up.');
+  if (v.critic && grade.stars === 5) next = toast(next, 'achievement', 'The Food Critic is impressed', 'A glowing write-up. Reputation up.');
   const staff = by.startsWith('staff:') ? next.staff.map((e) => (`staff:${e.id}` === by ? { ...e, served: e.served + 1 } : e)) : next.staff;
   const campaigns = v.source ? next.campaigns.map((c) => (`c${c.id}` === v.source ? { ...c, newCustomers: c.newCustomers + 1, revenue: c.revenue + paid } : c)) : next.campaigns;
   return {
@@ -510,7 +510,7 @@ function dispatchServers(s: GameState): GameState {
   const waiting = next.service!.visits.filter((v) => v.status === 'waiting' && !v.servedBy).sort((a, b) => (a.waitStart ?? 0) - (b.waitStart ?? 0));
   for (const v of waiting) {
     const kind = PRODUCTS[v.wants].kind;
-    const free = next.service!.servers.filter((x) => x.visitId === null && canServe(next, x.id, kind));
+    const free = next.service!.servers.filter((x) => x.visitId === null && canServe(next, x.id, kind) && !(x.id === 'ba' && v.who === KEVIN.id));
     if (!free.length) continue;
     const srv = free.find((x) => x.id !== 'owner') ?? free[0];
     const minutes = minutesFor(next, srv.id, kind) * (v.qty > 1 && kind === 'tray' ? 1 + 0.25 * (v.qty - 1) : 1);
@@ -544,7 +544,7 @@ function cateringPickup(s: GameState): GameState {
   }
   const earned = round2((pay * made) / want);
   next = bookSale(next, 'banhMi', made, earned, 0, cogs, 0, 'otherRevenue');
-  next = { ...next, today: { ...next.today, notes: [...next.today.notes, made === want ? `Chị Thảo picked up all ${want} bánh mì and paid $${earned.toFixed(2)}. Cảm ơn!` : `You only had ${made} of ${want} bánh mì for Chị Thảo. She paid $${earned.toFixed(2)} and looked disappointed.`] } };
+  next = { ...next, today: { ...next.today, notes: [...next.today.notes, made === want ? `The office picked up all ${want} bánh mì and paid $${earned.toFixed(2)}. Thank you!` : `You only had ${made} of ${want} bánh mì for the office. They paid $${earned.toFixed(2)} and looked disappointed.`] } };
   return {
     ...next,
     community: made === want ? bump(next.community, 3) : bump(next.community, -4),
@@ -651,7 +651,7 @@ export function setLastCall(s: GameState, on: boolean): GameState {
 export function endService(s: GameState): GameState {
   if (!s.service) return s;
   let next = s;
-  for (const v of s.service.visits) if (v.status === 'waiting' || v.status === 'walking') next = leave(next, v, 'slow', 'Đóng cửa rồi à?');
+  for (const v of s.service.visits) if (v.status === 'waiting' || v.status === 'walking') next = leave(next, v, 'slow', 'Closed already?');
   next = deliveryOrders(next);
   const svc = { ...next.service!, clock: CONFIG.dayMinutes, visits: next.service!.visits.map((v) => (v.status === 'coming' ? { ...v, status: 'done' as const } : v)) };
   return { ...next, service: svc, phase: 'closing', leftoverPlan: defaultLeftoverPlan(next) };

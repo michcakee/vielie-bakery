@@ -25,7 +25,7 @@ export function seedCompetitors(location: LocationId, extra: string[] = []): Com
   }));
 }
 
-const NEW_NAMES = ['Bánh Mì 2 Anh Em', 'Tiệm Bánh Mới', 'Phin & Bánh', 'Lucky Bakery', 'Bánh Ngon 24h', 'Golden Lotus Café'];
+const NEW_NAMES = ['Two Brothers Bánh Mì', 'The New Bakery', 'Phin & Bánh', 'Lucky Bakery', 'Bánh Mì 24h', 'Golden Lotus Café'];
 
 /** A rival's share of shoppers for one product (the mirror of the player's logit share). */
 export function rivalShare(s: GameState, c: Competitor, p: ProductId): number {

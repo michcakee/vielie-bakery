@@ -1,4 +1,3 @@
-import { TWIST_LINES } from '../engine/twists';
 import type { Look, ProductId } from '../engine/types';
 
 export interface RegularDef {
@@ -17,8 +16,7 @@ export interface RegularDef {
   look: Look;
   level: number;
   hello: string;
-  helloEn: string;
-  /** What they say after a great / okay / bad order (Vietnamese; translations in TRANSLATIONS). */
+  /** What they say after a great / okay / bad order. */
   reactions?: { great: string[]; ok: string[]; bad: string[] };
   /** Grades harder, pays more, and tells the neighbourhood. */
   critic?: boolean;
@@ -27,7 +25,7 @@ export interface RegularDef {
 export const REGULARS: RegularDef[] = [
   {
     id: 'linh',
-    name: 'Linh',
+    name: 'Office Worker',
     role: 'Office worker',
     favorite: ['banhMi', 'caPhe'],
     personality: 'Busy',
@@ -39,13 +37,12 @@ export const REGULARS: RegularDef[] = [
     time: 0,
     look: { skin: 1, hair: 0, hairColor: 0, shirt: 4, apron: -1, accessory: 1 },
     level: 1,
-    hello: 'Nhanh nhé, mình trễ rồi!',
-    helloEn: "Quick please, I'm late!",
-    reactions: { great: ['Nhanh ghê! Cảm ơn nha!', 'Đúng người đúng việc!'], ok: ['Ok, mình chạy đây.'], bad: ['Mình trễ họp rồi…'] },
+    hello: "Quick please, I'm late!",
+    reactions: { great: ['So fast! Thanks!', 'Just what I needed!'], ok: ['Ok, I’m off.'], bad: ['I’m late for my meeting…'] },
   },
   {
     id: 'minh',
-    name: 'Minh',
+    name: 'Coffee Fan',
     role: 'Coffee enthusiast',
     favorite: ['caPhe'],
     personality: 'Chatty',
@@ -57,12 +54,11 @@ export const REGULARS: RegularDef[] = [
     time: 0,
     look: { skin: 2, hair: 2, hairColor: 1, shirt: 2, apron: -1, accessory: 0 },
     level: 1,
-    hello: 'Như mọi khi nhé!',
-    helloEn: 'The usual!',
+    hello: 'The usual!',
   },
   {
     id: 'baTu',
-    name: 'Bà Tư',
+    name: 'Grandma Next Door',
     role: 'Grandmother next door',
     favorite: ['flan', 'banhBo'],
     personality: 'Patient',
@@ -74,16 +70,15 @@ export const REGULARS: RegularDef[] = [
     time: 0,
     look: { skin: 1, hair: 1, hairColor: 6, shirt: 6, apron: -1, accessory: 0 },
     level: 1,
-    hello: 'Chào con!',
-    helloEn: 'Hello, dear!',
+    hello: 'Hello, dear!',
   },
   {
     id: 'nam',
-    name: 'Nam',
+    name: 'Student',
     role: 'University student',
     favorite: ['banhMi', 'traTac'],
     personality: 'Price sensitive',
-    behavior: 'Watches every đồng. Loves a discount.',
+    behavior: 'Watches every coin. Loves a discount.',
     budget: 0.82,
     patience: 1,
     frequency: 0.6,
@@ -91,12 +86,11 @@ export const REGULARS: RegularDef[] = [
     time: 1,
     look: { skin: 3, hair: 2, hairColor: 0, shirt: 1, apron: -1, accessory: 0 },
     level: 1,
-    hello: 'Có giảm giá không anh chị?',
-    helloEn: 'Any discounts today?',
+    hello: 'Any discounts today?',
   },
   {
     id: 'mai',
-    name: 'Mai',
+    name: 'Eco Volunteer',
     role: 'Environmental volunteer',
     favorite: ['traTac', 'banhChuoi'],
     personality: 'Eco-conscious',
@@ -108,13 +102,12 @@ export const REGULARS: RegularDef[] = [
     time: 2,
     look: { skin: 0, hair: 3, hairColor: 2, shirt: 3, apron: -1, accessory: 2 },
     level: 2,
-    hello: 'Mình mang ly riêng nè!',
-    helloEn: 'I brought my own cup!',
+    hello: 'I brought my own cup!',
   },
   {
     id: 'hung',
-    name: 'Chú Hùng',
-    role: 'Xe ôm driver',
+    name: 'Motorbike Driver',
+    role: 'Motorbike taxi driver',
     favorite: ['caPhe', 'pateChaud'],
     personality: 'Easygoing',
     behavior: 'Parks his motorbike outside and stays a while.',
@@ -125,16 +118,15 @@ export const REGULARS: RegularDef[] = [
     time: 0,
     look: { skin: 3, hair: 2, hairColor: 0, shirt: 5, apron: -1, accessory: 3 },
     level: 2,
-    hello: 'Một ly đen đá... à không, sữa đá!',
-    helloEn: 'One black iced… no wait, with milk!',
+    hello: 'One black iced… no wait, with milk!',
   },
   {
     id: 'hanh',
-    name: 'Chị Hạnh & bé Na',
+    name: 'Mum & Daughter',
     role: 'Mum and daughter',
     favorite: ['banhChuoi', 'flan'],
     personality: 'Sweet tooth',
-    behavior: 'Stop by after school. Bé Na picks.',
+    behavior: 'Stop by after school. The little one picks.',
     budget: 1.1,
     patience: 0.9,
     frequency: 0.5,
@@ -142,12 +134,11 @@ export const REGULARS: RegularDef[] = [
     time: 2,
     look: { skin: 1, hair: 3, hairColor: 1, shirt: 7, apron: -1, accessory: 0 },
     level: 3,
-    hello: 'Bé Na muốn ăn bánh!',
-    helloEn: 'Little Na wants cake!',
+    hello: 'Little Na wants cake!',
   },
   {
     id: 'an',
-    name: 'An',
+    name: 'Party Planner',
     role: 'Party planner',
     favorite: ['banhKem'],
     personality: 'Celebration shopper',
@@ -159,15 +150,14 @@ export const REGULARS: RegularDef[] = [
     time: 3,
     look: { skin: 2, hair: 0, hairColor: 4, shirt: 0, apron: -1, accessory: 2 },
     level: 4,
-    hello: 'Hôm nay sinh nhật bạn mình!',
-    helloEn: "It's my friend's birthday today!",
-    reactions: { great: ['Bạn mình sẽ mê cho xem!', 'Đẹp như trong hình!'], ok: ['Cũng được, để mình xem.'], bad: ['Tiệc tối nay rồi mà…'] },
+    hello: "It's my friend's birthday today!",
+    reactions: { great: ['My friend is going to love this!', 'Pretty as the picture!'], ok: ['It’ll do, let me see.'], bad: ['The party is tonight…'] },
   },
   {
     id: 'ngoc',
-    name: 'Cô Ngọc',
+    name: 'Food Critic',
     role: 'Food critic',
-    favorite: ['banhBo', 'gressCrepe', 'banhKem', 'flan', 'caPhe'],
+    favorite: ['banhBo', 'banhKem', 'flan', 'caPhe'],
     personality: 'Exacting',
     behavior: 'Comes late, orders the hardest thing on the menu, and writes it up. Grades harder; pays more.',
     budget: 1.5,
@@ -177,74 +167,36 @@ export const REGULARS: RegularDef[] = [
     time: 2,
     look: { skin: 1, hair: 1, hairColor: 6, shirt: 5, apron: -1, accessory: 1 },
     level: 2,
-    hello: 'Cho tôi món khó nhất của tiệm.',
-    helloEn: 'Give me the hardest thing you make.',
+    hello: 'Give me the hardest thing you make.',
     critic: true,
-    reactions: { great: ['Tôi sẽ viết về tiệm này.', 'Hiếm khi tôi nói vậy: hoàn hảo.'], ok: ['Được. Chưa đáng để viết.'], bad: ['Tôi sẽ không nhắc đến chuyện này. Lần này.', 'Quá chậm cho mức giá này.'] },
+    reactions: { great: ['I will write about this place.', 'I rarely say this: perfect.'], ok: ['Fine. Not worth writing up.'], bad: ['I won’t mention this. This time.', 'Too slow for this price.'] },
   },
 ];
 
+/** Your very first customer. He likes the place so much he later asks for a job. */
+export const KEVIN = {
+  id: 'kevin',
+  name: 'Kevin Nguyen',
+  look: { skin: 1, hair: 2, hairColor: 0, shirt: 3, apron: 2, accessory: 0 } as Look,
+  hello: 'Is it true? The bakery is open again?',
+  thanks: 'Best thing I’ve eaten all week! If you ever need a hand in here, call me.',
+};
+
+/** Walk-in customers are known by what they do, not by a name. */
 export const WALKIN_NAMES = [
-  'Tuấn', 'Hương', 'Phúc', 'Vy', 'Bảo', 'Trang', 'Duy', 'Ngọc', 'Quân', 'Hà', 'Long', 'Thu', 'Khoa', 'Lan', 'Đạt', 'Yến',
-  'Hiếu', 'My', 'Sơn', 'Thảo', 'Tâm', 'Nhi', 'Kiên', 'Oanh', 'Vinh', 'Châu', 'Phương', 'Tín', 'Hoa', 'Việt',
+  'Jogger', 'Teacher', 'Nurse', 'Painter', 'Bus Driver', 'Gardener', 'Florist', 'Tailor', 'Mechanic', 'Librarian', 'Musician', 'Tourist', 'Mail Carrier', 'Dog Walker', 'Cyclist', 'Shopkeeper',
+  'Farmer', 'Artist', 'Dancer', 'Singer', 'Chef', 'Doctor', 'Builder', 'Barber', 'Photographer', 'Vet', 'Pilot', 'Firefighter', 'Neighbour', 'Fisher',
 ];
 
 export const LINES = {
-  order: (dish: string) => [`Cho mình một ${dish}!`, `Một ${dish} nhé!`, `${dish}, cảm ơn!`],
-  love: ['Ngon quá!', 'Tuyệt vời!', 'Cho mình thêm một cái!'],
-  happy: ['Cảm ơn!', 'Ngon!', 'Chúc một ngày tốt lành!'],
-  ok: ['Cũng được.', 'Ừm, ổn.'],
-  pricey: ['Đắt quá…', 'Hơi mắc…'],
-  specialOrder: ['Mình đặt nhiều một chút nhé!', 'Cho cả văn phòng mình!'],
-  soldOut: ['Hết rồi à…', 'Tiếc quá…'],
-  slow: ['Lâu quá…', 'Thôi, mình đi đây.'],
-  substitute: (dish: string) => `Vậy cho mình ${dish} nhé.`,
-  tet: ['Chúc mừng năm mới!', 'An khang thịnh vượng!'],
+  order: (dish: string) => [`One ${dish}, please!`, `Could I get a ${dish}?`, `${dish}, thanks!`],
+  love: ['So delicious!', 'Wonderful!', 'I’ll take another one!'],
+  happy: ['Thank you!', 'Tasty!', 'Have a nice day!'],
+  ok: ['It’s okay.', 'Hm, fine.'],
+  pricey: ['Too expensive…', 'A bit pricey…'],
+  specialOrder: ['A big order, please!', 'For my whole office!'],
+  soldOut: ['Sold out already…', 'What a shame…'],
+  slow: ['Taking too long…', 'Never mind, I’m off.'],
+  substitute: (dish: string) => `Then I’ll have ${dish}.`,
+  tet: ['Happy New Year!', 'Peace and prosperity!'],
 };
-
-export const TRANSLATIONS: Record<string, string> = {
-  'Mình đặt nhiều một chút nhé!': "A big order, please!",
-  'Cho cả văn phòng mình!': 'For my whole office!',
-  'Nhanh ghê! Cảm ơn nha!': 'So fast! Thanks!',
-  'Đúng người đúng việc!': 'Right person, right job!',
-  'Ok, mình chạy đây.': "Ok, I'm off.",
-  'Mình trễ họp rồi…': "I'm late for my meeting…",
-  'Bạn mình sẽ mê cho xem!': 'My friend is going to love this!',
-  'Đẹp như trong hình!': 'Pretty as the picture!',
-  'Cũng được, để mình xem.': "It'll do, let me see.",
-  'Tiệc tối nay rồi mà…': 'The party is tonight…',
-  'Tôi sẽ viết về tiệm này.': 'I will write about this place.',
-  'Hiếm khi tôi nói vậy: hoàn hảo.': 'I rarely say this: perfect.',
-  'Được. Chưa đáng để viết.': 'Fine. Not worth writing up.',
-  'Tôi sẽ không nhắc đến chuyện này. Lần này.': "I won't mention this. This time.",
-  'Quá chậm cho mức giá này.': 'Too slow for this price.',
-  'Ngon quá!': 'So delicious!',
-  'Tuyệt vời!': 'Wonderful!',
-  'Cho mình thêm một cái!': "I'll take another one!",
-  'Cảm ơn!': 'Thank you!',
-  'Ngon!': 'Tasty!',
-  'Chúc một ngày tốt lành!': 'Have a nice day!',
-  'Cũng được.': "It's okay.",
-  'Ừm, ổn.': 'Hm, fine.',
-  'Đắt quá…': 'Too expensive…',
-  'Hơi mắc…': 'A bit pricey…',
-  'Hết rồi à…': 'Sold out already…',
-  'Tiếc quá…': "What a shame…",
-  'Lâu quá…': 'Taking too long…',
-  'Thôi, mình đi đây.': "Never mind, I'm off.",
-  'Chúc mừng năm mới!': 'Happy New Year!',
-  'An khang thịnh vượng!': 'Peace and prosperity!',
-};
-
-export function translate(line: string | undefined): string | undefined {
-  if (!line) return undefined;
-  if (TRANSLATIONS[line]) return TRANSLATIONS[line];
-  if (TWIST_LINES[line]) return TWIST_LINES[line];
-  if (line.startsWith('Cho mình một ')) return `One ${line.slice(13, -1)}, please!`;
-  if (line.startsWith('Cho mình ') && line.endsWith(' nhé.')) return `Then I'll have ${line.slice(9, -5)}.`;
-  if (line.startsWith('Một ')) return `One ${line.slice(4, -5)}, please!`;
-  if (line.endsWith(', cảm ơn!')) return `${line.slice(0, -9)}, thanks!`;
-  if (line.startsWith('Vậy cho mình ')) return `Then I'll have ${line.slice(13, -5)}.`;
-  for (const r of REGULARS) if (r.hello === line) return r.helloEn;
-  return undefined;
-}

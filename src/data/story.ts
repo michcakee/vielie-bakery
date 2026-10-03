@@ -38,7 +38,7 @@ export const STORY_BEATS: StoryBeat[] = [
     day: 180,
     title: 'Half a year',
     vi: 'Nửa năm',
-    text: 'The neighbours throw a small party on the sidewalk: plastic stools, a karaoke machine that only knows four songs, and a cake somebody bought from you this morning. Chú Hùng makes a speech. It is long.',
+    text: 'The neighbours throw a small party on the sidewalk: plastic stools, a karaoke machine that only knows four songs, and a cake somebody bought from you this morning. The motorbike driver makes a speech. It is long.',
     gift: { reputation: 2, community: 4 },
     giftText: 'Reputation +2, community +4',
   },

@@ -14,25 +14,22 @@ export const TWIST = {
   rushWithin: 0.45,
 };
 
-const SKIP: Record<string, { vi: string; en: string }> = {
-  sauce: { vi: 'Không ớt nhé!', en: 'No chili, please!' },
-  pickles: { vi: 'Không đồ chua nhé!', en: 'No pickles, please!' },
-  herbs: { vi: 'Không rau thơm nhé!', en: 'No herbs, please!' },
-  ice: { vi: 'Không đá nhé!', en: 'No ice, please!' },
-  sugar: { vi: 'Không đường nhé!', en: 'No sugar, please!' },
-  cream: { vi: 'Không kem nhé!', en: 'No cream, please!' },
+const SKIP: Record<string, string> = {
+  sauce: 'No chili, please!',
+  pickles: 'No pickles, please!',
+  herbs: 'No herbs, please!',
+  ice: 'No ice, please!',
+  sugar: 'No sugar, please!',
+  cream: 'No cream, please!',
 };
-const DOUBLE: Record<string, { vi: string; en: string }> = {
-  chaLua: { vi: 'Thêm chả lụa nhé!', en: 'Extra chả lụa, please!' },
-  herbs: { vi: 'Thêm rau thơm nhé!', en: 'Extra herbs, please!' },
-  sauce: { vi: 'Thêm ớt nhé, cay vào!', en: 'Extra chili, make it spicy!' },
-  milk: { vi: 'Thêm sữa nhé, ngọt vào!', en: 'Extra milk, make it sweet!' },
-  ice: { vi: 'Thêm đá nhé!', en: 'Extra ice, please!' },
-  lychee: { vi: 'Thêm trân châu nhé!', en: 'Extra pearls, please!' },
+const DOUBLE: Record<string, string> = {
+  chaLua: 'Extra chả lụa, please!',
+  herbs: 'Extra herbs, please!',
+  sauce: 'Extra chili, make it spicy!',
+  milk: 'Extra milk, make it sweet!',
+  ice: 'Extra ice, please!',
 };
-const RUSH = { vi: 'Nhanh giúp mình, sắp trễ rồi!', en: 'Quick, please, I’m running late!' };
-
-export const TWIST_LINES: Record<string, string> = Object.fromEntries([...Object.values(SKIP), ...Object.values(DOUBLE), RUSH].map((l) => [l.vi, l.en]));
+const RUSH = 'Quick, please, I’m running late!';
 
 export function twistsOn(s: Pick<GameState, 'allUnlocked' | 'day'>): boolean {
   return s.allUnlocked !== false || s.day >= TWIST.fromDay;
@@ -54,7 +51,7 @@ export function rollTwist(p: ProductId, rand: () => number): Twist | undefined {
   return { kind: pool === skips ? 'skip' : 'double', step };
 }
 
-export function twistLine(t: Twist): { vi: string; en: string } {
+export function twistLine(t: Twist): string {
   if (t.kind === 'skip') return SKIP[t.step!] ?? RUSH;
   if (t.kind === 'double') return DOUBLE[t.step!] ?? RUSH;
   return RUSH;
@@ -62,7 +59,7 @@ export function twistLine(t: Twist): { vi: string; en: string } {
 
 /** Short label for the order card and the ticket. */
 export function twistLabel(t: Twist): string {
-  return twistLine(t).en.replace(/, please!$|, make it \w+!$|!$/, '').replace('Quick, please, I’m running late', 'In a hurry');
+  return twistLine(t).replace(/, please!$|, make it \w+!$|!$/, '').replace('Quick, please, I’m running late', 'In a hurry');
 }
 
 /** The steps to tap for this order: a skipped step is left out, a doubled one appears twice. */

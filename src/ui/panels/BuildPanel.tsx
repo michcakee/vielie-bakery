@@ -79,9 +79,6 @@ export function BuildPanel() {
           <b>
             {u.name} {owned > 0 && <span className="muted">×{owned}</span>}
           </b>
-          <span className="muted small" lang="vi">
-            {u.vi}
-          </span>
           <span className="small">{u.blurb}</span>
           <span className="small effect">{u.effect}</span>
           {business && (
@@ -204,9 +201,6 @@ export function BuildPanel() {
                 </span>
                 <div className="shop-info">
                   <b>{l.name}</b>
-                  <span className="small muted" lang="vi">
-                    {l.vi}
-                  </span>
                   <span className="small">{l.blurb}</span>
                   <span className="small effect">
                     Rent {money(l.rent * 30 * s.macro.rentIndex)}/month · ~{Math.round(marketTraffic(s, id))} passers-by a day · mostly {top.map(([sg]) => SEGMENTS[sg].name.toLowerCase()).join(' & ')} · {activeRivals(s, id).length} rival{activeRivals(s, id).length === 1 ? '' : 's'}
@@ -257,9 +251,6 @@ export function BuildPanel() {
                 </span>
                 <div className="shop-info">
                   <b>{d.name}</b>
-                  <span className="muted small" lang="vi">
-                    {d.vi}
-                  </span>
                   <span className="small">{d.bonus}</span>
                 </div>
                 <div className="shop-act">

@@ -85,9 +85,6 @@ export function EventCard() {
           <Sprite name={def.icon === 'egg' ? 'egg' : def.icon === 'coffee' ? 'caPhe' : def.icon} scale={4} />
         </span>
         <div>
-          <span className="eyebrow" lang="vi">
-            {def.vi}
-          </span>
           <h2>{def.title}</h2>
         </div>
       </div>
@@ -116,7 +113,7 @@ export function ClosingPanel() {
   return (
     <div className="closing">
       <h2 className="closing-title">
-        <span lang="vi">Đóng cửa!</span> Time to close up
+        Time to close up
       </h2>
       {keys.length === 0 ? (
         <p className="zero-waste">

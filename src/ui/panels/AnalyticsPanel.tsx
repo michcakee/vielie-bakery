@@ -168,7 +168,7 @@ function Forecast() {
                   Day {d.day}
                   {d.festivals.map((x) => (
                     <span key={x} className="tiny chip">
-                      {FESTIVALS[x as Festival].vi}
+                      {FESTIVALS[x as Festival].name}
                     </span>
                   ))}
                 </th>

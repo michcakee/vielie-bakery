@@ -268,7 +268,9 @@ export function applyLevelUnlocks(s: GameState): GameState {
   }
   if (newly.length) {
     next = { ...next, unlocked: [...next.unlocked, ...newly], menu: [...next.menu, ...newly.filter((p) => !PRODUCTS[p].season && !PRODUCTS[p].equipment)] };
-    for (const p of newly) next = toast(next, 'unlock', 'NEW RECIPE!!', `${PRODUCTS[p].name}: ${PRODUCTS[p].en}${PRODUCTS[p].equipment ? ` (needs a ${UPGRADES[PRODUCTS[p].equipment!].name.toLowerCase()})` : ''}`);
+    for (const p of newly)
+      if (p === 'michcake') next = toast(next, 'level', 'THE FINAL RECIPE: MICHCAKE', 'The last page of Bà’s recipe book is yours. The whole town will line up for this one.');
+      else next = toast(next, 'unlock', 'NEW RECIPE!!', `${PRODUCTS[p].name}: ${PRODUCTS[p].en}${PRODUCTS[p].equipment ? ` (needs a ${UPGRADES[PRODUCTS[p].equipment!].name.toLowerCase()})` : ''}`);
   }
   const prevLevel = next.questProgress.level ?? 1;
   if (level > prevLevel) {

@@ -3,7 +3,7 @@ export type ProductId =
   | 'banhMi'
   | 'caPhe'
   | 'flan'
-  | 'michcake'
+  | 'banhMiQue'
   | 'pateChaud'
   | 'traTac'
   | 'banhBao'
@@ -13,16 +13,7 @@ export type ProductId =
   | 'banhKem'
   | 'mutDua'
   | 'banhTrungThu'
-  | 'gressCupcake'
-  | 'gressTeaLight'
-  | 'gressOreo'
-  | 'gressCoffee'
-  | 'gressHoneycomb'
-  | 'gressBoba'
-  | 'gressPie'
-  | 'gressMilkshake'
-  | 'gressCrepe'
-  | 'gressCake';
+  | 'michcake';
 
 export type IngredientId =
   | 'flour'
@@ -42,10 +33,7 @@ export type IngredientId =
   | 'cream'
   | 'beans'
   | 'pandan'
-  | 'lotus'
-  | 'gress'
-  | 'greenApple'
-  | 'lychee';
+  | 'lotus';
 
 export type SupplierId = 'cho' | 'farm' | 'premium' | 'distributor';
 export type Weather = 'sunny' | 'cloudy' | 'rainy' | 'hot' | 'cool';
@@ -603,6 +591,8 @@ export interface GameState {
   goal: string;
   location: LocationId;
   bakeryName: string;
+  /** What the player asked to be called. Stays on this device. */
+  playerName?: string;
   look: Look;
   day: number;
   phase: Phase;

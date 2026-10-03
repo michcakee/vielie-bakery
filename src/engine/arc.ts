@@ -91,7 +91,7 @@ const CHAPTERS: EventDef[] = [
     2,
     'Flan nhái',
     'egg',
-    () => 'Chú Hùng hurries in. “They’re selling flan now! Cheaper than yours. It comes from a factory in a plastic cup.” He makes a face.',
+    () => 'The motorbike driver hurries in. “They’re selling flan now! Cheaper than yours. It comes from a factory in a plastic cup.” He makes a face.',
     () => [
       { id: 'better', label: 'Keep your price and bake it better', detail: `People taste the difference. Reputation +1. ${hearts(1)}`, apply: (x) => turn({ ...x, reputation: bump(x.reputation, 1) }, 1) },
       { id: 'friends', label: 'Ask your regulars to bring a friend', detail: `Word of mouth is free. Community +2. ${hearts(2)}`, apply: (x) => turn({ ...x, community: bump(x.community, 2) }, 2) },
@@ -142,9 +142,9 @@ const CHAPTERS: EventDef[] = [
     'house',
     () => 'The neighbours have heard about the festival. Three of them are at the door, all talking at once. You can say yes to one.',
     () => [
-      { id: 'banner', label: 'Chú Hùng paints a big banner', detail: `It’s a bit crooked. Everyone loves it. ${hearts(2)}`, apply: (x) => turn(x, 2) },
-      { id: 'lanterns', label: 'Mai folds paper lanterns for the shop', detail: `The shop glows. ${hearts(2)}`, apply: (x) => turn(x.decor.includes('lanterns') ? x : { ...x, decor: [...x.decor, 'lanterns'] }, 2) },
-      { id: 'office', label: 'Linh tells her whole office', detail: `New faces all week. Reputation +2. ${hearts(1)}`, apply: (x) => turn({ ...x, reputation: bump(x.reputation, 2) }, 1) },
+      { id: 'banner', label: 'The motorbike driver paints a big banner', detail: `It’s a bit crooked. Everyone loves it. ${hearts(2)}`, apply: (x) => turn(x, 2) },
+      { id: 'lanterns', label: 'The eco volunteer folds paper lanterns for the shop', detail: `The shop glows. ${hearts(2)}`, apply: (x) => turn(x.decor.includes('lanterns') ? x : { ...x, decor: [...x.decor, 'lanterns'] }, 2) },
+      { id: 'office', label: 'The office worker tells the whole office', detail: `New faces all week. Reputation +2. ${hearts(1)}`, apply: (x) => turn({ ...x, reputation: bump(x.reputation, 2) }, 1) },
     ],
   ),
   chapter(

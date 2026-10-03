@@ -27,22 +27,23 @@ import { Sprite } from './pixel/Sprite';
 import { BakeryScene } from './scene/BakeryScene';
 import { Painter } from './Painter';
 import { TutorialBar, tutorialOn } from './Tutorial';
-import { IntroLines, Loading, NewGame, Setup, Title } from './screens/Screens';
+import { HowToPlay, IntroLines, Loading, NewGame, Setup, Title } from './screens/Screens';
+import { hasKeyboard, typing, useFullscreen } from './web';
 import { GuideProvider, TabHelp, WhatNow } from './Guide';
 import { FEATURE, TAB_FEATURES } from '../data/unlocks';
 import { introStep, nextFeature, tabOn } from '../engine/unlocks';
 import { Settings } from './Settings';
 
-const TABS: { id: Tab; label: string; vi: string; icon: string; mobile: boolean }[] = [
-  { id: 'today', label: 'Today', vi: 'Hôm nay', icon: 'house', mobile: true },
-  { id: 'kitchen', label: 'Kitchen', vi: 'Bếp', icon: 'hot', mobile: true },
-  { id: 'market', label: 'Market', vi: 'Chợ', icon: 'bag', mobile: true },
-  { id: 'staff', label: 'Staff', vi: 'Nhân viên', icon: 'people', mobile: false },
-  { id: 'customers', label: 'Customers', vi: 'Khách', icon: 'heart', mobile: false },
-  { id: 'growth', label: 'Growth', vi: 'Mở rộng', icon: 'plant', mobile: false },
-  { id: 'money', label: 'Money', vi: 'Tài chính', icon: 'coin', mobile: true },
-  { id: 'analytics', label: 'Analytics', vi: 'Phân tích', icon: 'chart', mobile: false },
-  { id: 'eco', label: 'Eco', vi: 'Xanh', icon: 'leaf', mobile: false },
+const TABS: { id: Tab; label: string; icon: string; mobile: boolean }[] = [
+  { id: 'today', label: 'Today', icon: 'house', mobile: true },
+  { id: 'kitchen', label: 'Kitchen', icon: 'hot', mobile: true },
+  { id: 'market', label: 'Market', icon: 'bag', mobile: true },
+  { id: 'staff', label: 'Staff', icon: 'people', mobile: false },
+  { id: 'customers', label: 'Customers', icon: 'heart', mobile: false },
+  { id: 'growth', label: 'Growth', icon: 'plant', mobile: false },
+  { id: 'money', label: 'Money', icon: 'coin', mobile: true },
+  { id: 'analytics', label: 'Analytics', icon: 'chart', mobile: false },
+  { id: 'eco', label: 'Eco', icon: 'leaf', mobile: false },
 ];
 
 export default function App() {
@@ -179,7 +180,8 @@ function Game({ onQuit }: { onQuit: () => void }) {
   const [paused, setPaused] = useState(false);
   const [speed, setSpeed] = useState(1);
   const [activeId, setActiveId] = useState<number | null>(null);
-  const [drawer, setDrawer] = useState<'quests' | 'settings' | 'more' | 'help' | 'paint' | null>(null);
+  const [drawer, setDrawer] = useState<'quests' | 'settings' | 'more' | 'help' | 'paint' | 'pause' | 'how' | null>(null);
+  const fs = useFullscreen();
   const [hidden, setHidden] = useState(false);
   const intro = s.phase === 'morning' && s.day === 1 && s.history.length === 0 && !s.hints.includes('intro') && s.scenario === 'family';
 
@@ -211,6 +213,22 @@ function Game({ onQuit }: { onQuit: () => void }) {
       }),
     [drawer, activeId, tab, s.phase],
   );
+
+  // Esc opens the pause menu when nothing else is open; F toggles fullscreen. (The website only: phones have no keys.)
+  const toggleFs = fs.toggle;
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (typing(e) || e.ctrlKey || e.metaKey || e.altKey) return;
+      const busy = !!document.querySelector('[role="dialog"], .oven-game, .assembly, .confirm-veil');
+      if (e.key === 'Escape' && !busy && s.phase !== 'setup') {
+        e.preventDefault();
+        setDrawer('pause');
+      } else if ((e.key === 'f' || e.key === 'F') && !busy) toggleFs();
+    };
+    // Capture phase: decide before a window that is closing on this same key press has gone.
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  }, [s.phase, toggleFs]);
 
   // A new phase (morning, service, report) always starts at the top of the page.
   useEffect(() => {
@@ -334,9 +352,6 @@ function Game({ onQuit }: { onQuit: () => void }) {
                 >
                   <Sprite name={t.icon} scale={2} />
                   <span className="tab-label">{t.label}</span>
-                  <span className="tab-vi" lang="vi">
-                    {t.vi}
-                  </span>
                   {isNew(t.id) && <span className="new-dot" aria-label="new" />}
                 </button>
               ))}
@@ -345,18 +360,12 @@ function Game({ onQuit }: { onQuit: () => void }) {
                 <span key={t.id} className="tab locked desktop-only" title={teaser && FEATURE[teaser.id].tab === t.id ? teaser.teaser : 'Unlocks as your bakery grows'}>
                   <Sprite name="lock" scale={2} />
                   <span className="tab-label">{t.label}</span>
-                  <span className="tab-vi" lang="vi">
-                    {t.vi}
-                  </span>
                 </span>
               ))}
               {(moreTabs.length > 0 || lockedTabs.length > 0) && (
               <button type="button" className={`tab mobile-only ${!current.mobile ? 'on' : ''}`} aria-haspopup="dialog" onClick={() => (play('click'), setDrawer('more'))}>
                 <Sprite name="gear" scale={2} />
                 <span className="tab-label">More</span>
-                <span className="tab-vi" lang="vi">
-                  Thêm
-                </span>
                 {moreTabs.some((m) => isNew(m.id)) && <span className="new-dot" aria-label="new" />}
               </button>
               )}
@@ -389,7 +398,7 @@ function Game({ onQuit }: { onQuit: () => void }) {
       {s.phase === 'morning' && !intro && tab !== 'today' && (
         <div className="open-fab">
           <Btn kind="go" onClick={open} disabled={s.events.length > 0} sfx="bell">
-            <span lang="vi">Mở cửa!</span> Open
+            Open the shop
           </Btn>
         </div>
       )}
@@ -447,6 +456,36 @@ function Game({ onQuit }: { onQuit: () => void }) {
         </Modal>
       )}
       {drawer === 'settings' && <Settings onClose={() => setDrawer(null)} onQuit={onQuit} />}
+      {drawer === 'how' && <HowToPlay onClose={() => setDrawer(null)} />}
+      {drawer === 'pause' && (
+        <Modal label="Paused" onClose={() => setDrawer(null)} className="pause-menu">
+          <h2>Paused</h2>
+          <p className="small muted">
+            {s.bakeryName} · day {s.day}. Your bakery is saved.
+          </p>
+          <nav className="main-menu" aria-label="Pause menu">
+            {[
+              { label: 'Resume', run: () => setDrawer(null) },
+              { label: 'Settings', run: () => setDrawer('settings') },
+              { label: 'How to play', run: () => setDrawer('how') },
+              ...(fs.supported ? [{ label: fs.on ? 'Exit fullscreen' : 'Fullscreen', run: fs.toggle }] : []),
+              { label: 'Main menu', run: onQuit },
+            ].map((it) => (
+              <button key={it.label} type="button" className="menu-item" onClick={() => (play('click'), it.run())}>
+                <span className="menu-cursor" aria-hidden="true">
+                  <Sprite name="arrow" scale={2} />
+                </span>
+                <span className="menu-label">{it.label}</span>
+              </button>
+            ))}
+          </nav>
+          {hasKeyboard() && (
+            <p className="small muted">
+              <kbd>Esc</kbd> resume · <kbd>F</kbd> fullscreen
+            </p>
+          )}
+        </Modal>
+      )}
       {drawer === 'more' && (
         <Modal label="More sections" onClose={() => setDrawer(null)} className="drawer sheet">
           <h2>More</h2>
@@ -456,9 +495,6 @@ function Game({ onQuit }: { onQuit: () => void }) {
                 <Sprite name={t.icon} scale={3} />
                 <b>{t.label}</b>
                 {isNew(t.id) && <span className="new-chip">NEW</span>}
-                <span className="small muted" lang="vi">
-                  {t.vi}
-                </span>
               </button>
             ))}
             <button type="button" className="more-item" onClick={() => setDrawer('quests')}>

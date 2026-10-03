@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { dailyGoal, salesToday, starsFor } from '../../engine/goals';
 import { CONFIG, PRODUCTS } from '../../data/catalog';
-import { translate } from '../../data/people';
 import { effectivePrice, has, makeable, onMenu } from '../../engine/economy';
 import { rngFor } from '../../engine/rng';
 import { TWIST, twistLabel, twistSteps } from '../../engine/twists';
@@ -28,8 +27,6 @@ const STEP_ICON: Record<string, string> = {
   tea: 'tea',
   kumquat: 'kumquat',
   sugar: 'sugar',
-  gress: 'gress',
-  lychee: 'lychee',
   blend: 'spoon',
   cream: 'cream',
 };
@@ -78,7 +75,7 @@ function Assembly({ visit, onDone, onCancel }: { visit: Visit; onDone: (process:
       setMistakes(mistakes + 1);
       setShake(id);
       const left = twist?.kind === 'skip' && twist.step === id;
-      setOops(left ? `${visit.name} said: ${twistLabel(twist!).toLowerCase()}! Next: ${steps[done].vi}` : `Not yet! Next: ${steps[done].vi} (${steps[done].label.toLowerCase()})`);
+      setOops(left ? `${visit.name} said: ${twistLabel(twist!).toLowerCase()}! Next: ${steps[done].label}` : `Not yet! Next: ${steps[done].label}`);
       window.setTimeout(() => setShake(null), 300);
     }
   };
@@ -119,8 +116,7 @@ function Assembly({ visit, onDone, onCancel }: { visit: Visit; onDone: (process:
             <li key={`${st.id}${i}`} className={i < done ? 'done' : i === done ? 'now' : ''}>
               {i < done ? <Sprite name="check" scale={2} /> : <span className="num">{i + 1}</span>}
               <Sprite name={STEP_ICON[st.id] ?? 'box'} scale={2} />
-              <span lang="vi">{st.vi}</span>
-              <span className="muted">{st.label}</span>
+              <span>{st.label}</span>
             </li>
           ))}
         </ol>
@@ -151,7 +147,7 @@ function Assembly({ visit, onDone, onCancel }: { visit: Visit; onDone: (process:
             >
               <kbd>{i + 1}</kbd>
               <Sprite name={STEP_ICON[st.id] ?? 'box'} scale={3} />
-              <span lang="vi">{st.vi}</span>
+              <span>{st.label}</span>
             </button>
           ))}
         </div>
@@ -242,7 +238,7 @@ export function GoalMeter({ compact = false }: { compact?: boolean }) {
 }
 
 export function ServicePanel({ paused, setPaused, speed, setSpeed, activeId, setActiveId }: { paused: boolean; setPaused: (p: boolean) => void; speed: number; setSpeed: (n: number) => void; activeId: number | null; setActiveId: (id: number | null) => void }) {
-  const { state: s, dispatch, prefs } = useGame();
+  const { state: s, dispatch } = useGame();
   const svc = s.service!;
   const waiting = svc.visits.filter((v) => v.status === 'waiting' && !v.servedBy).sort((a, b) => (a.waitStart ?? 0) - (b.waitStart ?? 0));
   const active = waiting.find((v) => v.id === activeId) ?? null;
@@ -390,8 +386,7 @@ export function ServicePanel({ paused, setPaused, speed, setSpeed, activeId, set
                           {v.critic && <span className="special-tag critic">critic</span>}
                           {v.twist && <span className={`special-tag twist twist-${v.twist.kind}`}>{twistLabel(v.twist)}</span>}
                         </b>
-                        <span lang="vi">{v.line}</span>
-                        {prefs.translations && translate(v.line) && <em>{translate(v.line)}</em>}
+                        <span>{v.line}</span>
                       </span>
                       <span className="order-what">
                         <Sprite name={v.wants} scale={2} />

@@ -64,7 +64,7 @@ export function CustomersPanel() {
             return (
               <li key={seg}>
                 <div className="seg-head">
-                  <b>{d.name}</b> <span className="muted small" lang="vi">{d.vi}</span>
+                  <b>{d.name}</b>
                   <span className="seg-share">{pct(mix[seg])} of shoppers</span>
                 </div>
                 <span className="small">{d.blurb}</span>

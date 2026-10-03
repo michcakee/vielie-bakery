@@ -28,7 +28,7 @@ Bà is retiring and her little bakery is yours. Bake, price, hire, borrow and gr
 
 Bà (grandma) is retiring, and her tiny Vietnamese bakery on Gress Island Lane is yours now.
 
-Bake baguettes and flan at dawn. Build bánh mì and pour cà phê sữa đá to order. Set your prices and watch who says "Đắt quá…". Ride out egg shortages, rainy seasons, Tết rushes and the new bánh mì stand across the street.
+Bake baguettes and flan at dawn. Build bánh mì and pour cà phê sữa đá to order. Set your prices and watch who says "Too expensive…". Ride out egg shortages, rainy seasons, Tết rushes and the new bánh mì stand across the street.
 
 Then grow: hire bakers and baristas, buy ovens, sign supplier contracts, take a loan or bring in an investor, open a second shop across town, and see what your bakery is worth.
 
@@ -41,8 +41,8 @@ A real business sandbox
 
 Cozy and Vietnamese
 • Hand-made pixel art: a tube-house bakery, gạch bông tiles, lanterns and street life
-• Regulars with names, habits and Vietnamese lines (with English translations)
-• Tết, Trung Thu mooncakes and 12 Vietnamese recipes
+• Regulars with habits and favourites, and Bà, who teaches you one thing a day (in Vietnamese, with English underneath)
+• Tết, Trung Thu mooncakes and 13 Vietnamese recipes, from bánh mì que to one legendary final cake
 
 Fair and private
 • No ads, no in-app purchases, no account
@@ -53,9 +53,9 @@ Fair and private
 
 bakery,tycoon,business,simulator,vietnamese,banh mi,cozy,pixel,economics,cafe,shop,manager
 
-## What's new (3.0.0)
+## What's new (3.1.0)
 
-The bakery becomes a business sandbox: staff, suppliers, loans and investors, rival bakeries, a living economy, branches, full financial statements and long-term goals. Plus offline play and three save slots.
+A step-by-step first day with Bà, your first customer Kevin Nguyen (who later asks for a job), quests and a star shop for new looks, a clearer day report, and a new first recipe: bánh mì que. The game now asks your name, and the last recipe in the book is a secret worth playing for.
 
 ## Assets
 

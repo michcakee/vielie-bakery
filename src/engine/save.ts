@@ -38,6 +38,7 @@ export function fillNewContent(data: unknown): void {
     Object.assign(s, migrateFeatures({ ...s, version: SAVE_VERSION } as GameState));
   }
   if (!s || typeof s !== 'object' || s.version !== SAVE_VERSION || !s.display || !s.prices || !s.pantry) return;
+  dropRemovedContent(s);
   for (const p of PRODUCT_ORDER) {
     if (!s.display[p]) s.display[p] = { qty: 0, quality: 70, unitCost: 0 };
     if (!finite(s.prices[p])) s.prices[p] = PRODUCTS[p].ref;
@@ -60,6 +61,37 @@ export function fillNewContent(data: unknown): void {
     if (!s.pantry[id]) s.pantry[id] = { qty: 0, avgCost: def.price / def.pack, quality: 70, eco: 50 };
     if (s.market?.prices && !finite(s.market.prices[id])) s.market.prices[id] = def.price * (s.macro?.priceIndex ?? 1);
     if (s.market?.walk && !finite(s.market.walk[id])) s.market.walk[id] = 1;
+  }
+}
+
+/** Recipes and ingredients that were removed from the game are taken out of an older save. */
+function dropRemovedContent(s: GameState): void {
+  const product = (p: unknown) => typeof p === 'string' && p in PRODUCTS;
+  const ingredient = (i: unknown) => typeof i === 'string' && i in INGREDIENTS;
+  const prune = (rec: unknown, ok: (k: string) => boolean) => {
+    if (!rec || typeof rec !== 'object') return;
+    for (const k of Object.keys(rec)) if (!ok(k)) delete (rec as Record<string, unknown>)[k];
+  };
+  const keepProduct = (k: string) => k === 'baguette' || product(k);
+  for (const rec of [s.display, s.prices, s.bakedToday, s.leftoverPlan, s.plan?.trays, s.lifetime?.sold]) prune(rec, keepProduct);
+  for (const day of [s.today, ...(Array.isArray(s.history) ? s.history : [])]) {
+    const d = day as unknown as Record<string, unknown>;
+    for (const k of ['made', 'sold', 'revenueBy', 'cogsBy', 'soldOutAt', 'wishedFor', 'pricey']) prune(d?.[k], keepProduct);
+  }
+  if (Array.isArray(s.unlocked)) s.unlocked = s.unlocked.filter(product);
+  if (Array.isArray(s.menu)) s.menu = s.menu.filter(product);
+  for (const rec of [s.pantry, s.market?.prices, s.market?.walk, s.reorder]) prune(rec, ingredient);
+  const any = s as unknown as Record<string, unknown>;
+  for (const k of ['contracts', 'deliveries', 'locks']) {
+    const list = any[k];
+    if (Array.isArray(list)) any[k] = list.filter((x) => !x || typeof x !== 'object' || !('ingredient' in x) || ingredient((x as { ingredient: unknown }).ingredient));
+  }
+  // A day in progress, a special or a guess about something that is gone: start that part fresh.
+  if (s.service?.visits?.some((v) => !product(v.wants) || (v.alt && !product(v.alt)))) s.service = { ...s.service, visits: s.service.visits.filter((v) => product(v.wants)).map((v) => (v.alt && !product(v.alt) ? { ...v, alt: null } : v)) };
+  if (s.special && !product(s.special)) s.special = null;
+  for (const k of Object.keys(any)) {
+    const v = any[k];
+    if (v && typeof v === 'object' && !Array.isArray(v) && 'product' in v && typeof (v as { product: unknown }).product === 'string' && !product((v as { product: unknown }).product)) any[k] = null;
   }
 }
 
@@ -126,7 +158,7 @@ export function migrateV2(old: any): GameState | null {
     s.nextUid = uid;
     s.upgrades = refreshKinds(equipment);
     if ((old.upgrades ?? []).includes('helper')) {
-      const coBa: Employee = { id: 9001, name: 'Cô Ba', role: 'cashier', wage: 16, skill: 3, morale: 80, hiredDay: Math.max(1, old.day - 10), trainingUntil: 0, look: { skin: 1, hair: 1, hairColor: 6, shirt: 6, apron: 1, accessory: 5 }, served: 0, branch: null };
+      const coBa: Employee = { id: 9001, name: 'Auntie', role: 'cashier', wage: 16, skill: 3, morale: 80, hiredDay: Math.max(1, old.day - 10), trainingUntil: 0, look: { skin: 1, hair: 1, hairColor: 6, shirt: 6, apron: 1, accessory: 5 }, served: 0, branch: null };
       s.staff = [coBa];
     }
     s.decor = old.decor ?? [];
@@ -315,7 +347,6 @@ export interface Prefs {
   /** Optional, off by default: a gentle 'good time for a break?' note after 30 minutes of play. */
   breakReminder?: boolean;
   relaxed: boolean;
-  translations: boolean;
   view: 'casual' | 'business';
   /** Finished Bà's first week once (or chose Experienced baker): other scenarios open up. */
   graduated?: boolean;
@@ -323,7 +354,7 @@ export interface Prefs {
   textScale: number;
 }
 
-export const DEFAULT_PREFS: Prefs = { reducedMotion: false, sound: false, music: false, audioDefault: 1, relaxed: true, translations: true, view: 'casual', slot: 1, textScale: 1 };
+export const DEFAULT_PREFS: Prefs = { reducedMotion: false, sound: false, music: false, audioDefault: 1, relaxed: true, view: 'casual', slot: 1, textScale: 1 };
 
 export function loadPrefs(): Prefs {
   try {

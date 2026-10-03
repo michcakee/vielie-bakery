@@ -112,7 +112,7 @@ function OvenGame({ item, onDone, onCancel, learning }: { item: Bakeable; onDone
         {result === null ? label : result >= 85 ? `Perfect bake! Quality ${result}` : result >= 60 ? `Not bad! Quality ${result}` : `Oops… quality ${result}`}
       </p>
       <Btn kind="go" onClick={() => stop()} disabled={result !== null} sfx={null} className="big">
-        Lấy ra! Take it out
+        Take it out!
       </Btn>
       <span className="muted small kbd-hint">Space or Enter works too.</span>
     </div>
@@ -162,11 +162,10 @@ function OvenCard() {
     return () => window.clearTimeout(h);
   }, [result]);
 
-  // Prevent page scroll when starting the oven game
+  // The oven replaces the (much longer) recipe list, so bring it back into view when it opens.
+  const ovenRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (!baking) return;
-    const y = window.scrollY;
-    window.scrollTo(0, y);
+    if (baking) ovenRef.current?.scrollIntoView({ block: 'center' });
   }, [baking]);
 
   return (
@@ -208,7 +207,9 @@ function OvenCard() {
         </div>
       )}
       {baking ? (
+        <div ref={ovenRef}>
         <OvenGame item={baking} onDone={(q) => bake(baking, q)} onCancel={() => setBaking(null)} learning={s.allUnlocked === false && s.day <= 5} />
+        </div>
       ) : (
         <>
           <p className="muted">

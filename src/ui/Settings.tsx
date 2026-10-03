@@ -119,7 +119,7 @@ export function Settings({ onClose, onQuit }: { onClose: () => void; onQuit: () 
     const link = restoreLink(c);
     const subject = encodeURIComponent(`${state.bakeryName}: day ${state.day} save`);
     const body = encodeURIComponent(
-      `Your bakery is saved!\n\nOpen this link on any device to carry on from day ${state.day}:\n${link}\n\nOr paste this save code into Settings → Load a save:\n${c}\n\nChúc một ngày tốt lành!`,
+      `Your bakery is saved!\n\nOpen this link on any device to carry on from day ${state.day}:\n${link}\n\nOr paste this save code into Settings → Load a save:\n${c}\n\nHave a lovely day!`,
     );
     window.location.href = `mailto:${encodeURIComponent(email.trim())}?subject=${subject}&body=${body}`;
     setMsg('Your email app should open with a restore link. Send it to yourself to keep it.');
@@ -132,7 +132,6 @@ export function Settings({ onClose, onQuit }: { onClose: () => void; onQuit: () 
         <Toggle label="Sound effects" on={prefs.sound} set={(v) => setPrefs({ sound: v })} />
         <Toggle label="Music" hint="A gentle pentatonic tune" on={prefs.music} set={(v) => setPrefs({ music: v })} />
         <Toggle label="Relaxed pace" hint="Slower days and more patient customers" on={prefs.relaxed} set={(v) => setPrefs({ relaxed: v })} />
-        <Toggle label="English under Vietnamese" hint="Show translations in speech bubbles" on={prefs.translations} set={(v) => setPrefs({ translations: v })} />
         <Toggle label="Reduce motion" hint="Fewer moving decorations" on={prefs.reducedMotion} set={(v) => setPrefs({ reducedMotion: v })} />
         <Toggle label="Break reminder" hint="A gentle note after 30 minutes of play. Off unless you want it." on={!!prefs.breakReminder} set={(v) => setPrefs({ breakReminder: v })} />
         {featureOn(state, 'finances.income') && (

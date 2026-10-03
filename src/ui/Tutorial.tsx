@@ -28,10 +28,10 @@ export const TUTORIAL: Step[] = [
   },
   {
     title: 'Bake something to sell',
-    text: 'The case is empty. Go to the Kitchen and tap Bake on the michcake. Tap “Take it out” when the bar is in the golden zone.',
+    text: 'The case is empty. Go to the Kitchen and tap Bake on the bánh mì que (crispy breadsticks). Tap “Take it out” when the bar is in the golden zone.',
     icon: 'hot',
     tab: 'kitchen',
-    spot: 'bake-michcake',
+    spot: 'bake-banhMiQue',
     done: (s) => s.traysToday > 0 || s.history.length > 0,
   },
   {
@@ -43,8 +43,8 @@ export const TUTORIAL: Step[] = [
     done: (s) => s.phase !== 'morning' || s.history.length > 0,
   },
   {
-    title: 'Serve a customer',
-    text: 'Tap an order under “At the counter”. Pastries take one tap. For bánh mì and drinks, tap the glowing step each time.',
+    title: 'Serve your first customer',
+    text: 'Kevin Nguyen is first through the door! Tap his order under “At the counter”. Pastries take one tap. For bánh mì and drinks, tap the glowing step each time.',
     icon: 'people',
     done: (s) => s.lifetime.served > 0 || s.history.length > 0,
   },

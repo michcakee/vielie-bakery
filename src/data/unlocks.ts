@@ -152,7 +152,7 @@ export const FEATURES: FeatureDef[] = [
     requires: ['today.special'],
     teaser: 'Unlocks soon: getting to know your customers',
     intro: {
-      who: 'Mai',
+      who: 'the Eco Volunteer',
       vi: 'Chị nhớ món em thích không?',
       en: 'Do you remember my favourite?',
       snapshot: (s) => ({ visits: sum(s.visitsByRegular) }),
@@ -174,7 +174,7 @@ export const FEATURES: FeatureDef[] = [
     requires: ['market.wet'],
     teaser: 'Unlocks soon: more suppliers and bulk packs',
     intro: {
-      who: 'Chú Tư (farm co-op)',
+      who: 'the farm co-op',
       vi: 'Rau trái từ Đà Lạt, sáng mai giao tới.',
       en: 'Fresh from Đà Lạt, delivered tomorrow morning.',
       snapshot: (s) => ({ farm: s.supplierLoyalty.farm ?? 0 }),
@@ -194,7 +194,7 @@ export const FEATURES: FeatureDef[] = [
     requires: ['kitchen.prices'],
     teaser: 'Unlocks soon: why your days go the way they do',
     intro: {
-      who: 'Cô Ngọc (food critic)',
+      who: 'the Food Critic',
       vi: 'Mỗi ngày đều có lý do.',
       en: 'Every day has a reason behind it.',
       steps: [
@@ -217,7 +217,7 @@ export const FEATURES: FeatureDef[] = [
       who: 'Bà',
       vi: 'Một mình con làm không xuể đâu.',
       en: 'You can’t do it all alone.',
-      steps: [{ text: 'Meet the applicants. Hire Bà’s pick if there is one.', tab: 'staff', spot: 'hire-btn', visit: true, done: (s) => s.staff.length > 0 || qp(s, 'hired') > 0 || seen(s, 'visit:staff.hire') }],
+      steps: [{ text: 'Meet the applicants. Kevin Nguyen, your very first customer, wants the job!', tab: 'staff', spot: 'hire-btn', visit: true, done: (s) => s.staff.length > 0 || qp(s, 'hired') > 0 || seen(s, 'visit:staff.hire') }],
       after: 'A helper serves the customers you can’t reach. Pick one who makes what people wait for most.',
       xp: 25,
     },
@@ -289,7 +289,7 @@ export const FEATURES: FeatureDef[] = [
     requires: ['market.wet'],
     teaser: 'Unlocks soon: your eco score',
     intro: {
-      who: 'Mai',
+      who: 'the Eco Volunteer',
       vi: 'Túi ni-lông nhiều quá chị ơi.',
       en: 'So many plastic bags!',
       snapshot: (s) => ({ pack: qp(s, 'packagingChanges') }),
@@ -325,7 +325,7 @@ export const FEATURES: FeatureDef[] = [
     requires: ['customers.regulars'],
     teaser: 'Unlocks soon: the bakeries down the street',
     intro: {
-      who: 'Mai',
+      who: 'the Eco Volunteer',
       vi: 'Tiệm mới mở bán rẻ hơn đó chị.',
       en: 'The new place is cheaper, you know.',
       snapshot: (s) => ({ changed: qp(s, 'priceEdits'), days: s.history.length }),
@@ -402,7 +402,7 @@ export const FEATURES: FeatureDef[] = [
     requires: ['analytics.why'],
     teaser: 'Unlocks soon: trends and price experiments',
     intro: {
-      who: 'Cô Ngọc (food critic)',
+      who: 'the Food Critic',
       vi: 'Nhìn cả tuần, đừng nhìn một ngày.',
       en: 'Look at the whole week, not just one day.',
       steps: [{ text: 'Open Analytics and find your best-earning product.', tab: 'analytics', spot: 'products', visit: true, done: (s) => seen(s, 'visit:analytics.full') }],
@@ -421,7 +421,7 @@ export const FEATURES: FeatureDef[] = [
     requires: ['market.suppliers'],
     teaser: 'Unlocks soon: protecting yourself from price spikes',
     intro: {
-      who: 'Chú Tư (farm co-op)',
+      who: 'the farm co-op',
       vi: 'Giá trứng lên xuống thất thường lắm.',
       en: 'Egg prices jump up and down all the time.',
       snapshot: (s) => ({ locks: qp(s, 'locksMade'), rules: Object.keys(s.reorder).length, contracts: s.contracts.length }),
@@ -459,7 +459,7 @@ export const FEATURES: FeatureDef[] = [
     requires: ['kitchen.menu'],
     teaser: 'Unlocks soon: combo deals and drink sizes',
     intro: {
-      who: 'Mai',
+      who: 'the Eco Volunteer',
       vi: 'Bánh mì với cà phê, giảm giá được không chị?',
       en: 'A bánh mì with a coffee, any deal?',
       steps: [{ text: 'Turn on the combo deal.', tab: 'kitchen', spot: 'deals', done: (s) => !!s.combo }],
@@ -476,7 +476,7 @@ export const FEATURES: FeatureDef[] = [
     requires: ['finances.cash'],
     teaser: 'Unlocks soon: borrowing from the bank',
     intro: {
-      who: 'Cô Lan (bank officer)',
+      who: 'the bank officer',
       vi: 'Vay thì phải trả, cả tiền lời nữa.',
       en: 'A loan must be paid back, with interest too.',
       steps: [{ text: 'Try a loan amount and look at the monthly payment.', tab: 'money', spot: 'loans', done: (s) => seen(s, 'visit:finances.loans') }],
@@ -494,7 +494,7 @@ export const FEATURES: FeatureDef[] = [
     requires: ['customers.regulars'],
     teaser: 'Unlocks soon: advertising (needs level 2)',
     intro: {
-      who: 'Mai',
+      who: 'the Eco Volunteer',
       vi: 'Phát tờ rơi đi chị, nhiều người chưa biết tiệm.',
       en: 'Hand out flyers! Lots of people don’t know you yet.',
       snapshot: (s) => ({ c: s.campaigns.length }),
@@ -514,7 +514,7 @@ export const FEATURES: FeatureDef[] = [
     requires: ['analytics.full'],
     teaser: 'Unlocks soon: booms, slumps and inflation',
     intro: {
-      who: 'Cô Lan (bank officer)',
+      who: 'the bank officer',
       vi: 'Cả thành phố đang thay đổi.',
       en: 'The whole city is changing.',
       steps: [{ text: 'Read the economy card in Analytics.', tab: 'analytics', spot: 'economy', visit: true, done: (s) => seen(s, 'visit:analytics.economy') }],
@@ -552,7 +552,7 @@ export const FEATURES: FeatureDef[] = [
     requires: ['analytics.full'],
     teaser: 'Unlocks soon: the Test Kitchen',
     intro: {
-      who: 'Cô Ngọc (food critic)',
+      who: 'the Food Critic',
       vi: 'Đổi một thứ thôi, rồi so sánh.',
       en: 'Change one thing only, then compare.',
       steps: [{ text: 'Replay a day in the Test Kitchen with one change.', tab: 'analytics', spot: 'test-kitchen', done: (s) => seen(s, 'visit:analytics.testKitchen') }],

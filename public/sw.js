@@ -1,5 +1,5 @@
 // Offline support: cache the app shell on first visit, then serve from cache and refresh in the background.
-const CACHE = 'vielie-v3';
+const CACHE = 'vielie-v3-1';
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(['./', './index.html', './fonts/fonts.css', './manifest.webmanifest'])));
   self.skipWaiting();

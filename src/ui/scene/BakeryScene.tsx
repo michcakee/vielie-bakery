@@ -16,6 +16,7 @@ const BOARD_NAMES: Record<ProductId, string> = {
   banhMi: 'Banh mi',
   caPhe: 'Iced coffee',
   flan: 'Flan',
+  banhMiQue: 'Banh mi que',
   michcake: 'Michcake',
   pateChaud: 'Meat pie',
   traTac: 'Kumquat tea',
@@ -26,16 +27,6 @@ const BOARD_NAMES: Record<ProductId, string> = {
   banhKem: 'Party cake',
   mutDua: 'Coconut box',
   banhTrungThu: 'Mooncake',
-  gressCupcake: 'Gress cupcake',
-  gressTeaLight: 'Gress tea',
-  gressOreo: 'Gress cookies',
-  gressCoffee: 'Gress coffee',
-  gressHoneycomb: 'Gress cake',
-  gressBoba: 'Gress boba',
-  gressPie: 'Apple pie',
-  gressMilkshake: 'Milkshake',
-  gressCrepe: 'Crepe cake',
-  gressCake: 'Big Gress cake',
 };
 
 const MOOD_FACE: Record<Mood, string> = { love: 'heart', happy: 'star', ok: 'check', pricey: 'coin', sad: 'box', slow: 'clock', thinking: 'shop' };
@@ -315,7 +306,7 @@ interface Props {
 }
 
 export function BakeryScene({ onCustomer, baking = false, caption }: Props) {
-  const { state: s, prefs, reduced } = useGame();
+  const { state: s, reduced } = useGame();
   const wrap = useRef<HTMLDivElement>(null);
   const roomRef = useRef<HTMLCanvasElement>(null);
   const counterRef = useRef<HTMLCanvasElement>(null);
@@ -350,6 +341,9 @@ export function BakeryScene({ onCustomer, baking = false, caption }: Props) {
   const ovenOn = baking || (s.phase === 'morning' && s.traysToday > 0);
   const trays = (Object.keys(s.display) as ProductId[]).filter((p) => s.display[p].qty > 0).slice(0, 4);
   const menu = onMenu(s);
+  // The chalkboard shows as many lines as fit its frame at this size (small phones get fewer).
+  const boardFont = Math.max(9, 4.6 * scale);
+  const boardRows = Math.max(1, Math.min(4, Math.floor(((LAYOUT.board.h - 2) * scale) / (boardFont * 1.05)) - 1));
   const clock = s.service?.clock ?? 0;
   const fx = s.service?.fx.filter((f) => clock - f.at < 8) ?? [];
   const rainy = s.market.weather === 'rainy';
@@ -526,9 +520,9 @@ export function BakeryScene({ onCustomer, baking = false, caption }: Props) {
             Bánh mì
           </div>
         )}
-        <div className="board" style={{ left: (LAYOUT.board.x + 2) * scale, top: (LAYOUT.board.y + 1) * scale, width: (LAYOUT.board.w - 4) * scale, fontSize: Math.max(9, 4.6 * scale) }}>
+        <div className="board" style={{ left: (LAYOUT.board.x + 2) * scale, top: (LAYOUT.board.y + 1) * scale, width: (LAYOUT.board.w - 4) * scale, height: (LAYOUT.board.h - 2) * scale, fontSize: boardFont }}>
           <div className="board-title">{tet ? 'Happy New Year!' : 'Menu'}</div>
-          {menu.slice(0, 4).map((p) => (
+          {menu.slice(0, boardRows).map((p) => (
             <div key={p} className="board-row">
               <span>{BOARD_NAMES[p]}</span>
               <span>{s.prices[p].toFixed(2)}</span>
@@ -552,8 +546,7 @@ export function BakeryScene({ onCustomer, baking = false, caption }: Props) {
           ))}
         {chat && (
           <div key={`chat${chat.slot}`} className="say staff-say" style={{ left: sayAt(chat.x), top: (chat.feet - PERSON_H + 2) * scale }}>
-            {chat.line.vi}
-            {prefs.translations && <em>{chat.line.en}</em>}
+            {chat.line.en}
           </div>
         )}
         {fx

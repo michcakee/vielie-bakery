@@ -103,7 +103,7 @@ export function MarketPanel() {
 
   return (
     <div className="panel-stack">
-      <Card className="paper" title="Tin chợ: market news" icon="shop">
+      <Card className="paper" title="Market news" icon="shop">
         <p className="headline">{s.market.headline}</p>
         {business && <p className="small muted">Ingredient prices overall are {((s.macro.priceIndex - 1) * 100).toFixed(1)}% higher than when you opened, from inflation.</p>}
       </Card>
@@ -145,9 +145,6 @@ export function MarketPanel() {
           return (
             <button key={id} type="button" role="tab" aria-selected={sup === id} className={`supplier ${sup === id ? 'on' : ''}`} onClick={() => (play('click'), setSup(id))} data-spot={`supplier-${id}`}>
               <b>{d.name}</b>
-              <span className="muted small" lang="vi">
-                {d.vi}
-              </span>
               <span className="sup-line">
                 Price <b>{d.priceMult < 0.85 ? 'Cheapest' : d.priceMult < 1 ? 'Cheap' : d.priceMult < 1.2 ? 'Fair' : 'Pricey'}</b>
               </span>
@@ -193,7 +190,7 @@ export function MarketPanel() {
                 <Sprite name={id} scale={3} />
                 <div className="market-info">
                   <b>
-                    {d.name} <span className="muted" lang="vi">· {d.vi}</span>
+                    {d.name}
                   </b>
                   <span className="market-tags">
                     <span className={`store-tag ${d.cold ? 'cold' : 'dry'}`}>

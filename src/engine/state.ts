@@ -143,6 +143,12 @@ export function emptyDay(day: number, weather: Weather): DayStats {
   };
 }
 
+/** A first name or nickname: letters, numbers, spaces and a few marks; nothing else is kept. */
+export function cleanName(raw: string | undefined): string | undefined {
+  const name = (raw ?? '').replace(/[^\p{L}\p{N} '’.-]/gu, '').trim().slice(0, 16);
+  return name || undefined;
+}
+
 export const DEFAULT_LOOK: Look = { skin: 1, hair: 3, hairColor: 0, shirt: 0, apron: 0, accessory: 0 };
 
 const STARTER: Partial<Record<IngredientId, number>> = { flour: 10, eggs: 12, milk: 6, condensed: 12, sugar: 10, coffee: 12, chaLua: 10, veg: 10 };
@@ -208,7 +214,7 @@ export function createNewGame(seedOrOpts: number | NewGameOptions = {}): GameSta
     upgrades: refreshKinds(equipment),
     equipment,
     nextUid: 2,
-    decor: ['flowers', 'plant'],
+    decor: [],
     unlocked: [...START_PRODUCTS],
     market,
     macro,
@@ -281,7 +287,7 @@ export function createNewGame(seedOrOpts: number | NewGameOptions = {}): GameSta
 }
 
 export type Action =
-  | { type: 'setup'; name: string; look: Look; location?: LocationId }
+  | { type: 'setup'; name: string; look: Look; location?: LocationId; player?: string }
   | { type: 'setLook'; look: Look }
   | { type: 'buyCosmetic'; id: string }
   | { type: 'rename'; name: string }
@@ -1080,7 +1086,7 @@ function reduce(s: GameState, a: Action): GameState {
   switch (a.type) {
     case 'setup': {
       if (s.phase !== 'setup') return s;
-      let next: GameState = { ...s, bakeryName: a.name.trim().slice(0, 28) || 'Viet Bake Shop', look: allowedLook(s, a.look), phase: 'morning' };
+      let next: GameState = { ...s, bakeryName: a.name.trim().slice(0, 28) || 'Viet Bake Shop', playerName: cleanName(a.player), look: allowedLook(s, a.look), phase: 'morning' };
       if (a.location && a.location !== s.location && !SCENARIOS[s.scenario].location) {
         next = { ...next, location: a.location, competitors: seedCompetitors(a.location, SCENARIOS[s.scenario].extraRivals) };
         const left = ECON.calendar.daysPerMonth - dateOf(1).dom + 1;

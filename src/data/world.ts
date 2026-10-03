@@ -162,7 +162,7 @@ export const SEGMENTS: Record<SegmentId, SegmentDef> = {
     blurb: 'Tight budgets, big appetites, coffee and trà tắc.',
     income: 0.78,
     sensitivity: 1.4,
-    prefs: { banhMi: 1.4, michcake: 1.3, traTac: 1.6, caPhe: 1.2, banhBao: 1.3, che: 1.4, gressBoba: 1.9, gressMilkshake: 1.7, gressOreo: 1.4, gressTeaLight: 1.3 },
+    prefs: { banhMi: 1.4, banhMiQue: 1.6, michcake: 1.3, traTac: 1.6, caPhe: 1.2, banhBao: 1.3, che: 1.4 },
     loyalty: 0.45,
     patience: 0.9,
     times: [0.8, 1.3, 1.2, 1],
@@ -178,7 +178,7 @@ export const SEGMENTS: Record<SegmentId, SegmentDef> = {
     blurb: 'Buy for everyone: sweets, cakes and buns.',
     income: 1.05,
     sensitivity: 1,
-    prefs: { flan: 1.3, michcake: 1.8, banhChuoi: 1.4, banhKem: 2, banhBao: 1.3, che: 1.3, mutDua: 1.3, gressCupcake: 1.5, gressCake: 1.6, gressPie: 1.3 },
+    prefs: { flan: 1.3, michcake: 1.8, banhChuoi: 1.4, banhKem: 2, banhBao: 1.3, che: 1.3, mutDua: 1.3 },
     loyalty: 0.6,
     patience: 1,
     times: [0.6, 1, 1.5, 1.2],
@@ -221,7 +221,7 @@ export const SEGMENTS: Record<SegmentId, SegmentDef> = {
   },
   vnElders: {
     id: 'vnElders',
-    name: 'Cô chú (elders)',
+    name: 'Elders',
     vi: 'Cô chú',
     blurb: 'Know exactly how bánh bò should taste. Fiercely loyal to a good bakery.',
     income: 0.95,
@@ -274,7 +274,7 @@ export const SEGMENTS: Record<SegmentId, SegmentDef> = {
     blurb: 'Pay for quality and atmosphere.',
     income: 1.6,
     sensitivity: 0.55,
-    prefs: { banhKem: 2, pateChaud: 1.3, caPhe: 1.3, banhBo: 1.2, banhTrungThu: 1.4, gressCrepe: 1.7, gressCake: 1.5, gressCoffee: 1.3 },
+    prefs: { banhKem: 2, pateChaud: 1.3, caPhe: 1.3, banhBo: 1.2, banhTrungThu: 1.4 },
     loyalty: 0.5,
     patience: 1,
     times: [0.7, 1, 1.3, 1.2],
@@ -290,7 +290,7 @@ export const SEGMENTS: Record<SegmentId, SegmentDef> = {
     blurb: 'Same order every morning. Barely notice a small price rise.',
     income: 1,
     sensitivity: 0.6,
-    prefs: { caPhe: 3, traTac: 1.4, gressCoffee: 1.8, gressTeaLight: 1.2 },
+    prefs: { caPhe: 3, traTac: 1.4 },
     loyalty: 0.9,
     patience: 0.9,
     times: [2.1, 0.6, 0.8, 0.3],
@@ -306,7 +306,7 @@ export const SEGMENTS: Record<SegmentId, SegmentDef> = {
     blurb: 'Birthdays, weddings, Tết: big orders for special days.',
     income: 1.4,
     sensitivity: 0.85,
-    prefs: { banhKem: 3, mutDua: 2, banhTrungThu: 2.2, banhBao: 1.2, gressCake: 2.5, gressCrepe: 1.5 },
+    prefs: { banhKem: 3, mutDua: 2, banhTrungThu: 2.2, banhBao: 1.2 },
     loyalty: 0.4,
     patience: 1.2,
     times: [0.5, 1, 1.3, 1.3],
@@ -331,7 +331,7 @@ export interface RoleDef {
 }
 
 export const ROLES: Record<RoleId, RoleDef> = {
-  helper: { id: 'helper', name: 'Part-time helper', vi: 'Phụ việc', blurb: 'A teen from down the lane. Works the busy hours for a small wage and serves anything, a bit slower than a pro.', wage: 9 },
+  helper: { id: 'helper', name: 'Part-time helper', vi: 'Phụ việc', blurb: 'Works the busy hours for a small wage and serves anything, a bit slower than a pro.', wage: 9 },
   baker: { id: 'baker', name: 'Baker', vi: 'Thợ làm bánh', blurb: 'Bakes extra trays every morning.', wage: 18 },
   cashier: { id: 'cashier', name: 'Cashier', vi: 'Thu ngân', blurb: 'Hands out pastries from the case.', wage: 16, serves: ['tray'] },
   barista: { id: 'barista', name: 'Barista', vi: 'Pha chế', blurb: 'Makes cà phê, trà tắc and chè.', wage: 17, serves: ['drink'] },
@@ -348,16 +348,10 @@ export const ROLE_ORDER: RoleId[] = ['helper', 'cashier', 'barista', 'cook', 'ba
  * The owner's friends. They are always the first people to apply (in this order), each with a
  * fixed look and role so they are recognisable, and they keep coming back until hired.
  */
-export const FRIENDS: { name: string; role: RoleId; look: Look }[] = [
-  { name: 'Vy', role: 'cashier', look: { skin: 1, hair: 3, hairColor: 0, shirt: 7, apron: 1, accessory: 2 } },
-  { name: 'Sang', role: 'baker', look: { skin: 2, hair: 2, hairColor: 0, shirt: 1, apron: 0, accessory: 0 } },
-  { name: 'Hieu', role: 'cook', look: { skin: 1, hair: 2, hairColor: 1, shirt: 3, apron: 3, accessory: 1 } },
-  { name: 'Yen Vy', role: 'barista', look: { skin: 0, hair: 0, hairColor: 2, shirt: 5, apron: 4, accessory: 0 } },
-  { name: 'Phuong Khanh', role: 'pastryChef', look: { skin: 1, hair: 1, hairColor: 0, shirt: 6, apron: 2, accessory: 4 } },
-  { name: 'Vien', role: 'marketer', look: { skin: 2, hair: 3, hairColor: 4, shirt: 0, apron: 1, accessory: 0 } },
-];
+export const FRIENDS: { name: string; role: RoleId; look: Look }[] = [{ name: 'Kevin Nguyen', role: 'helper', look: { skin: 1, hair: 2, hairColor: 0, shirt: 3, apron: 2, accessory: 0 } }];
 
-export const STAFF_NAMES = ['Thảo', 'Bảo', 'Hiền', 'Khánh', 'Trung', 'Ngân', 'Phát', 'Uyên', 'Tài', 'Diễm', 'Lộc', 'Quyên', 'Hưng', 'Vân', 'Thịnh', 'Kim', 'Sang', 'Như', 'Đức', 'Mỹ'];
+/** Everyone else on the team goes by a nickname. */
+export const STAFF_NAMES = ['Mochi', 'Peanut', 'Biscuit', 'Pepper', 'Sesame', 'Honey', 'Ginger', 'Olive', 'Maple', 'Clover', 'Basil', 'Cocoa', 'Pumpkin', 'Noodle', 'Bean', 'Sprout', 'Sunny', 'Lucky', 'Pickle', 'Taro'];
 
 // ------------------------------------------------------------------ rivals
 
@@ -376,14 +370,14 @@ export interface CompetitorSeed {
 }
 
 export const COMPETITOR_SEEDS: CompetitorSeed[] = [
-  { id: 'coTu', name: 'Bánh Mì Cô Tư', location: 'oldLane', strategy: 'discount', products: { banhMi: 5.5, caPhe: 4.25 }, quality: 58, reputation: 40, marketing: 0.2, cash: 6000, opensDay: 15, blurb: 'A cheerful stand across the street. Cheap and fast.' },
-  { id: 'hongPhat', name: 'Tiệm Bánh Hồng Phát', location: 'littleSaigon', strategy: 'premium', products: { banhBo: 3.75, banhBao: 5, banhTrungThu: 11, mutDua: 21, flan: 4 }, quality: 82, reputation: 72, marketing: 0.4, cash: 40000, opensDay: 0, blurb: 'Forty years of traditional cakes. The elders\' favourite.' },
+  { id: 'coTu', name: 'Corner Bánh Mì Stand', location: 'oldLane', strategy: 'discount', products: { banhMi: 5.5, caPhe: 4.25 }, quality: 58, reputation: 40, marketing: 0.2, cash: 6000, opensDay: 15, blurb: 'A cheerful stand across the street. Cheap and fast.' },
+  { id: 'hongPhat', name: 'Golden Lotus Bakery', location: 'littleSaigon', strategy: 'premium', products: { banhBo: 3.75, banhBao: 5, banhTrungThu: 11, mutDua: 21, flan: 4 }, quality: 82, reputation: 72, marketing: 0.4, cash: 40000, opensDay: 0, blurb: 'Forty years of traditional cakes. The elders\' favourite.' },
   { id: 'saigonExpress', name: 'Saigon Express', location: 'littleSaigon', strategy: 'chain', products: { banhMi: 5.75, caPhe: 4.5, traTac: 4 }, quality: 60, reputation: 55, marketing: 0.8, cash: 120000, opensDay: 0, blurb: 'A fast-growing chain with big ads and average sandwiches.' },
   { id: 'bobaBanh', name: 'Boba & Bánh', location: 'university', strategy: 'copycat', products: { traTac: 4, caPhe: 4.5, banhMi: 6 }, quality: 62, reputation: 55, marketing: 0.6, cash: 15000, opensDay: 0, blurb: 'Students love the vibe. They copy whatever sells.' },
   { id: 'metroCafe', name: 'Metro Café', location: 'downtown', strategy: 'chain', products: { caPhe: 5.5, banhMi: 7.5, pateChaud: 4.5 }, quality: 66, reputation: 60, marketing: 0.9, cash: 200000, opensDay: 0, blurb: 'A coffee chain in every office lobby.' },
   { id: 'riverPatisserie', name: 'Riverside Pâtisserie', location: 'riverside', strategy: 'premium', products: { banhKem: 46, pateChaud: 5, caPhe: 6 }, quality: 84, reputation: 70, marketing: 0.5, cash: 60000, opensDay: 0, blurb: 'French-Vietnamese pastries with a view.' },
   { id: 'sweetMart', name: 'SweetMart Bakery', location: 'suburb', strategy: 'discount', products: { banhKem: 30, flan: 3, banhMi: 5.5, banhBao: 3.75 }, quality: 52, reputation: 50, marketing: 0.7, cash: 150000, opensDay: 0, blurb: 'A supermarket bakery. Cheap, cheerful, a little bland.' },
-  { id: 'chiBay', name: 'Chè Chị Bảy', location: 'oldLane', strategy: 'matcher', products: { che: 5, banhBo: 3, flan: 3.25 }, quality: 70, reputation: 55, marketing: 0.2, cash: 8000, opensDay: 200, blurb: 'A dessert cart that watches your prices closely.' },
+  { id: 'chiBay', name: 'Sweet Chè Cart', location: 'oldLane', strategy: 'matcher', products: { che: 5, banhBo: 3, flan: 3.25 }, quality: 70, reputation: 55, marketing: 0.2, cash: 8000, opensDay: 200, blurb: 'A dessert cart that watches your prices closely.' },
 ];
 
 // ------------------------------------------------------------------ scenarios

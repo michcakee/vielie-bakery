@@ -24,9 +24,9 @@ export function weeklyApplicants(s: GameState): Applicant[] {
     if (onStaff.has(f.name)) continue;
     out.push({ id: s.nextId + out.length, name: f.name, role: f.role, wage: round2(marketWage(s, f.role, 3) * (0.97 + rand() * 0.08)), skill: 3, look: { ...f.look } });
   }
-  if (!s.staff.some((e) => e.role === 'helper')) {
+  if (!s.staff.some((e) => e.role === 'helper') && !out.some((a) => a.role === 'helper')) {
     const skill = 2 + Math.floor(rand() * 2);
-    out.push({ id: s.nextId + out.length, name: 'Tí', role: 'helper', wage: round2(marketWage(s, 'helper', skill)), skill, look: { ...randomLook(rand), apron: 2 } });
+    out.push({ id: s.nextId + out.length, name: 'Sprout', role: 'helper', wage: round2(marketWage(s, 'helper', skill)), skill, look: { ...randomLook(rand), apron: 2 } });
   }
   for (let i = 0; i < n; i++) {
     const role = ROLE_ORDER[Math.floor(rand() * ROLE_ORDER.length)];

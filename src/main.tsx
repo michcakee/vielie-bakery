@@ -5,6 +5,7 @@ import { CrashScreen } from './ui/Crash';
 import { GameProvider } from './ui/GameContext';
 import { initPlatform } from './ui/native';
 import { initPixelUi, initTouchSparkle } from './ui/pixelUi';
+import { watchInstallPrompt } from './ui/web';
 import './ui/styles.css';
 
 createRoot(document.getElementById('root')!).render(
@@ -20,3 +21,4 @@ createRoot(document.getElementById('root')!).render(
 initPixelUi();
 initTouchSparkle();
 initPlatform();
+watchInstallPrompt();

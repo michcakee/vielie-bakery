@@ -1,6 +1,6 @@
 # Next steps
 
-## Current state: v3.0.0, the sandbox
+## Current state: v3.1.0, the sandbox
 
 Version 3 expands the v2 pixel-art bakery into a business sandbox, following the Vietnamese Bakery Sandbox PRD. Everything from v2 (the real-time shop day, scene, assembly, oven game, regulars, recipes, events, Tết) is preserved, and v2 saves migrate automatically.
 

@@ -41,7 +41,7 @@
   --shadow-sm: 0 2px 0 var(--ink);
   --r: 6px;
   --font: 'VT323', 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --pixel: 'Clear Digits', 'Pixelify Sans', 'Be Vietnam Pro', system-ui, sans-serif;
+  --pixel: 'Clear Digits', 'Pixelify Sans', 'VT323', 'Be Vietnam Pro', system-ui, sans-serif;
   --title: 'Clear Digits', 'Press Start 2P', 'Pixelify Sans', monospace;
   /* Cube display face, used on headings and numbers (set in caps for the pixel-sign look). */
   --cube: 'Clear Digits', 'Pixelify Sans', 'Be Vietnam Pro', system-ui, sans-serif;
@@ -1235,7 +1235,8 @@ kbd {
   justify-items: start;
 }
 .intro-vi {
-  font-family: 'Be Vietnam Pro', var(--pixel);
+  /* VT323 is a pixel face with every Vietnamese letter, so Bà's lines never mix fonts. */
+  font-family: 'VT323', var(--pixel);
   font-size: 44px;
   line-height: 1;
   color: var(--forest);
@@ -1642,7 +1643,6 @@ kbd {
   gap: 10px;
   justify-items: center;
   text-align: center;
-  scroll-margin-top: 0;
 }
 .oven-window {
   width: 100%;
@@ -1969,12 +1969,9 @@ textarea {
   display: grid;
   place-items: center;
   padding: 16px 24px 10px;
-  width: 180px;
-  height: 280px;
   background: radial-gradient(circle at 50% 40%, var(--cream), var(--butter));
   border: 3px solid var(--ink);
   border-radius: 12px;
-  flex-shrink: 0;
 }
 .look-floor {
   width: 80%;
@@ -6058,6 +6055,9 @@ html[data-motion='reduced'] .title-logo span {
   background: var(--paper);
 }
 .look-note {
+  /* Under both columns, so it never pushes the picture or the rows around. */
+  grid-column: 1 / -1;
+  margin: 0;
   display: flex;
   gap: 6px;
   align-items: center;
@@ -6409,4 +6409,292 @@ html[data-motion='reduced'] .title-logo span {
 .ing-chip em {
   margin-left: 6px;
   font-size: 13px;
+}
+
+/* Setup: your name and the bakery's name, side by side when there is room. */
+.rename-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  flex: 1 1 100%;
+}
+.rename-fields .field {
+  display: grid;
+  gap: 4px;
+  flex: 1 1 200px;
+}
+.rename-fields input {
+  width: 100%;
+  min-width: 0;
+}
+
+/* ------------------------------------------------------------- main menu
+   The title screen is a game menu: the street fills the window, the list is walked with
+   the arrow keys, and the version sits in the corner. Phones get the same list as big rows. */
+.title-screen {
+  grid-template-columns: minmax(300px, 380px) minmax(0, 1fr);
+  grid-template-rows: 1fr auto;
+  grid-template-areas:
+    'menu art'
+    'foot foot';
+  gap: 0 40px;
+  max-width: none;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 32px 48px 0;
+}
+.title-art {
+  grid-area: art;
+  justify-self: center;
+  width: 100%;
+  /* Never taller than the window: the street is 16:9. */
+  max-width: calc((100dvh - 170px) * 240 / 135);
+}
+.title-screen .title-card {
+  grid-area: menu;
+  gap: 22px;
+}
+.title-screen .title-logo {
+  font-size: clamp(22px, 2.5vw, 36px);
+}
+.title-screen .title-logo span {
+  white-space: nowrap;
+}
+.main-menu {
+  display: grid;
+  gap: 2px;
+  justify-items: start;
+  width: 100%;
+}
+.menu-item {
+  position: relative;
+  display: grid;
+  justify-items: start;
+  padding: 5px 12px 5px 34px;
+  border: 0;
+  border-radius: var(--r);
+  background: none;
+  color: var(--ink);
+  font-family: var(--pixel);
+  font-size: 30px;
+  line-height: 1.15;
+  text-align: left;
+  cursor: pointer;
+}
+.menu-cursor {
+  position: absolute;
+  left: 6px;
+  top: 12px;
+  visibility: hidden;
+}
+.menu-sub {
+  font-family: var(--font);
+  font-size: 17px;
+  color: var(--muted);
+}
+.menu-item:hover,
+.menu-item:focus-visible {
+  color: var(--pine);
+  background: var(--butter);
+  outline: none;
+}
+.menu-item:hover .menu-cursor,
+.menu-item:focus-visible .menu-cursor {
+  visibility: visible;
+  animation: menu-nudge 0.6s steps(2) infinite;
+}
+.menu-item:active {
+  transform: translateY(2px);
+}
+@keyframes menu-nudge {
+  50% {
+    transform: translateX(3px);
+  }
+}
+html[data-motion='reduced'] .menu-cursor {
+  animation: none !important;
+}
+.title-foot {
+  grid-area: foot;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin: 0 -48px;
+  padding: 10px 48px calc(10px + env(safe-area-inset-bottom));
+  position: relative;
+  z-index: 2;
+  border-top: 3px solid var(--ink);
+  background: var(--aqua);
+  font-size: 16px;
+  color: var(--slate);
+}
+.title-foot-mid {
+  text-align: center;
+}
+.title-by {
+  font-family: var(--pixel);
+  font-size: 18px;
+  color: #7a4fa3;
+  white-space: nowrap;
+}
+.fullscreen-btn {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  z-index: 3;
+  padding: 4px 10px;
+  border: 3px solid var(--ink);
+  border-radius: var(--r);
+  background: var(--paper);
+  box-shadow: var(--shadow-sm);
+  color: var(--ink);
+  font-family: var(--pixel);
+  font-size: 17px;
+  cursor: pointer;
+}
+.fullscreen-btn:hover {
+  background: var(--butter);
+}
+.fullscreen-btn:active {
+  transform: translateY(2px);
+  box-shadow: none;
+}
+/* Touch screens: the same list, as rows big enough for a thumb. */
+@media (hover: none), (max-width: 980px) {
+  .title-screen {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto 1fr auto;
+    grid-template-areas:
+      'art'
+      'menu'
+      '.'
+      'foot';
+    gap: 18px;
+    padding: calc(16px + env(safe-area-inset-top)) 16px 0;
+    align-content: start;
+  }
+  .title-art {
+    max-width: min(560px, calc((100dvh - 430px) * 240 / 135));
+    min-width: 240px;
+  }
+  .title-screen .title-card {
+    justify-items: center;
+    text-align: center;
+    max-width: 420px;
+    width: 100%;
+    justify-self: center;
+  }
+  .title-screen .title-logo {
+    font-size: clamp(24px, 7vw, 38px);
+  }
+  .main-menu {
+    gap: 8px;
+    justify-items: stretch;
+  }
+  .menu-item {
+    justify-items: center;
+    min-height: 48px;
+    padding: 8px 12px;
+    border: 3px solid var(--ink);
+    background: var(--paper);
+    box-shadow: var(--shadow-sm);
+    font-size: 24px;
+    text-align: center;
+  }
+  .menu-item:first-child {
+    background: var(--pandan);
+  }
+  .menu-item:first-child .menu-sub {
+    color: var(--ink);
+  }
+  .menu-cursor {
+    display: none;
+  }
+  .title-foot {
+    margin: 0 -16px;
+    padding-left: 16px;
+    padding-right: 16px;
+    font-size: 14px;
+  }
+  .title-foot-mid {
+    display: none;
+  }
+  .fullscreen-btn {
+    display: none;
+  }
+}
+
+/* The pause menu and the load list borrow the main menu's rows. */
+.modal.pause-menu {
+  width: min(360px, 100%);
+  text-align: center;
+}
+.pause-menu .main-menu {
+  margin: 10px 0;
+}
+.load-list {
+  display: grid;
+  gap: 8px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.load-slot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  padding: 8px 14px;
+  border: 3px solid var(--ink);
+  border-radius: var(--r);
+  background: var(--paper);
+  box-shadow: var(--shadow-sm);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+.load-slot b {
+  font-family: var(--pixel);
+  font-size: 22px;
+}
+.load-slot:hover:not(:disabled),
+.load-slot:focus-visible {
+  background: var(--butter);
+}
+.load-slot:disabled {
+  opacity: 0.5;
+  cursor: default;
+  box-shadow: none;
+}
+.how-steps {
+  display: grid;
+  gap: 10px;
+  padding: 0;
+  margin: 0 0 14px;
+  list-style: none;
+}
+.how-steps li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  align-items: center;
+}
+.key-list {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 14px;
+  margin: 0 0 16px;
+  align-items: center;
+}
+.key-list dd {
+  margin: 0;
+}
+.pause-menu .main-menu {
+  justify-items: center;
+}
+.pause-menu .menu-item {
+  padding: 5px 34px;
 }

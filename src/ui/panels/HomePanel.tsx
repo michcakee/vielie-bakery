@@ -188,7 +188,7 @@ export function HomePanel({ goTo, onOpen, onRunDay, onQuests }: { goTo: (t: Tab)
             <p className="festival-chip">
               {fest.map((f) => (
                 <span key={f} className="chip">
-                  <span lang="vi">{FESTIVALS[f].vi}</span>: {FESTIVALS[f].blurb}
+                  <b>{FESTIVALS[f].name}</b>: {FESTIVALS[f].blurb}
                 </span>
               ))}
             </p>

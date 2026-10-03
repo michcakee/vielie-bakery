@@ -633,3 +633,11 @@ The shop scene is now a top-down room modelled on the owner’s reference pictur
 - **Customers:** walk-ins arrive evenly spaced within each part of the day and the daily count varies ±5% (was ±10%). Each favourite of a group on the menu draws 12% more of that group, and a menu covering what the street loves raises total walk-ins (neutral for the starting menu, up to about +20%).
 - **Staff:** hiring unlocks by day 7 (was 12), or after 2 people give up waiting.
 - **Fonts:** VT323 for paragraph text, headings unchanged.
+
+### Round 5: launch prep
+- **Removed:** the ten Gress recipes and three ingredients (gress powder, green apples, lychee pearls). `save.ts` drops them from older saves on load.
+- **First day:** bánh mì que (a level-1 tray) is the tutorial bake; Kevin Nguyen is always the first customer, orders what you baked, and is the one order Bà's helping hand leaves alone. He is the first job applicant until hired.
+- **Final recipe:** the michcake moved to level 8 with a harder bake and a premium price; a hands-on test player reaches it around day 175.
+- **Names:** only Kevin has a personal name. Regulars and walk-ins are named for what they do, staff by nickname, rival shops by what they sell. The player gives a first name or nickname at setup (`playerName`, letters and numbers only, 16 characters).
+- **Language:** Vietnamese is kept for Bà's lines and food names; customer lines, labels and the calendar are English. The translations setting is gone.
+- **Website:** a game-style main menu (arrow keys, Continue / New game / Load game / Settings / How to play / Credits / Install game), fullscreen (button or F), a pause menu on Esc, the version number on screen, and link-preview tags. None of the website-only controls appear in the phone apps.

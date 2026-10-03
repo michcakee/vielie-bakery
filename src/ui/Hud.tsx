@@ -33,7 +33,7 @@ export function Hud({ onQuests, onSettings, onHelp, questCount }: { onQuests: ()
       <div className="hud-name">
         <h1>{s.bakeryName}</h1>
         <span className="hud-day">
-          Day {s.day} · <span lang="vi">{wd.vi}</span> <span className="muted">({wd.en})</span>
+          Day {s.day} · {wd.en}
           {isTet(s.day) && <span className="tet-chip">Tết</span>}
         </span>
       </div>

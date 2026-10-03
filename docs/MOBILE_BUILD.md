@@ -2,13 +2,13 @@
 
 Viet Bake Shop ships to phones with **Capacitor 7**: the same Vite build that runs on GitHub Pages is copied into a native Android project (`android/`) and a native iOS project (`ios/`). The game runs fully offline inside the app, with no backend and **no network permissions at all** (Capacitor's default `INTERNET` permission was removed from the manifest; add it back only for a live-reload dev build).
 
-> **Status:** the Android project builds on the owner's Windows PC (debug APK and signed release bundle built on 2 October 2026). iOS needs a Mac with Xcode and has not been compiled. Nothing has been submitted to any store.
+> **Status:** version 3.1.0 builds as a debug APK on the owner's Windows PC (3 October 2026). The signed release bundle does **not** build yet: Gradle can open the keystore but not the `upload` key, which means `keyPassword` in `key.properties` is wrong (for a keystore made by `keytool`, it is normally the same as `storePassword`). iOS needs a Mac with Xcode and has not been compiled. Nothing has been submitted to any store.
 
 | | |
 | --- | --- |
 | App ID / bundle ID | `com.michcakee.vieliebakery` |
 | App name | Viet Bake Shop |
-| Version | 3.0.0 (`package.json`, Android `versionName`, iOS `MARKETING_VERSION`) |
+| Version | 3.1.0 (`package.json`, Android `versionName`, iOS `MARKETING_VERSION`) |
 | Build number | Android `versionCode` 1, iOS `CURRENT_PROJECT_VERSION` 1 |
 | Web assets | `dist/` → `android/app/src/main/assets/public`, `ios/App/App/public` (generated, git-ignored) |
 | Config | [`capacitor.config.ts`](../capacitor.config.ts) |

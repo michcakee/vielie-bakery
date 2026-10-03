@@ -72,7 +72,7 @@ export function StaffPanel() {
   const team = s.staff;
   const ovens = ovenCapacity(s);
   const people = laborTrays(s);
-  const servers = team.filter((e) => e.branch === null && (e.role === 'cashier' || e.role === 'barista' || e.role === 'cook'));
+  const servers = team.filter((e) => e.branch === null && (e.role === 'helper' || e.role === 'cashier' || e.role === 'barista' || e.role === 'cook'));
   const recent = s.history.slice(-7);
   const lostSlow = recent.length ? recent.reduce((t, h) => t + h.lostSlow, 0) / recent.length : 0;
   const hireFee = Math.round(ECON.labor.hiringCost * s.macro.priceIndex);

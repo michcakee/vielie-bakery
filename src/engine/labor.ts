@@ -24,6 +24,10 @@ export function weeklyApplicants(s: GameState): Applicant[] {
     if (onStaff.has(f.name)) continue;
     out.push({ id: s.nextId + out.length, name: f.name, role: f.role, wage: round2(marketWage(s, f.role, 3) * (0.97 + rand() * 0.08)), skill: 3, look: { ...f.look } });
   }
+  if (!s.staff.some((e) => e.role === 'helper')) {
+    const skill = 2 + Math.floor(rand() * 2);
+    out.push({ id: s.nextId + out.length, name: 'Tí', role: 'helper', wage: round2(marketWage(s, 'helper', skill)), skill, look: { ...randomLook(rand), apron: 2 } });
+  }
   for (let i = 0; i < n; i++) {
     const role = ROLE_ORDER[Math.floor(rand() * ROLE_ORDER.length)];
     const skill = 1 + Math.floor(rand() * rand() * 5);
@@ -65,6 +69,12 @@ export function hireValue(s: GameState, role: RoleId, skill = 3): { cost: number
     case 'baker': {
       const trays = (ECON.production.bakerTraysBase + ECON.production.bakerTraysPerSkill * skill) * prod * (has(s, 'mixer') ? ECON.production.mixerBoost : 1);
       return { cost, adds: `about ${trays.toFixed(1)} more trays a day (if your ovens have room)`, addsValue: trays * 8 * avgTicket * 0.6 * margin };
+    }
+    case 'helper': {
+      // Serves anything, a bit slower: limited by everyone who gave up waiting.
+      const lostAll = recent.length ? recent.reduce((t, h) => t + h.lostSlow, 0) / recent.length : 0;
+      const saved = Math.min(lostAll, (CONFIG.dayMinutes / (ECON.service.staffMinutes.drink * 1.5)) * prod * 0.4);
+      return { cost, adds: saved < 0.5 ? 'helps at the counter, but nobody gave up waiting lately' : `helps with any order: about ${saved.toFixed(0)} more happy customers a day`, addsValue: saved * avgTicket * margin };
     }
     case 'cashier':
     case 'barista':

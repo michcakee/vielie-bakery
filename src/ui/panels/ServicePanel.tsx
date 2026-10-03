@@ -212,6 +212,11 @@ export function GoalMeter({ compact = false }: { compact?: boolean }) {
       </div>
       <span className="goal-text">
         {stars === 3 ? '3 stars! Amazing day!' : `${money(sales)} / ${money(goal[stars])} for ${stars === 0 ? 'your first star' : `star ${stars + 1}`}`}
+        {s.today.lostSlow > 0 && (
+          <span className="lost-chip" role="status" aria-label={`${s.today.lostSlow} customers gave up waiting`}>
+            <Sprite name="faceWorried" scale={2} /> {s.today.lostSlow} left
+          </span>
+        )}
       </span>
     </div>
   );
@@ -271,19 +276,14 @@ export function ServicePanel({ paused, setPaused, speed, setSpeed, activeId, set
       <GoalMeter />
       <div className="service-controls">
         <Btn kind="ghost" onClick={() => setPaused(!paused)} aria-label={paused ? 'Resume' : 'Pause'} aria-pressed={paused}>
-          <Sprite name={paused ? 'playIcon' : 'pause'} scale={2} /> {paused ? 'Resume' : 'Pause'}
+          <Sprite name={paused ? 'playIcon' : 'pause'} scale={2} /> <span className="btn-text">{paused ? 'Resume' : 'Pause'}</span>
         </Btn>
-        <Btn kind="ghost" onClick={() => setSpeed(speed === 1 ? 2 : 1)} aria-pressed={speed === 2}>
-          <Sprite name="fast" scale={2} /> {speed === 2 ? 'Fast' : 'Normal'}
+        <Btn kind="ghost" onClick={() => setSpeed(speed === 1 ? 2 : 1)} aria-pressed={speed === 2} aria-label={speed === 2 ? 'Fast speed' : 'Normal speed'}>
+          <Sprite name="fast" scale={2} /> <span className="btn-text">{speed === 2 ? 'Fast' : 'Normal'}</span>
         </Btn>
         <Btn kind={svc.lastCall ? 'primary' : 'plain'} disabled={!canLastCall} onClick={() => dispatch({ type: 'lastCall', on: !svc.lastCall })} aria-pressed={svc.lastCall} title="Pastries 40% off for the last hour">
           {svc.lastCall ? 'LAST CALL! −40%' : canLastCall ? 'Last call' : 'Last call 5pm'}
         </Btn>
-        {s.today.lostSlow > 0 && (
-          <span className="lost-chip" role="status" aria-label={`${s.today.lostSlow} customers gave up waiting`}>
-            <Sprite name="faceWorried" scale={2} /> {s.today.lostSlow} left
-          </span>
-        )}
         <details className="svc-more">
           <summary>More</summary>
           <div className="svc-more-items">

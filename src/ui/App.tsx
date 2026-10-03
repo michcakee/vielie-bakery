@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { PRODUCTS } from '../data/catalog';
+import { onMenu } from '../engine/economy';
 import { valuation } from '../engine/finance';
 import { importCode } from '../engine/save';
 import type { GameState } from '../engine/types';
@@ -231,9 +232,20 @@ function Game({ onQuit }: { onQuit: () => void }) {
   const service = s.phase === 'service';
   const first = s.service?.visits.find((v) => v.status === 'waiting' && !v.servedBy);
   const firstHint = service && s.lifetime.served === 0 && first ? `${first.name} wants ${PRODUCTS[first.wants].name}! Tap the order to make it.` : null;
-  const open = () => {
+  const [openCheck, setOpenCheck] = useState<string[] | null>(null);
+  const reallyOpen = () => {
+    setOpenCheck(null);
     dispatch({ type: 'open' });
     setTab('today');
+  };
+  // Opening with nothing to sell wastes a whole day: ask once.
+  const open = () => {
+    const missing: string[] = [];
+    if (s.baguettes.qty === 0 && onMenu(s).some((p) => PRODUCTS[p].kind === 'sandwich')) missing.push('No baguettes, so no bánh mì today.');
+    const trays = onMenu(s).filter((p) => PRODUCTS[p].kind === 'tray');
+    if (trays.length && trays.every((p) => s.display[p].qty === 0)) missing.push('The pastry case is empty.');
+    if (missing.length) setOpenCheck(missing);
+    else reallyOpen();
   };
   const goTo = (t: Tab) => {
     if (!tabOn(s, t)) return;
@@ -369,6 +381,33 @@ function Game({ onQuit }: { onQuit: () => void }) {
           <Btn kind="go" onClick={open} disabled={s.events.length > 0} sfx="bell">
             <span lang="vi">Mở cửa!</span> Open
           </Btn>
+        </div>
+      )}
+
+      {openCheck && (
+        <div className="confirm-veil" onClick={() => setOpenCheck(null)}>
+          <div className="confirm-sheet" role="dialog" aria-modal="true" aria-label="Open anyway?" onClick={(e) => e.stopPropagation()}>
+            <h3>Wait! Open anyway?</h3>
+            <ul>
+              {openCheck.map((m) => (
+                <li key={m}>{m}</li>
+              ))}
+            </ul>
+            <div className="btn-row">
+              <Btn
+                kind="primary"
+                onClick={() => {
+                  setOpenCheck(null);
+                  goTo('kitchen');
+                }}
+              >
+                Go bake first
+              </Btn>
+              <Btn kind="ghost" onClick={reallyOpen}>
+                Open anyway
+              </Btn>
+            </div>
+          </div>
         </div>
       )}
 

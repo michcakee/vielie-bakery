@@ -21,14 +21,20 @@ export type Tab = 'today' | 'kitchen' | 'market' | 'staff' | 'customers' | 'grow
 
 export function readiness(s: GameState) {
   const menu = onMenu(s);
-  const warnings: { text: string; tab: Tab }[] = [];
+  const warnings: { text: string; tab: Tab; spot?: string }[] = [];
   if (s.equipment.every((e) => !e.kind.startsWith('oven'))) warnings.push({ text: 'You have no oven yet. Buy one in Growth before you can bake anything.', tab: 'growth' });
   if (s.baguettes.qty < 6 && menu.includes('banhMi'))
-    warnings.push({ text: canBakeTray(s, BAGUETTE.recipe) ? 'Only a few baguettes left. Bake a tray, or bánh mì will sell out.' : 'Out of flour for baguettes. Stock up at the market.', tab: canBakeTray(s, BAGUETTE.recipe) ? 'kitchen' : 'market' });
+    warnings.push(canBakeTray(s, BAGUETTE.recipe) ? { text: 'Bake a tray of baguettes, or bánh mì will sell out.', tab: 'kitchen', spot: 'bake-baguette' } : { text: 'Out of flour for baguettes. Buy some at the market.', tab: 'market', spot: 'stock-up' });
   if (menu.includes('caPhe') && makeable(s, 'caPhe') < 6) warnings.push({ text: 'Coffee or condensed milk is low. Cà phê sữa đá sells fast in the morning.', tab: 'market' });
   if (menu.includes('banhMi') && (s.pantry.chaLua.qty < 6 || s.pantry.veg.qty < 6)) warnings.push({ text: `Low on ${s.pantry.chaLua.qty < 6 ? 'chả lụa' : 'pickles & herbs'} for bánh mì.`, tab: 'market' });
+  // One clear ask: fill the oven, starting with the best sellers.
   const trays = menu.filter((p) => PRODUCTS[p].kind === 'tray' && s.display[p].qty === 0);
-  if (trays.length && s.traysToday < trayCapacity(s)) warnings.push({ text: `No ${trays.map((p) => PRODUCTS[p].name).join(', ')} in the case yet.`, tab: 'kitchen' });
+  const left = trayCapacity(s) - s.traysToday;
+  if (trays.length && left > 0) {
+    const sold = (p: string) => s.history.slice(-7).reduce((t, h) => t + (h.sold[p as keyof typeof h.sold] ?? 0), 0);
+    const best = [...trays].sort((a, b) => sold(b) - sold(a)).slice(0, 2);
+    warnings.push({ text: `Bake your ${left} tray${left === 1 ? '' : 's'}: start with ${best.map((p) => PRODUCTS[p].name).join(' and ')}.`, tab: 'kitchen', spot: `bake-${best[0]}` });
+  }
   const toRent = daysToMonthStart(s.day);
   if (toRent > 0 && toRent <= 5) warnings.push({ text: `Rent day in ${toRent} day${toRent === 1 ? '' : 's'}: about ${money(rent(s) * 30)} for the month.${s.cash < rent(s) * 30 ? ' Save up!' : ' You have enough.'}`, tab: 'today' });
   else if (s.cash < rent(s) * 5 && s.cash >= 0) warnings.push({ text: `Cash is getting thin: ${money(s.cash)}. Next month's rent is about ${money(rent(s) * 30)}.`, tab: 'money' });
@@ -100,6 +106,7 @@ function TodayGoal() {
 
 export function HomePanel({ goTo, onOpen, onRunDay }: { goTo: (t: Tab) => void; onOpen: () => void; onRunDay: () => void }) {
   const { state: s, business, feature, fresh } = useGame();
+  const { showMe } = useGuide();
   const t = s.today;
   const is = incomeStatement(t.books);
   const warnings = readiness(s);
@@ -215,8 +222,8 @@ export function HomePanel({ goTo, onOpen, onRunDay }: { goTo: (t: Tab) => void; 
                 <li key={w.text}>
                   <Sprite name="bell" scale={2} />
                   <span>{w.text}</span>
-                  <button type="button" className="link-btn" onClick={() => goTo(w.tab)}>
-                    Go
+                  <button type="button" className="link-btn" onClick={() => (w.spot ? showMe(w.tab, w.spot) : goTo(w.tab))}>
+                    {w.spot ? 'Show me' : 'Go'}
                   </button>
                 </li>
               ))}
@@ -264,7 +271,7 @@ export function HomePanel({ goTo, onOpen, onRunDay }: { goTo: (t: Tab) => void; 
         </Card>
       )}
 
-      {!lesson && (
+      {!lesson && !s.intro?.active && (
       <Card title="Quests" icon="book">
         <ul className="quests">
           {quests.map((q) => {
@@ -294,7 +301,6 @@ export function HomePanel({ goTo, onOpen, onRunDay }: { goTo: (t: Tab) => void; 
       </Card>
       )}
 
-      {feature('customers.regulars') && <Neighbours />}
       <p className="small muted">
         Pantry check: {Object.entries(s.pantry).filter(([, p]) => p.qty > 0).length} ingredients in stock
         {s.deliveries.length ? ` · ${s.deliveries.length} deliveries on the way (${s.deliveries.map((d) => INGREDIENTS[d.ingredient].name.toLowerCase()).join(', ')})` : ''}. Rent: about {money(rent(s) * 30)} a month, paid on the 1st.
@@ -315,7 +321,7 @@ function NextUp() {
   );
 }
 
-function Neighbours() {
+export function Neighbours() {
   const { state: s } = useGame();
   const met = REGULARS.filter((r) => (s.visitsByRegular[r.id] ?? 0) > 0);
   const unmet = REGULARS.filter((r) => (s.visitsByRegular[r.id] ?? 0) === 0);

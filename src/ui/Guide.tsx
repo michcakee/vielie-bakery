@@ -48,7 +48,8 @@ function Spotlight({ anchor, onDone }: { anchor: string; onDone: () => void }) {
       el = [...document.querySelectorAll<HTMLElement>(`[data-spot="${anchor}"]`)].find((e) => e.offsetParent !== null && e.getBoundingClientRect().height > 0) ?? null;
       // A whole card is too big to point at: point at the first thing in it you can actually tap.
       if (el && el.getBoundingClientRect().height > window.innerHeight * 0.45) {
-        const inner = [...el.querySelectorAll<HTMLElement>('button:not([disabled]), input, select')].find((e) => e.offsetParent !== null);
+        const ok = (e: HTMLElement) => e.offsetParent !== null && !e.closest('.tip') && e.getAttribute('aria-checked') !== 'true' && e.getAttribute('aria-pressed') !== 'true';
+        const inner = [...el.querySelectorAll<HTMLElement>('.btn-primary:not([disabled]), .btn-go:not([disabled])')].find(ok) ?? [...el.querySelectorAll<HTMLElement>('button:not([disabled]), input, select')].find(ok);
         if (inner) el = inner;
       }
       if (!el) {
@@ -169,7 +170,7 @@ const DAY_STEPS = [
 ] as const;
 
 /** The "What now?" sheet: how a day works, and the one or two things to do right now. */
-export function WhatNow({ onClose, goTo, todo }: { onClose: () => void; goTo: (t: TabId) => void; todo: { text: string; tab: TabId }[] }) {
+export function WhatNow({ onClose, goTo, todo }: { onClose: () => void; goTo: (t: TabId) => void; todo: { text: string; tab: TabId; spot?: string }[] }) {
   const { state: s } = useGame();
   const { showMe } = useGuide();
   const intro = s.intro?.active ? FEATURE[s.intro.active] : null;
@@ -180,7 +181,7 @@ export function WhatNow({ onClose, goTo, todo }: { onClose: () => void; goTo: (t
   if (s.events.length) now.push({ text: 'Answer the news card first: pick one choice.' });
   else if (phase === 'morning') {
     if (step) now.push({ text: step.text, tab: step.tab, spot: step.spot });
-    for (const w of todo.slice(0, 2)) now.push({ text: w.text, tab: w.tab });
+    for (const w of todo.slice(0, 2)) now.push({ text: w.text, tab: w.tab, spot: w.spot });
     now.push({ text: 'When you’re ready, open the doors (Mở cửa!) on the Today tab.', tab: 'today', spot: 'open' });
   } else if (phase === 'service')
     now.push(

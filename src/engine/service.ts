@@ -192,7 +192,7 @@ export function buildSchedule(s: GameState): Visit[] {
 export function makeServers(s: GameState, auto: boolean): ServerSlot[] {
   const out: ServerSlot[] = [];
   if (auto) out.push({ id: 'owner', busyUntil: 0, visitId: null, quality: ECON.service.ownerAutoQuality, served: 0 });
-  for (const e of flagshipStaff(s)) if (e.role === 'cashier' || e.role === 'barista' || e.role === 'cook') out.push({ id: `staff:${e.id}`, busyUntil: 0, visitId: null, quality: 60 + 8 * e.skill, served: 0 });
+  for (const e of flagshipStaff(s)) if (e.role === 'helper' || e.role === 'cashier' || e.role === 'barista' || e.role === 'cook') out.push({ id: `staff:${e.id}`, busyUntil: 0, visitId: null, quality: 60 + 8 * e.skill, served: 0 });
   // Guided games: Bà hands out pastries while you learn, until you hire a cashier of your own.
   if (!auto && s.allUnlocked === false && !s.staff.some((e) => e.role === 'cashier' && e.branch === null)) out.push({ id: 'ba', busyUntil: 0, visitId: null, quality: 74, served: 0 });
   return out;
@@ -254,7 +254,7 @@ function arriveAtCounter(s: GameState, v: Visit, rand: () => number): GameState 
   s = { ...s, today: { ...s.today, segments: segStat(s, v.segment, { visits: 1 }), sources } };
   if (!available(s, wants, 1)) {
     const t = s.today;
-    if (t.soldOutAt[wants] === undefined && (t.made[wants] > 0 || PRODUCTS[wants].kind !== 'tray')) s = { ...s, today: { ...t, soldOutAt: { ...t.soldOutAt, [wants]: s.service!.clock } } };
+    if (t.soldOutAt[wants] === undefined) s = { ...s, today: { ...t, soldOutAt: { ...t.soldOutAt, [wants]: s.service!.clock } } };
     if (v.alt && available(s, v.alt)) {
       wants = v.alt;
       line = LINES.substitute(dishName(wants));
@@ -456,7 +456,7 @@ function minutesFor(s: GameState, serverId: string, kind: ProductKind): number {
   if (serverId === 'ba') return ECON.service.ownerMinutes[kind] * 1.3;
   const e = s.staff.find((x) => `staff:${x.id}` === serverId);
   if (!e) return 3;
-  let m = ECON.service.staffMinutes[kind] / productivity(e, s.day);
+  let m = (ECON.service.staffMinutes[kind] * (e.role === 'helper' ? 1.5 : 1)) / productivity(e, s.day);
   if (has(s, 'pos')) m *= 0.87;
   if (kind === 'drink' && has(s, 'coffeeBar')) m *= 0.75;
   return m;
@@ -467,7 +467,7 @@ function canServe(s: GameState, serverId: string, kind: ProductKind): boolean {
   if (serverId === 'ba') return kind === 'tray';
   const e = s.staff.find((x) => `staff:${x.id}` === serverId);
   if (!e) return false;
-  return (e.role === 'cashier' && kind === 'tray') || (e.role === 'barista' && kind === 'drink') || (e.role === 'cook' && kind === 'sandwich');
+  return e.role === 'helper' || (e.role === 'cashier' && kind === 'tray') || (e.role === 'barista' && kind === 'drink') || (e.role === 'cook' && kind === 'sandwich');
 }
 
 function dispatchServers(s: GameState): GameState {

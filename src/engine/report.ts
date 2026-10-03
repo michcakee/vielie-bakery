@@ -12,7 +12,7 @@ export function recap(s: GameState, t: DayStats): string[] {
   const out: string[] = [];
   for (const p of PRODUCT_ORDER) {
     const at = t.soldOutAt[p];
-    if (at !== undefined && at < 300) out.push(`Your ${nameOf(p)} sold out at ${clockLabel(at)}, before lunch!`);
+    if (at !== undefined && at < 300 && (t.made[p] > 0 || PRODUCTS[p].kind !== 'tray')) out.push(`Your ${nameOf(p)} sold out at ${clockLabel(at)}, before lunch!`);
   }
   const top = PRODUCT_ORDER.filter((p) => t.sold[p] > 0).sort((a, b) => t.sold[b] - t.sold[a])[0];
   if (top && t.sold[top] >= 5) out.push(`${nameOf(top)} was the star today: ${t.sold[top]} sold.`);
@@ -31,7 +31,7 @@ export function recap(s: GameState, t: DayStats): string[] {
   if (t.staffServed > 0) out.push(`Your team served ${t.staffServed} customers${t.ownerServed ? `; you served ${t.ownerServed}` : ''}.`);
   if (t.deliveries > 0) out.push(`Riders delivered ${t.deliveries} orders around the neighbourhood.`);
   const reg = REGULARS.filter((r) => s.service?.visits.some((v) => v.who === r.id && v.mood && ['love', 'happy', 'ok'].includes(v.mood)));
-  if (reg.length) out.push(`${reg.map((r) => r.name).join(', ')} ${reg.length === 1 ? 'came' : 'all came'} ${s.day === 1 ? 'stopped by today.' : 'back today.'}`);
+  if (reg.length) out.push(`${reg.map((r) => r.name).join(', ')} ${s.day === 1 ? (reg.length === 1 ? 'stopped by today.' : 'all stopped by today.') : reg.length === 1 ? 'came back today.' : 'all came back today.'}`);
   if (t.donatedUnits > 0) out.push(`You gave ${t.donatedUnits} leftover items to the neighbourhood food shelf.`);
   out.push(...t.notes);
   if (!out.length) out.push(`A quiet ${WEATHER[t.weather].name.toLowerCase()} day on the lane.`);
@@ -41,7 +41,9 @@ export function recap(s: GameState, t: DayStats): string[] {
 /** One friendly, useful suggestion. */
 export function businessTip(s: GameState, t: DayStats, profit: number): string {
   const on = (id: FeatureId) => featureOn(s, id);
-  const early = PRODUCT_ORDER.find((p) => (t.soldOutAt[p] ?? 999) < 360);
+  const none = PRODUCT_ORDER.find((p) => PRODUCTS[p].kind === 'tray' && t.made[p] === 0 && (t.wishedFor[p] ?? 0) >= 2);
+  if (none) return `${t.wishedFor[none]} people wanted ${nameOf(none)}, but the case was empty. Bake a tray before you open tomorrow!`;
+  const early = PRODUCT_ORDER.find((p) => (t.soldOutAt[p] ?? 999) < 360 && (t.made[p] > 0 || PRODUCTS[p].kind !== 'tray'));
   if (early) return `${nameOf(early)} ran out early. Bake more tomorrow: those were sales you missed!`;
   const pricey = PRODUCT_ORDER.find((p) => (t.pricey[p] ?? 0) >= 4);
   if (pricey && on('kitchen.prices')) return `Lots of people thought ${nameOf(pricey)} was too expensive. Try a small price cut in the Kitchen and watch the demand meter.`;

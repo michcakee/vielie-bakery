@@ -5246,3 +5246,19 @@ html[data-motion='reduced'] .title-logo span {
 @media (max-width: 760px) {
   .title-float { display: none; }
 }
+
+/* ---------- round 2: service controls never overflow ---------- */
+@media (max-width: 760px) {
+  .service-controls { flex-wrap: wrap; min-width: 0; }
+  .service-controls > * { min-width: 0; }
+}
+@media (max-width: 420px) {
+  .service-controls .btn-text { display: none; }
+}
+.goal-text { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.goal-text .lost-chip { font-size: 15px; padding: 2px 6px; }
+.goal-bar { margin-right: 18px; }
+.assembly kbd { display: none; }
+@media (max-width: 400px) {
+  .tabs .tab-label { font-size: 14px; letter-spacing: -0.02em; }
+}

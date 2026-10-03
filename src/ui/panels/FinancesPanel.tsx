@@ -401,7 +401,7 @@ function NotebookGraph({ kind }: { kind: NonNullable<NotebookEntry['graph']> }) 
 
 export function FinancesPanel() {
   const { state: s, dispatch, business, setPrefs, feature, fresh } = useGame();
-  const [range, setRange] = useState<Range>('month');
+  const [range, setRange] = useState<Range>(() => (s.intro?.active === 'finances.income' || s.history.length < 14 ? 'today' : 'month'));
   const days = s.history.slice(-RANGES.find((r) => r.id === range)!.days);
   const r = ratios(s, days);
   const busy = s.phase === 'service';

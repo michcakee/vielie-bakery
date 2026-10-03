@@ -265,7 +265,7 @@ export function DayReport() {
         <div className={`num big ${r.profit >= 0 ? 'pos' : 'neg'}`}>
           <span>What the bakery made</span>
           <b>
-            <Count value={r.profit} signed />
+            <Count value={is.netProfit} signed />
           </b>
         </div>
       </div>
@@ -305,7 +305,7 @@ export function DayReport() {
             const right = pr.guess && pr.guess === pr.result;
             return (
               <span className={`prediction ${right ? 'right' : ''}`}>
-                <Sprite name="note" scale={2} /> {PRODUCTS[pr.product].name} {money2(pr.from)} → {money2(pr.to)}: {pr.rateBefore !== undefined && pr.rateAfter !== undefined ? `out of every 10 shoppers, ${pr.rateBefore.toFixed(1)} bought it before and ${pr.rateAfter.toFixed(1)} today` : `${pr.unitsBefore.toFixed(0)} a day became ${pr.unitsAfter}`} ({word(pr.result)}).
+                <Sprite name="note" scale={2} /> {PRODUCTS[pr.product].name} {money2(pr.from)} → {money2(pr.to)}: {pr.rateBefore !== undefined && pr.rateAfter !== undefined ? `out of every 100 shoppers, ${Math.round(pr.rateBefore * 10)} bought it before and ${Math.round(pr.rateAfter * 10)} today` : `${pr.unitsBefore.toFixed(0)} a day became ${pr.unitsAfter}`} ({word(pr.result)}).
                 {pr.guess ? (right ? ' Nice call! +10 XP' : ` You guessed ${word(pr.guess)}. +5 XP for guessing.`) : ''}
               </span>
             );
@@ -329,11 +329,11 @@ export function DayReport() {
           </p>
         )}
       </div>
-      <p className="small muted cash-line">
+      {r.day > 7 && <p className="small muted cash-line">
         Cash {money2(r.cashBefore)} → {money2(r.cashAfter)}
         {r.loanPaid > 0 && ` · paid ${money2(r.loanPaid)} on your loan`}
         {r.savedToFund > 0 && ` · saved ${money2(r.savedToFund)} to the safety fund`}.{r.day % 7 === 0 && " Stocking up and upgrades come out of cash but aren't counted as today's costs: they're things the bakery still owns."}
-      </p>
+      </p>}
       <p className="small tomorrow">
         Tomorrow: <b>{WEATHER[s.market.tomorrow].name}</b>. {WEATHER[s.market.tomorrow].tip}
       </p>

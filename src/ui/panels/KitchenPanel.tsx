@@ -361,7 +361,7 @@ function PredictCard() {
   return (
     <Card className="predict-card" title="What do you think will happen?" icon="note" spot="predict">
       <p className="small">
-        You moved <b>{d.name}</b> {up ? 'up' : 'down'} from {money2(p.from)} to {money2(p.to)}. Lately about <b>{(p.rateBefore ?? 0).toFixed(1)} of every 10 shoppers</b> bought it. Will more or fewer buy it now? The report shows the answer (any guess earns XP; a right one earns more).
+        You moved <b>{d.name}</b> {up ? 'up' : 'down'} from {money2(p.from)} to {money2(p.to)}. Lately about <b>{Math.round((p.rateBefore ?? 0) * 10)} of every 100 shoppers</b> bought it. Will more or fewer buy it now? The report shows the answer (any guess earns XP; a right one earns more).
       </p>
       <div className="predict-choices" role="group" aria-label="Your prediction">
         <Btn onClick={() => dispatch({ type: 'predict', guess: 'more' })}>

@@ -331,6 +331,7 @@ export interface RoleDef {
 }
 
 export const ROLES: Record<RoleId, RoleDef> = {
+  helper: { id: 'helper', name: 'Part-time helper', vi: 'Phụ việc', blurb: 'A teen from down the lane. Works the busy hours for a small wage and serves anything, a bit slower than a pro.', wage: 9 },
   baker: { id: 'baker', name: 'Baker', vi: 'Thợ làm bánh', blurb: 'Bakes extra trays every morning.', wage: 18 },
   cashier: { id: 'cashier', name: 'Cashier', vi: 'Thu ngân', blurb: 'Hands out pastries from the case.', wage: 16, serves: ['tray'] },
   barista: { id: 'barista', name: 'Barista', vi: 'Pha chế', blurb: 'Makes cà phê, trà tắc and chè.', wage: 17, serves: ['drink'] },
@@ -341,7 +342,7 @@ export const ROLES: Record<RoleId, RoleDef> = {
   marketer: { id: 'marketer', name: 'Marketer', vi: 'Tiếp thị', blurb: 'Makes campaigns work harder and spreads the word.', wage: 22 },
 };
 
-export const ROLE_ORDER: RoleId[] = ['cashier', 'barista', 'cook', 'baker', 'pastryChef', 'delivery', 'manager', 'marketer'];
+export const ROLE_ORDER: RoleId[] = ['helper', 'cashier', 'barista', 'cook', 'baker', 'pastryChef', 'delivery', 'manager', 'marketer'];
 
 /**
  * The owner's friends. They are always the first people to apply (in this order), each with a

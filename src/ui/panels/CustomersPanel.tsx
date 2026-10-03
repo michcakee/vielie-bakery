@@ -8,6 +8,7 @@ import { BarList } from '../charts';
 import { useGame } from '../GameContext';
 import { Btn, Card, Empty, Tip } from '../kit';
 import { Sprite } from '../pixel/Sprite';
+import { Neighbours } from './HomePanel';
 
 export function CustomersPanel() {
   const { state: s, dispatch, business, feature, fresh } = useGame();
@@ -51,6 +52,7 @@ export function CustomersPanel() {
         </div>
       </div>
 
+      {feature('customers.regulars') && <Neighbours />}
       {feature('customers.regulars') && <Card title="Who comes in" icon="people" fresh={fresh('customers.regulars')}>
         <p className="small muted">Different customers want different things and react differently to price. Your neighbourhood decides the mix.</p>
         <ul className="segment-list">

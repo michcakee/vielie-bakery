@@ -528,7 +528,8 @@ export const FEATURES: FeatureDef[] = [
     chapter: 5,
     tab: 'money',
     fallbackDay: 45,
-    gate: (s) => levelOf(s.xp) >= 3,
+    // Investors, bonds and shares wait until the bakery has grown up a bit.
+    gate: (s) => levelOf(s.xp) >= 5,
     requires: ['finances.loans'],
     teaser: 'Unlocks soon: investors and bonds (needs level 3)',
     intro: {

@@ -16,7 +16,9 @@ export function dailyGoal(s: GameState): [number, number, number] {
   const avgPrice = menu.length ? menu.reduce((t, p) => t + effectivePrice(s, p), 0) / menu.length : 5;
   const estimate = (expectedWalkIns(s) + 2) * avgPrice * 0.8;
   const recent = s.history.slice(-5).map((h) => h.revenue);
-  const base = recent.length ? Math.max(estimate * 0.6, recent.reduce((a, b) => a + b, 0) / recent.length) : estimate;
+  // After a few days, goals follow what you actually sell, not how many people walk past.
+  const avg = recent.length ? recent.reduce((a, b) => a + b, 0) / recent.length : 0;
+  const base = recent.length >= 3 ? avg : recent.length ? Math.max(estimate * 0.6, avg) : estimate;
   const one = roundTo5(base * 0.5);
   const two = Math.max(one + 5, roundTo5(base * 0.9));
   const three = Math.max(two + 5, roundTo5(base * 1.2));

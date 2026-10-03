@@ -464,7 +464,7 @@ export function FinancesPanel() {
 
       <Financing />
 
-      {feature('finances.capital') && (
+      {feature('finances.capital') && (s.allUnlocked !== false || levelOf(s.xp) >= 6) && (
       <Card title="Co-op shares" icon="chart" aside={levelOf(s.xp) < 3 ? <span className="lock-tag">Level 3</span> : undefined}>
         <p className="small">
           Own a slice of the farms you buy from. Prices move every day; each week you get a 1.5% <Tip concept="dividends">dividend</Tip>. A dairy share rises when eggs get pricey for you: a natural <Tip concept="hedging">hedge</Tip>.

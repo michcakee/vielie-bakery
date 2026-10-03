@@ -20,10 +20,10 @@ export const LAYOUT = {
   counter: { x: 112, y: 104, w: 100, h: 20 },
   case: { x: 114, y: 84, w: 64, h: 20 },
   register: { x: 194, y: 92, w: 14, h: 12 },
-  player: { x: 180, feet: 106 },
+  player: { x: 184, feet: 106 },
   helper: { x: 172, feet: 90 },
   queueY: 131,
-  queueX: [150, 134, 118, 102],
+  queueX: [146, 127, 108, 89],
   doorX: 10,
 };
 

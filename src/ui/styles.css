@@ -1178,8 +1178,10 @@ kbd {
 }
 .paused-veil {
   position: absolute;
-  inset: 0 0 auto 0;
-  aspect-ratio: 240 / 135;
+  inset: 0;
+  width: 100%;
+  border-radius: 10px;
+  z-index: 5;
   background: rgba(59, 42, 37, 0.45);
   color: var(--cream);
   font-family: var(--pixel);
@@ -5610,4 +5612,10 @@ html[data-motion='reduced'] .title-logo span {
   z-index: 2;
   margin-bottom: 10px;
   background: var(--cream);
+}
+
+/* Characters are 24 wide; positions in the scene are given for a 16-wide cell, so centre them. */
+.stage .cust,
+.stage .staff {
+  margin-left: -4px;
 }

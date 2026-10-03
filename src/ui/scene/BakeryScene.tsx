@@ -72,16 +72,17 @@ export const BA_LOOK: Look = { skin: 1, hair: 1, hairColor: 6, shirt: 5, apron: 
 
 /** Where each kind of worker stands when they aren't serving anyone (stage px; feet = bottom). */
 const STATIONS: Record<RoleId | 'ba', { x: number; feet: number }> = {
-  cashier: { x: 196, feet: 106 },
-  helper: { x: 160, feet: 104 },
-  barista: { x: 170, feet: 100 },
-  cook: { x: 140, feet: 104 },
-  baker: { x: 213, feet: 103 },
-  pastryChef: { x: 222, feet: 105 },
-  manager: { x: 124, feet: 104 },
+  // Spread along the counter, in two rows so heads overlap as little as possible.
+  manager: { x: 112, feet: 101 },
+  cook: { x: 126, feet: 105 },
+  ba: { x: 140, feet: 101 },
+  helper: { x: 155, feet: 105 },
+  barista: { x: 168, feet: 100 },
+  cashier: { x: 200, feet: 106 },
+  baker: { x: 216, feet: 102 },
+  pastryChef: { x: 226, feet: 105 },
   marketer: { x: 34, feet: 110 },
   delivery: { x: 8, feet: 98 },
-  ba: { x: 152, feet: 104 },
 };
 
 interface Worker {
@@ -110,7 +111,7 @@ function workersOnShift(s: GameState): Worker[] {
       const id = `staff:${e.id}`;
       // two workers with the same job stand side by side
       const twin = s.staff.filter((x) => x.branch === null && x.role === e.role).findIndex((x) => x.id === e.id);
-      return { id, role: e.role, trait: e.trait, look: e.look, name: e.name, home: { x: home.x - twin * 11 + (i % 2), feet: home.feet }, serving: visitOf(id), busyUntil: slot(id)?.busyUntil ?? 0 };
+      return { id, role: e.role, trait: e.trait, look: e.look, name: e.name, home: { x: home.x - twin * 15 + (i % 2), feet: home.feet }, serving: visitOf(id), busyUntil: slot(id)?.busyUntil ?? 0 };
     });
   // "Bà, help!" (the owner slot) and Bà handing out pastries are the same Bà on screen.
   const ba = slot('owner') ?? slot('ba');
@@ -165,7 +166,7 @@ function StaffLayer({ s, open, ovenOn, reduced }: { s: GameState; open: boolean;
         const serving = open && w.serving;
         // Staggered arrival: the first few minutes of the day, each worker is still on the way in.
         const arriving = open && !serving && w.id !== 'ba' && clock < 4 + i * 5;
-        const x = serving ? LAYOUT.queueX[0] + 4 - 13 * lane++ : arriving ? LAYOUT.doorX : w.home.x;
+        const x = serving ? LAYOUT.queueX[0] + 6 - 17 * lane++ : arriving ? LAYOUT.doorX : w.home.x;
         const feet = serving ? 106 : w.home.feet;
         const m = motion.current.get(w.id);
         if (!m || m.x !== x) motion.current.set(w.id, { x, at: now, dur: !m || reduced || arriving ? 0 : Math.min(2400, 250 + Math.abs(x - m.x) * 12) });

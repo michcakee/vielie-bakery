@@ -293,6 +293,11 @@ function Game({ onQuit }: { onQuit: () => void }) {
               <Sprite name="spark" scale={2} /> Paint
             </button>
           )}
+          {paused && service && (
+            <button type="button" className="paused-veil" onClick={() => setPaused(false)}>
+              Paused. Tap to continue
+            </button>
+          )}
           </div>
           {intro && (
             <IntroLines
@@ -308,11 +313,6 @@ function Game({ onQuit }: { onQuit: () => void }) {
             <div className="coach" role="status">
               <Sprite name="bell" scale={2} /> {firstHint}
             </div>
-          )}
-          {paused && service && (
-            <button type="button" className="paused-veil" onClick={() => setPaused(false)}>
-              Paused. Tap to continue
-            </button>
           )}
         </section>
 

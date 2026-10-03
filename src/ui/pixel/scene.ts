@@ -568,7 +568,7 @@ export function drawWindowFront(ctx: CanvasRenderingContext2D, o: SceneOpts) {
   rect(ctx, W.x, W.y + W.h - 1, W.w, 1, C.wallEdge);
   rect(ctx, W.x, W.y, 1, W.h, C.wallEdge);
   rect(ctx, W.x + W.w - 1, W.y, 1, W.h, C.wallEdge);
-  rect(ctx, W.x + W.w / 2 - 1, W.y + 1, 2, W.h - 2, C.frame);
+  // rect(ctx, W.x + W.w / 2 - 1, W.y + 1, 2, W.h - 2, C.frame);
   ctx.fillStyle = 'rgba(255,255,255,0.45)';
   for (const px of [W.x + 4, W.x + W.w / 2 + 3])
     for (let i = 0; i < 5; i++) {

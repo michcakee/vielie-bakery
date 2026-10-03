@@ -5,6 +5,7 @@ import { clockLabel } from '../engine/time';
 import { money, money2 } from '../lib/format';
 import { useGame } from './GameContext';
 import { featureOn } from '../engine/unlocks';
+import { starsToSpend } from '../data/cosmetics';
 import { Meter, useTween } from './kit';
 import { Sprite } from './pixel/Sprite';
 
@@ -85,8 +86,10 @@ export function Hud({ onQuests, onSettings, onHelp, questCount }: { onQuests: ()
         <button type="button" className="icon-btn help-btn" onClick={onHelp} aria-label="What should I do now?">
           ?
         </button>
-        <button type="button" className="icon-btn" onClick={onQuests} aria-label={`Quests and achievements, ${questCount} active`}>
+        <button type="button" className="icon-btn quest-btn" onClick={onQuests} aria-label={`Quests, star shop and collection: ${questCount} quests to do, ${starsToSpend(s)} stars to spend`} data-spot="quests">
           <Sprite name="book" scale={3} />
+          <span className="quest-btn-label">Quests</span>
+          {questCount > 0 && <span className="quest-badge">{questCount}</span>}
         </button>
         <button type="button" className="icon-btn" onClick={onSettings} aria-label="Settings and saving">
           <Sprite name="gear" scale={3} />

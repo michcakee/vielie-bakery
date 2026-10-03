@@ -96,6 +96,8 @@ export interface Look {
   shirt: number;
   apron: number;
   accessory: number;
+  /** 0 or missing: eyes to suit the hair; otherwise a chosen colour. */
+  eyes?: number;
 }
 
 export interface PantryItem {
@@ -374,7 +376,14 @@ export interface Prediction {
   rateAfter?: number;
   guess?: Guess;
   result: Guess;
+  /** What was asked: how many buy it, or how much money it brings in. */
+  ask?: PredictAsk;
+  /** Money from this item per 10 shoppers, before and after. */
+  moneyBefore?: number;
+  moneyAfter?: number;
 }
+
+export type PredictAsk = 'buyers' | 'money';
 
 export interface PendingEvent {
   id: string;
@@ -651,7 +660,7 @@ export interface GameState {
   /** Today's special: this item sells for more today. */
   special?: ProductId | null;
   /** A price change waiting for its day to play out (and, maybe, a guess). */
-  pendingPrediction?: { product: ProductId; from: number; to: number; unitsBefore: number; rateBefore?: number; guess?: Guess } | null;
+  pendingPrediction?: { product: ProductId; from: number; to: number; unitsBefore: number; rateBefore?: number; guess?: Guess; ask?: PredictAsk; moneyBefore?: number } | null;
   /** Settled predictions, newest last. */
   predictions?: Prediction[];
   /** Coffee + bánh mì combo deal on (concept 12). */
@@ -670,6 +679,8 @@ export interface GameState {
   intro?: IntroState;
   /** Morning event ids the player has met, for unlock triggers. */
   eventsSeen?: string[];
+  /** Star-shop cosmetics bought (ids from data/cosmetics). */
+  cosmetics?: string[];
   /** Paint and furniture placement chosen by the player. */
   style?: ShopStyle;
   /** The Lantern Festival story. Missing until it starts. */

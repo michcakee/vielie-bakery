@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { INGREDIENTS, INGREDIENT_ORDER, LOYALTY, PRODUCTS, SUPPLIERS, SUPPLIER_ORDER } from '../../data/catalog';
+import { BAGUETTE, INGREDIENTS, INGREDIENT_ORDER, LOYALTY, PRODUCTS, PRODUCT_ORDER, SUPPLIERS, SUPPLIER_ORDER } from '../../data/catalog';
 import { ECON } from '../../data/config';
 import { bulkDiscount, coldCapacity, dryCapacity, effectActive, inStock, levelOf, loyaltyDiscount, onMenu, packPrice, storageUse } from '../../engine/economy';
 import { canShop } from '../../engine/state';
@@ -54,6 +54,21 @@ function ReorderEditor({ id }: { id: IngredientId }) {
   );
 }
 
+/** About how much of an ingredient the shop uses a day, from the last few days' sales. */
+function dailyUse(s: ReturnType<typeof useGame>['state'], id: IngredientId): number | null {
+  const recent = s.history.slice(-3);
+  if (!recent.length) return null;
+  let use = 0;
+  for (const p of PRODUCT_ORDER) {
+    const n = PRODUCTS[p].recipe[id];
+    const sold = recent.reduce((t, h) => t + (h.sold[p] ?? 0), 0) / recent.length;
+    if (n) use += PRODUCTS[p].kind === 'tray' ? (sold * n) / PRODUCTS[p].yield : sold * n;
+    // every bánh mì needs a baguette, and baguettes need flour
+    if (p === 'banhMi' && BAGUETTE.recipe[id]) use += (sold * BAGUETTE.recipe[id]!) / BAGUETTE.yield;
+  }
+  return use;
+}
+
 export function MarketPanel() {
   const { state: s, dispatch, business, feature, fresh } = useGame();
   const more = feature('market.suppliers');
@@ -96,21 +111,25 @@ export function MarketPanel() {
       <Card title="Storage" icon="box">
         <div className="storage">
           <div>
-            <span className="small">Dry shelves</span>
+            <span className="small store-head">
+              <Sprite name="box" scale={2} /> <b>Dry shelf</b>: {list.filter((id) => !INGREDIENTS[id].cold).map((id) => INGREDIENTS[id].name.toLowerCase()).join(', ')}
+            </span>
             <Meter value={dryUse / dryCap} tone={dryUse > dryCap ? 'bad' : dryUse > dryCap * 0.8 ? 'meh' : 'good'} label="Dry storage used" />
             <span className="tiny">
               {dryUse} / {dryCap}
             </span>
           </div>
           <div>
-            <span className="small">Cold storage</span>
+            <span className="small store-head">
+              <Sprite name="ice" scale={2} /> <b>Fridge</b>: {list.filter((id) => INGREDIENTS[id].cold).map((id) => INGREDIENTS[id].name.toLowerCase()).join(', ')}
+            </span>
             <Meter value={coldUse / coldCap} tone={coldUse > coldCap ? 'bad' : coldUse > coldCap * 0.8 ? 'meh' : 'good'} label="Cold storage used" />
             <span className="tiny">
               {coldUse} / {coldCap}
             </span>
           </div>
         </div>
-        <p className="small muted">Over the cold limit, fresh ingredients spoil three times as fast.{more && " Bulk is cheaper per pack, but only if you use it before it goes off: that's the trade-off."}</p>
+        <p className="small muted">Fresh things (milk, eggs, meat, herbs) go in the fridge; dry things (flour, sugar, coffee) on the shelf. If the fridge is too full, fresh food spoils three times as fast.{more && " Bulk is cheaper per pack, but only if you use it before it goes off: that's the trade-off."}</p>
         {s.deliveries.length > 0 && (
           <p className="small">
             On the way: {s.deliveries.map((d) => `${d.packs} × ${INGREDIENTS[d.ingredient].name.toLowerCase()} (day ${d.arrives})`).join(', ')}
@@ -165,23 +184,40 @@ export function MarketPanel() {
             const mult = s.market.prices[id] / s.macro.priceIndex;
             const out = !inStock(s, id, sup);
             const lock = s.locks.find((l) => l.ingredient === id && l.until >= s.day);
-            const low = s.pantry[id].qty < d.pack / 2;
+            const use = dailyUse(s, id);
+            const lasts = use && use > 0.05 ? s.pantry[id].qty / use : null;
+            const low = lasts !== null ? lasts < 1.5 : s.pantry[id].qty < d.pack / 2;
             const rule = s.reorder[id];
             return (
               <li key={id} className={`market-row ${low ? 'low' : ''}`}>
                 <Sprite name={id} scale={3} />
                 <div className="market-info">
                   <b>
-                    <span lang="vi">{d.vi}</span> <span className="muted">· {d.name}</span>
+                    {d.name} <span className="muted" lang="vi">· {d.vi}</span>
                   </b>
-                  <span className="small">
-                    Pantry: <b>{s.pantry[id].qty}</b> {d.unit}s {low && <span className="warn">· running low</span>} {d.cold && <span className="muted">· cold</span>}
-                    {d.spoil > 0 && <span className="muted"> · {business ? `loses ~${Math.round(d.spoil * 100)}% a night` : 'spoils'}</span>}
+                  <span className="market-tags">
+                    <span className={`store-tag ${d.cold ? 'cold' : 'dry'}`}>
+                      <Sprite name={d.cold ? 'ice' : 'box'} scale={1} /> {d.cold ? 'Fridge' : 'Shelf'}
+                    </span>
+                    {low && <span className="badge-low">LOW</span>}
+                    {mult < 0.94 && <span className="badge-deal">BARGAIN −{Math.round((1 - mult) * 100)}%</span>}
+                    {mult > 1.08 && <span className="badge-pricey">PRICEY +{Math.round((mult - 1) * 100)}%</span>}
                   </span>
-                  <span className="small">
-                    {packs} × {d.pack} {d.unit}s: <b>{money2(price * packs)}</b>{business && <> ({money2(price)}/pack)</>}
-                    {mult > 1.08 && <span className="up"> · ▲ {business ? `${Math.round((mult - 1) * 100)}% above normal` : 'pricey today'}</span>}
-                    {mult < 0.94 && <span className="down"> · ▼ {business ? `${Math.round((1 - mult) * 100)}% below normal` : 'a bargain today'}</span>}
+                  <span className="market-metrics">
+                    <span>
+                      Have <b>{s.pantry[id].qty}</b>
+                    </span>
+                    <span>
+                      Use <b>{use === null || use < 0.05 ? '—' : `~${use < 1 ? use.toFixed(1) : Math.round(use)}`}</b>/day
+                    </span>
+                    {lasts !== null && (
+                      <span className={low ? 'warn' : ''}>
+                        Lasts <b>{lasts >= 30 ? '30+' : lasts < 1 ? '<1' : Math.floor(lasts)}</b> {lasts < 2 && lasts >= 1 ? 'day' : 'days'}
+                      </span>
+                    )}
+                  </span>
+                  <span className="small muted">
+                    {packs} pack{packs > 1 ? 's' : ''} = {d.pack * packs} {d.unit}s{d.spoil > 0 ? ` · ${business ? `loses ~${Math.round(d.spoil * 100)}% a night` : 'goes off over time'}` : ''}
                   </span>
                   {lock && <span className="small locked">Price locked until day {lock.until}</span>}
                   {rule && (
@@ -202,8 +238,9 @@ export function MarketPanel() {
                   {out ? (
                     <span className="sold-out">Sold out today</span>
                   ) : (
-                    <Btn kind="primary" disabled={!shopping || s.cash < price * packs} onClick={() => buy(id)} sfx={null}>
-                      {SUPPLIERS[sup].leadDays ? 'Order' : 'Stock up'}
+                    <Btn kind="primary" className="price-btn" disabled={!shopping || s.cash < price * packs} onClick={() => buy(id)} sfx={null} aria-label={`${SUPPLIERS[sup].leadDays ? 'Order' : 'Buy'} ${packs} pack${packs > 1 ? 's' : ''} of ${d.name} for ${money2(price * packs)}`}>
+                      {money2(price * packs)}
+                      <span className="btn-sub">{SUPPLIERS[sup].leadDays ? 'order' : 'buy'}</span>
                     </Btn>
                   )}
                   {deals && <button type="button" className="link-btn" onClick={() => setEditing(editing === id ? null : id)}>

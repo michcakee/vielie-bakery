@@ -47,7 +47,7 @@ Everything below is about turning one shop into a business.
 | Quality | Your skill: perfect assembly beats Bà's steady pace | Depends on your staff's skill and morale |
 | Good for | Early days, busy festival days, fun | Long-term play, testing a strategy |
 
-You can switch any time during the day. Tap **Bà, help!** next to the pause button and Bà serves everyone while you watch; you can still tap any order to jump in, and **I'll serve** takes the counter back. **Skip to closing** (under **More**) finishes the day instantly. **Let Bà run today** (or **Let the team run today** once you've hired someone) runs a whole day from the morning screen; it unlocks after your first hire, or around day 16.
+You can switch any time during the day. Tap **Bà, help!** next to the pause button and Bà serves everyone while you watch, but her orders earn **no tips and no XP**; you can still tap any order to jump in, and **I'll serve** takes the counter back. **Skip to closing** (under **More**) finishes the day instantly. **Let Bà run today** (or **Let the team run today** once you've hired someone) runs a whole day from the morning screen; it unlocks after your first hire, or around day 16.
 
 ---
 
@@ -217,3 +217,14 @@ On Android, the back button closes windows and sheets, then returns to Today.
 - **The Lantern Festival.** Around day 36 a story begins: a big bakery chain wants Bà’s shop, and the lane will vote for its favourite bakery. Each chapter is one card with a choice. Kind choices and 2-star days win lane hearts; 16 hearts wins the Golden Whisk.
 - **Collection book.** The book button at the top now has a **Collection** page: neighbours you have met, recipes and medals, story chapters, moments and decorations.
 - **New looks.** Characters are drawn in a cuter style, with pigtails, pastel hair colours, a bow, headphones and heart clips to choose from.
+
+## Tester round 4 changes
+
+- **First day walkthrough.** A "Step 1 of 7" bar at the top walks you through your first day: bake, open, serve, close and read your stars. Every day after that, Bà teaches one lesson at the top of the Today page.
+- **Today page.** The Today card has the weather, your star goal, the special, the daily challenge, what to do before you open, and the Open button. **What to aim for** shows your next level and its reward, what to save up for, your stars and your quests.
+- **Quests and the star shop.** The **Quests** button at the top opens the quest book. Finished quests are stamped DONE. The **Star shop** page spends the stars from your daily goals on new hairstyles, accessories and shop paint.
+- **Bake vs Quick bake.** Like auto-cook in Genshin: bake a recipe by hand 3 times to unlock Quick bake for it. Quick bake is instant but always normal quality; baking by hand can be perfect.
+- **Bà's help costs something.** Orders Bà serves earn no tips and no XP.
+- **Ingredients and the market.** Each recipe lists its ingredients by name with how many you have; if something's missing, buy it right there. Market rows say Fridge or Shelf, flag LOW, BARGAIN and PRICEY, and show how much you use a day and how long it lasts. The price is the buy button.
+- **Who comes in.** Each customer group has three favourites; every one on your menu brings in more of that group.
+- **Day report.** Three short pages: Stars (and why you missed the next one), Money, and Tomorrow (weather, and whether it'll be busier or quieter).

@@ -1,5 +1,7 @@
 import { ChallengeChip } from './Challenge';
 import { Collection, collectionCount } from './Collection';
+import { StarShop } from './StarShop';
+import { starsToSpend } from '../data/cosmetics';
 import { tryTomorrow } from '../engine/report';
 import { incomeStatement } from '../engine/accounting';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
@@ -8,7 +10,7 @@ import { EVENTS, visibleChoices } from '../engine/events';
 import { FEATURE } from '../data/unlocks';
 import { ACHIEVEMENTS, activeQuests, goalMet, nextUnlock, QUESTS, WEEKLY_GOALS } from '../engine/progression';
 import { keepsOvernight } from '../engine/service';
-import type { LeftoverChoice, ProductId } from '../engine/types';
+import type { DayStats, LeftoverChoice, ProductId } from '../engine/types';
 import { money, money2, pct, signedMoney } from '../lib/format';
 import { play } from './audio';
 import { onBack } from './backButton';
@@ -176,10 +178,32 @@ function Count({ value, prefix = '', signed = false, digits = 2 }: { value: numb
   return <>{signed ? signedMoney(v, digits) : prefix + money(v, digits)}</>;
 }
 
+
+const WEATHER_ICON = { sunny: 'sun', cloudy: 'cloud', rainy: 'rain', hot: 'hot', cool: 'cool' } as const;
+
+/** Why the day fell short of the next star, biggest reason first, each with something to try. */
+export function missedStars(t: DayStats): { icon: string; text: string; fix: string }[] {
+  const out: { n: number; icon: string; text: string; fix: string }[] = [];
+  const soldOut = (Object.keys(t.soldOutAt) as ProductId[]).map((p) => PRODUCTS[p].name);
+  if (t.lostSoldOut > 0)
+    out.push({ n: t.lostSoldOut, icon: 'box', text: `${t.lostSoldOut} ${t.lostSoldOut === 1 ? 'person' : 'people'} wanted something that ran out${soldOut.length ? ` (${soldOut.slice(0, 2).join(', ')})` : ''}.`, fix: 'Bake more trays of it.' });
+  if (t.lostSlow > 0) out.push({ n: t.lostSlow, icon: 'clock', text: `${t.lostSlow} gave up waiting.`, fix: 'Serve the worried faces first, or hire help.' });
+  if (t.lostPrice > 0) out.push({ n: t.lostPrice, icon: 'coin', text: `${t.lostPrice} thought the price was too high.`, fix: 'Try a little lower in Kitchen → Prices.' });
+  if (t.diverted > 0) out.push({ n: t.diverted, icon: 'shop', text: `${t.diverted} went to a rival bakery.`, fix: 'Check their prices on the Customers tab.' });
+  const baked = Object.values(t.made).reduce((a, b) => a + b, 0);
+  if (baked < 12) out.push({ n: 12 - baked + 1, icon: 'hot', text: baked ? `Only ${baked} pastries were baked.` : 'No pastries were baked today.', fix: 'Bake more trays in the Kitchen before you open.' });
+  if (t.weather === 'rainy') out.push({ n: 0.5, icon: 'rain', text: 'Rain kept people at home.', fix: 'Quieter days happen: bake a bit less so less goes to waste.' });
+  out.sort((a, b) => b.n - a.n);
+  if (!out.length) out.push({ n: 0, icon: 'star', text: 'You served everyone who came in.', fix: 'To earn more, bake more, add a favourite to the menu, or raise a price a little.' });
+  return out.slice(0, 3);
+}
+
 export function DayReport() {
   const { state: s, dispatch } = useGame();
   const r = s.lastReport;
   const [shown, setShown] = useState(false);
+  const [page, setPage] = useState(0);
+  useEffect(() => setPage(0), [r?.day]);
   useEffect(() => {
     if (s.phase === 'report' && !shown) {
       play(r && r.profit > 0 ? 'level' : 'ding');
@@ -209,8 +233,21 @@ export function DayReport() {
             : served >= 0.8
               ? 'Busy counter, thin wallet. Check your prices and what you threw away.'
               : 'A tough day. Bake what sells and keep the line moving.';
+  const pages = ['Stars', 'Money', 'Tomorrow'];
+  const why = r.stars !== undefined && r.stars < 3 && t.goal ? missedStars(t) : [];
+  const short = r.stars !== undefined && r.stars < 3 && t.goal ? t.goal[r.stars] - (t.revenue + t.tips) : 0;
+  const busier = WEATHER[s.market.tomorrow].traffic / WEATHER[t.weather].traffic;
   return (
     <Modal label={`Day ${r.day} report`} className="report">
+      <ol className="report-steps" aria-label="Report pages">
+        {pages.map((name, i) => (
+          <li key={name} className={i === page ? 'now' : i < page ? 'done' : ''}>
+            {name}
+          </li>
+        ))}
+      </ol>
+      {page === 0 && (
+      <>
       <div className="report-head">
         <span className="eyebrow">Day {r.day}</span>
         <h2>BAKERY CLOSED!</h2>
@@ -230,6 +267,23 @@ export function DayReport() {
         )}
         {s.challenge?.day === r.day && <ChallengeChip />}
       </div>
+      {r.stars !== undefined && r.stars < 3 && t.goal && (
+        <div className="why-stars">
+          <b>
+            Why not {r.stars + 1} {r.stars + 1 === 1 ? 'star' : 'stars'}? You were {money2(Math.max(0, short))} short.
+          </b>
+          <ul>
+            {why.map((w) => (
+              <li key={w.text}>
+                <Sprite name={w.icon} scale={2} />
+                <span>
+                  {w.text} <em>{w.fix}</em>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       {leveled && (
         <div className="level-up">
           <Sprite name="crown" scale={4} />
@@ -244,6 +298,10 @@ export function DayReport() {
           </span>
         </div>
       )}
+      </>
+      )}
+      {page === 1 && (
+      <>
       <div className="report-nums">
         <div className="num pos">
           <span>Today's sales</span>
@@ -304,11 +362,18 @@ export function DayReport() {
           {(() => {
             const pr = s.predictions?.find((x) => x.day === r.day);
             if (!pr) return null;
-            const word = (g: string) => (g === 'more' ? 'more' : g === 'fewer' ? 'fewer' : 'about the same');
+            const money = pr.ask === 'money' && pr.moneyBefore !== undefined && pr.moneyAfter !== undefined;
+            const word = (g: string) => (money ? (g === 'more' ? 'more money' : g === 'fewer' ? 'less money' : 'about the same money') : g === 'more' ? 'more' : g === 'fewer' ? 'fewer' : 'about the same');
             const right = pr.guess && pr.guess === pr.result;
             return (
               <span className={`prediction ${right ? 'right' : ''}`}>
-                <Sprite name="note" scale={2} /> {PRODUCTS[pr.product].name} {money2(pr.from)} → {money2(pr.to)}: {pr.rateBefore !== undefined && pr.rateAfter !== undefined ? `out of every 100 shoppers, ${Math.round(pr.rateBefore * 10)} bought it before and ${Math.round(pr.rateAfter * 10)} today` : `${pr.unitsBefore.toFixed(0)} a day became ${pr.unitsAfter}`} ({word(pr.result)}).
+                <Sprite name="note" scale={2} /> {PRODUCTS[pr.product].name} {money2(pr.from)} → {money2(pr.to)}:{' '}
+                {money
+                  ? `for every 10 shoppers it brought in ${money2(pr.moneyBefore!)} before and ${money2(pr.moneyAfter!)} today`
+                  : pr.rateBefore !== undefined && pr.rateAfter !== undefined
+                    ? `out of every 100 shoppers, ${Math.round(pr.rateBefore * 10)} bought it before and ${Math.round(pr.rateAfter * 10)} today`
+                    : `${pr.unitsBefore.toFixed(0)} a day became ${pr.unitsAfter}`}{' '}
+                ({word(pr.result)}).
                 {pr.guess ? (right ? ' Nice call! +10 XP' : ` You guessed ${word(pr.guess)}. +5 XP for guessing.`) : ''}
               </span>
             );
@@ -318,28 +383,46 @@ export function DayReport() {
           {Math.abs(Math.round(r.communityDelta * 10) / 10)}
         </span>
       </div>
-      <ul className="recap">
-        {r.recap.map((line) => (
-          <li key={line}>{line}</li>
-        ))}
-      </ul>
-      <div className="biz-tip">
-        <b>Little business tip</b>
-        <p>{r.tip}</p>
-        {tryTomorrow(s) && (
-          <p className="try-next">
-            <Sprite name="spark" scale={2} /> <b>Try this tomorrow:</b> {tryTomorrow(s)}
-          </p>
-        )}
-      </div>
+      <details className="report-more">
+        <summary>More details</summary>
+        <ul className="recap">
+          {r.recap.map((line) => (
+            <li key={line}>{line}</li>
+          ))}
+        </ul>
+        <div className="biz-tip">
+          <b>Little business tip</b>
+          <p>{r.tip}</p>
+        </div>
+      </details>
       {r.day > 7 && <p className="small muted cash-line">
         Cash {money2(r.cashBefore)} → {money2(r.cashAfter)}
         {r.loanPaid > 0 && ` · paid ${money2(r.loanPaid)} on your loan`}
         {r.savedToFund > 0 && ` · saved ${money2(r.savedToFund)} to the safety fund`}.{r.day % 7 === 0 && " Stocking up and upgrades come out of cash but aren't counted as today's costs: they're things the bakery still owns."}
       </p>}
-      <p className="small tomorrow">
-        Tomorrow: <b>{WEATHER[s.market.tomorrow].name}</b>. {WEATHER[s.market.tomorrow].tip}
-      </p>
+      </>
+      )}
+      {page === 2 && (
+      <>
+      <div className="tomorrow-card">
+        <div className="tomorrow-cell">
+          <Sprite name={WEATHER_ICON[s.market.tomorrow]} scale={5} />
+          <b>{WEATHER[s.market.tomorrow].name}</b>
+        </div>
+        <div className={`tomorrow-cell crowd ${busier > 1.04 ? 'up' : busier < 0.96 ? 'down' : ''}`}>
+          <span className="crowd-icon">
+            <Sprite name="people" scale={4} />
+            <b>{busier > 1.04 ? '+' : busier < 0.96 ? '−' : '='}</b>
+          </span>
+          <b>{busier > 1.04 ? 'Busier' : busier < 0.96 ? 'Quieter' : 'About the same'}</b>
+        </div>
+        <p className="small">{WEATHER[s.market.tomorrow].tip}</p>
+      </div>
+      {tryTomorrow(s) && (
+        <p className="try-next">
+          <Sprite name="spark" scale={2} /> <b>Try this tomorrow:</b> {tryTomorrow(s)}
+        </p>
+      )}
       {(() => {
         const n = nextUnlock(s);
         return (
@@ -353,9 +436,25 @@ export function DayReport() {
           </div>
         );
       })()}
-      <Btn kind="go" className="big" onClick={() => dispatch({ type: 'nextDay' })} sfx="pop">
-        {s.day % 7 === 0 ? 'See the week' : 'Sleep. Tomorrow is a new day'}
-      </Btn>
+      </>
+      )}
+      <div className="report-nav">
+        {page > 0 && (
+          <Btn kind="ghost" onClick={() => setPage(page - 1)}>
+            Back
+          </Btn>
+        )}
+        {page < pages.length - 1 ? (
+          <Btn kind="go" className="big" onClick={() => setPage(page + 1)} sfx="pop">
+            Next: {pages[page + 1]}
+          </Btn>
+        ) : (
+          <Btn kind="go" className="big" onClick={() => dispatch({ type: 'nextDay' })} sfx="pop">
+            {s.day % 7 === 0 ? 'See the week' : 'Sleep'}
+            <span className="btn-sub">{s.day % 7 === 0 ? 'your weekly review' : `on to day ${s.day + 1}`}</span>
+          </Btn>
+        )}
+      </div>
     </Modal>
   );
 }
@@ -449,7 +548,7 @@ export function QuestBook({ onClose }: { onClose: () => void }) {
   const { state: s, dispatch } = useGame();
   const active = activeQuests(s, 5);
   const goal = s.weeklyGoal;
-  const [page, setPage] = useState<'quests' | 'collection'>('quests');
+  const [page, setPage] = useState<'quests' | 'shop' | 'collection'>('quests');
   const count = collectionCount(s);
   return (
     <Modal label="Quests and collection" onClose={onClose} className="drawer">
@@ -457,40 +556,71 @@ export function QuestBook({ onClose }: { onClose: () => void }) {
         <button type="button" role="tab" aria-selected={page === 'quests'} className={page === 'quests' ? 'on' : ''} onClick={() => setPage('quests')}>
           Quests
         </button>
+        <button type="button" role="tab" aria-selected={page === 'shop'} className={page === 'shop' ? 'on' : ''} onClick={() => setPage('shop')} data-spot="star-shop">
+          Star shop {starsToSpend(s)}★
+        </button>
         <button type="button" role="tab" aria-selected={page === 'collection'} className={page === 'collection' ? 'on' : ''} onClick={() => setPage('collection')} data-spot="collection">
           Collection {count.have}/{count.all}
         </button>
       </div>
       {page === 'collection' ? (
         <Collection />
+      ) : page === 'shop' ? (
+        <StarShop />
       ) : (
         <>
-      <h2>Quests</h2>
+      <div className="quest-explain">
+        <Sprite name="book" scale={3} />
+        <p>
+          <b>Quests are little goals.</b> Finish one and its reward is paid straight away: cash, XP or a decoration for the shop. You don’t need to tap anything. New quests appear as you finish old ones.
+        </p>
+      </div>
+      <h2>To do</h2>
       <ul className="quests">
         {active.map((q) => {
           const v = Math.min(q.target, q.progress(s));
           return (
-            <li key={q.id}>
+            <li key={q.id} className="quest">
               <div>
                 <b>{q.title}</b>
                 <span className="small">{q.text}</span>
               </div>
               <Meter value={v / q.target} tone="xp" label={`${q.title} progress`} />
-              <span className="small muted">
-                {v}/{q.target} · Reward: {q.rewardText}
+              <span className="quest-foot">
+                <span className="quest-count">
+                  {v} / {q.target}
+                </span>
+                <span className="quest-reward">
+                  <Sprite name="gift" scale={2} /> {q.rewardText}
+                </span>
               </span>
             </li>
           );
         })}
       </ul>
+      {s.quests.length > 0 && (
+        <>
+          <h2>Done ({s.quests.length})</h2>
+          <ul className="quests done-list">
+            {QUESTS.filter((q) => s.quests.includes(q.id)).map((q) => (
+              <li key={q.id} className="quest done">
+                <span className="quest-stamp" aria-hidden="true">
+                  <Sprite name="check" scale={2} /> DONE
+                </span>
+                <div>
+                  <b>{q.title}</b>
+                  <span className="small">Earned: {q.rewardText}</span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
       {goal && (
         <p className="weekly-goal">
           <b>Weekly goal: {WEEKLY_GOALS[goal.id].title}</b> {WEEKLY_GOALS[goal.id].text(goal.target)} {goalMet(s) ? 'Done!' : ''}
         </p>
       )}
-      <p className="small muted">
-        {s.quests.length} of {QUESTS.length} quests complete.
-      </p>
       {s.allUnlocked === false && (s.intro?.done.length || s.intro?.later.length) ? (
         <>
           <h2>Getting to know your bakery</h2>

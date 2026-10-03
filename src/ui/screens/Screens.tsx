@@ -8,7 +8,7 @@ import { money } from '../../lib/format';
 import { play, startMusic } from '../audio';
 import { useGame } from '../GameContext';
 import { Btn } from '../kit';
-import { LookEditor } from '../LookEditor';
+import { LookEditor, lookLocked } from '../LookEditor';
 import { Person, Sprite } from '../pixel/Sprite';
 import { PERSON_H, PERSON_W, winkURL } from '../pixel/render';
 import { Exterior } from './Exterior';
@@ -64,16 +64,10 @@ export function Title({ onContinue, onNew }: { onContinue: () => void; onNew: ()
     <main className="title-screen">
       <Exterior still={reduced} />
       <div className="title-card">
-        <p className="title-hello" lang="vi">
-          Chào buổi sáng!
-        </p>
         <h1 className="title-logo">
           <span>Viet Bake</span>
           <span>Shop</span>
         </h1>
-        <p className="title-sub">
-          A cozy Vietnamese bakery game. Bake bánh mì, serve your neighbours, earn stars, and grow Bà’s little tiệm bánh into the most famous bakery in town.
-        </p>
         <div className="title-buttons">
           {resumable && (
             <Btn kind="go" className="big" onClick={() => (startMusic(), onContinue())} sfx="bell">
@@ -238,7 +232,7 @@ export function Setup() {
         <p className="muted">
           {sc.inherited ? "Bà (grandma) is retiring and the little bakery on the lane is yours now. Who's behind the counter?" : `${sc.name}: you have ${money(sc.cash)} to build a bakery from scratch. Who's running it?`}
         </p>
-        <LookEditor look={look} onChange={setLook} big={8} />
+        <LookEditor look={look} onChange={setLook} big={8} state={state} />
         {!sc.location && (
           <>
             <h2 className="h3">Where will you open?</h2>
@@ -272,7 +266,7 @@ export function Setup() {
         >
           <label htmlFor="setup-name">Name your bakery</label>
           <input id="setup-name" value={name} maxLength={28} onChange={(e) => setName(e.target.value)} />
-          <Btn type="submit" kind="go" className="big" sfx={null}>
+          <Btn type="submit" kind="go" className="big" sfx={null} disabled={lookLocked(look, state)}>
             That&apos;s me!
           </Btn>
         </form>
@@ -282,13 +276,11 @@ export function Setup() {
 }
 
 const INTRO = [
-  { vi: 'Chào buổi sáng!', en: 'Good morning!' },
   { vi: 'Tiệm bánh là của con rồi.', en: 'The bakery is yours now.' },
   { vi: 'Mở cửa nào!', en: "Let's open the doors." },
 ];
 
 const INTRO_GUIDED = [
-  { vi: 'Chào buổi sáng!', en: 'Good morning!' },
   { vi: 'Tiệm bánh là của con rồi.', en: 'The bakery is yours now.' },
   { vi: 'Bà sẽ chỉ con từng bước.', en: 'I’ll show you, one step at a time.' },
 ];

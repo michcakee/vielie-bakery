@@ -147,7 +147,7 @@ export function buildSchedule(s: GameState): Visit[] {
 
   const walkIns = expectedWalkIns(s);
   const boost = campaigns.reduce((t, c) => t + (c.reach * c.conversion) / Math.max(1, c.endDay - c.startDay + 1), 0);
-  const n = Math.max(0, Math.round(walkIns * (0.9 + 0.2 * rand())));
+  const n = Math.max(0, Math.round(walkIns * (0.95 + 0.1 * rand())));
   for (let i = 0; i < n; i++) {
     const part = weightedPick(rand, [0, 1, 2, 3], (k) => DAYPARTS[k][2])!;
     const fromCampaign = boost > 0 && campaigns.length && rand() < boost / Math.max(1, walkIns) ? campaigns[Math.floor(rand() * campaigns.length)] : null;
@@ -187,6 +187,16 @@ export function buildSchedule(s: GameState): Visit[] {
     for (let i = 0; i < hunters; i++) make({ part: 3, arrive: 600 + rand() * 100, lastCallOnly: true, segment: 'budget' });
   }
 
+  // Walk-ins arrive steadily through each part of the day instead of in random clumps: within a
+  // daypart they keep their order but are spaced evenly, with a little jitter.
+  const paceRand = rngFor(s.seed, s.day, 13);
+  DAYPARTS.forEach(([start, len], k) => {
+    const group = visits.filter((v) => v.who === 'walkin' && !v.lastCallOnly && !v.specialOrder && v.arrive >= start && v.arrive < start + len && (k === DAYPARTS.length - 1 || v.arrive < DAYPARTS[k + 1][0]));
+    group.sort((a, b) => a.arrive - b.arrive);
+    group.forEach((v, i) => {
+      v.arrive = Math.round(start + ((i + 0.5 + (paceRand() - 0.5) * 0.5) / group.length) * len);
+    });
+  });
   // Twists use their own random stream, so adding them never changes who comes or what they want.
   const twistRand = rngFor(s.seed, s.day, 12);
   const twisty = twistsOn(s);
@@ -376,7 +386,9 @@ export function serve(s: GameState, visitId: number, process?: number, by: strin
   const twistTip = by === 'player' ? twistBonus(v, process, waited) : 0;
   const server = by.startsWith('staff:') ? s.staff.find((e) => `staff:${e.id}` === by) : undefined;
   const smileTip = server?.trait ? TRAITS[server.trait].tip : 0;
-  const tip = round2(grade.tip + (v.specialOrder ? paid * ECON.service.specialOrder.tipShare : 0) + twistTip + smileTip);
+  // "Bà, help!" has a price: her orders earn no tips and no XP.
+  const byBa = by === 'owner';
+  const tip = byBa ? 0 : round2(grade.tip + (v.specialOrder ? paid * ECON.service.specialOrder.tipShare : 0) + twistTip + smileTip);
   const reg = named ? REGULARS.find((r) => r.id === v.who) : undefined;
   const reaction = reg?.reactions ? (grade.stars >= 4 ? reg.reactions.great : grade.stars === 3 ? reg.reactions.ok : reg.reactions.bad) : null;
   const line = reaction ? pick(rand, reaction) : pick(rand, mood === 'love' ? LINES.love : mood === 'happy' ? LINES.happy : LINES.ok);
@@ -403,7 +415,7 @@ export function serve(s: GameState, visitId: number, process?: number, by: strin
   if (twistTip > 0) t.twistsRight = (t.twistsRight ?? 0) + 1;
   if (by === 'player' || by === 'owner') t.ownerServed++;
   else t.staffServed++;
-  t.xp += ECON.progression.xpPerServe + (mood === 'love' ? ECON.progression.xpPerLove : 0);
+  if (!byBa) t.xp += ECON.progression.xpPerServe + (mood === 'love' ? ECON.progression.xpPerLove : 0);
   t.segments = segStat(next, v.segment, { served: 1, revenue: paid, loyal: v.loyal ? 1 : 0 });
   if (v.source) t.sources = { ...t.sources, [v.source]: { visits: t.sources[v.source]?.visits ?? 1, revenue: (t.sources[v.source]?.revenue ?? 0) + paid } };
 

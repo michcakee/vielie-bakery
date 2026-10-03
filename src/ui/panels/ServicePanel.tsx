@@ -13,6 +13,7 @@ import { useGame } from '../GameContext';
 import { Btn } from '../kit';
 import { Person, Sprite } from '../pixel/Sprite';
 import { ChallengeChip } from '../Challenge';
+import { tutorialOn } from '../Tutorial';
 
 const STEP_ICON: Record<string, string> = {
   slice: 'knife',
@@ -255,7 +256,7 @@ export function ServicePanel({ paused, setPaused, speed, setSpeed, activeId, set
   const graded = lastCoin ? svc.visits.find((v) => v.id === lastCoin.visitId && v.status === 'done' && v.grade && v.servedBy === 'player') : undefined;
 
   // After the first customer, Bà points out that she can take the counter (once per game).
-  const baTip = s.allUnlocked === false && s.lifetime.served >= 1 && !svc.auto && !s.hints.includes('baHelpTip');
+  const baTip = s.allUnlocked === false && s.lifetime.served >= 1 && !svc.auto && !s.hints.includes('baHelpTip') && !tutorialOn(s);
 
   useEffect(() => {
     if (activeId !== null && !active) setActiveId(null);
@@ -315,6 +316,7 @@ export function ServicePanel({ paused, setPaused, speed, setSpeed, activeId, set
           }}
         >
           {svc.auto ? 'I’ll serve' : 'Bà, help!'}
+          {!svc.auto && <span className="btn-sub">no tips · no XP</span>}
         </Btn>
         <Btn kind={svc.lastCall ? 'primary' : 'plain'} disabled={!canLastCall} onClick={() => dispatch({ type: 'lastCall', on: !svc.lastCall })} aria-pressed={svc.lastCall} title="Pastries 40% off for the last hour">
           {svc.lastCall ? 'LAST CALL! −40%' : canLastCall ? 'Last call' : 'Last call 5pm'}
@@ -358,7 +360,7 @@ export function ServicePanel({ paused, setPaused, speed, setSpeed, activeId, set
           )}
           {svc.auto && (
             <p className="ba-helps small">
-              <Sprite name="heart" scale={2} /> Bà is running the counter. Tap any order below to jump in, or tap <b>I’ll serve</b>.
+              <Sprite name="heart" scale={2} /> Bà is running the counter: her orders earn <b>no tips and no XP</b>. Tap any order below to jump in, or tap <b>I’ll serve</b>.
             </p>
           )}
           {svc.servers.some((x) => x.id === 'ba') && !svc.auto && s.day <= 10 && (

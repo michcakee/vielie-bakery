@@ -22,6 +22,7 @@ import {
   priceBounds,
   recipeCost,
   isDayOld,
+  packPrice,
 } from '../../engine/economy';
 import type { IngredientId, ProductId } from '../../engine/types';
 import { money2, pct } from '../../lib/format';
@@ -31,6 +32,8 @@ import { useGuide } from '../Guide';
 import { Btn, Card, Meter, Stepper, Tip } from '../kit';
 import { Sprite } from '../pixel/Sprite';
 import { SPRITES } from '../pixel/sprites';
+import { BarList } from '../charts';
+import { handBakes, QUICK_BAKE, quickBakeReady } from '../../engine/state';
 
 type Bakeable = ProductId | 'baguette';
 const BAKE_MS = 3200;
@@ -116,6 +119,27 @@ function OvenGame({ item, onDone, onCancel, learning }: { item: Bakeable; onDone
   );
 }
 
+/** One tap to buy what a recipe is missing, from the wet market. The price is on the button. */
+function BuyMissing({ recipe }: { recipe: Partial<Record<IngredientId, number>> }) {
+  const { state: s, dispatch, feature } = useGame();
+  const short = (Object.entries(recipe) as [IngredientId, number][]).filter(([id, n]) => s.pantry[id].qty < n);
+  if (!feature('market.wet')) return <span className="warn small">Not enough {short.map(([id]) => INGREDIENTS[id].name.toLowerCase()).join(', ')}. The market opens tomorrow.</span>;
+  const buys = short.map(([id, n]) => {
+    const packs = Math.ceil((n - s.pantry[id].qty) / INGREDIENTS[id].pack);
+    return { id, packs, cost: packPrice(s, id, 'cho', packs) * packs };
+  });
+  const total = buys.reduce((t, b) => t + b.cost, 0);
+  const shopping = s.phase === 'morning' && !s.events.length;
+  return (
+    <span className="buy-missing">
+      <span className="warn small">Missing {short.map(([id]) => INGREDIENTS[id].name.toLowerCase()).join(', ')}.</span>
+      <Btn kind="primary" disabled={!shopping || s.cash < total} onClick={() => buys.forEach((b) => dispatch({ type: 'buy', ingredient: b.id, supplier: 'cho', packs: b.packs }))} aria-label={`Buy the missing ingredients for ${money2(total)}`} sfx="pop">
+        Buy {money2(total)}
+      </Btn>
+    </span>
+  );
+}
+
 function OvenCard() {
   const { state: s, dispatch } = useGame();
   const [baking, setBaking] = useState<Bakeable | null>(null);
@@ -126,8 +150,8 @@ function OvenCard() {
 
   // The moment a tray comes out: a bell for a good bake, a puff of smoke for a burnt one.
   const [result, setResult] = useState<{ item: Bakeable; q: number; id: number } | null>(null);
-  const bake = (item: Bakeable, q: number) => {
-    dispatch({ type: 'bake', item, process: q });
+  const bake = (item: Bakeable, q: number, quick = false) => {
+    dispatch({ type: 'bake', item, process: q, quick });
     play(q < 45 ? 'pfft' : q >= 95 ? 'sparkle' : 'ding');
     setResult({ item, q, id: Date.now() });
     setBaking(null);
@@ -198,22 +222,36 @@ function OvenCard() {
                     <span className="muted small">
                       Makes {inf.yield} · {money2(unit)} each · you have {have}
                     </span>
+                    <span className="recipe-label small">Made with:</span>
                     <span className="recipe">
                       {(Object.entries(inf.recipe) as [IngredientId, number][]).map(([id, n]) => (
-                        <span key={id} className={s.pantry[id].qty < n ? 'short' : ''} title={INGREDIENTS[id].name}>
-                          <Sprite name={id} scale={1} /> {n}
+                        <span key={id} className={`ing-chip ${s.pantry[id].qty < n ? 'short' : ''}`}>
+                          <Sprite name={id} scale={2} /> {INGREDIENTS[id].name} <b>×{n}</b>
+                          <em>
+                            have {s.pantry[id].qty}
+                          </em>
                         </span>
                       ))}
                     </span>
-                    {missing.length > 0 && <span className="warn small">Need more {missing.map((m) => INGREDIENTS[m].name.toLowerCase()).join(', ')}. Stock up in the Market.</span>}
+                    {missing.length > 0 && <BuyMissing recipe={inf.recipe} />}
                   </div>
                   <div className="bake-actions">
                     <Btn kind="primary" disabled={!morning || !ok || left <= 0} onClick={() => setBaking(item)} sfx="pop" data-spot={`bake-${item}`}>
                       Bake
                     </Btn>
-                    <Btn kind="ghost" disabled={!morning || !ok || left <= 0} onClick={() => bake(item, 72)} title="Skip the mini-game: fair quality">
-                      Quick bake
-                    </Btn>
+                    {quickBakeReady(s, item) ? (
+                      <Btn kind="ghost" disabled={!morning || !ok || left <= 0} onClick={() => bake(item, QUICK_BAKE.quality, true)} title="Skip the mini-game. Always normal quality: bake by hand for perfect.">
+                        Quick bake
+                        <span className="btn-sub">normal quality</span>
+                      </Btn>
+                    ) : (
+                      <span className="quick-locked" title="Like auto-cook: practise by hand first">
+                        <Sprite name="lock" scale={2} /> Quick bake
+                        <span className="btn-sub">
+                          bake by hand {QUICK_BAKE.practice - handBakes(s, item)} more {QUICK_BAKE.practice - handBakes(s, item) === 1 ? 'time' : 'times'}
+                        </span>
+                      </span>
+                    )}
                   </div>
                 </li>
               );
@@ -309,7 +347,7 @@ function RecipeBook() {
               </span>
               <span className="recipe-text">
                 <b>
-                  {locked ? (d.season ? 'Seasonal recipe' : `Level ${d.level} recipe`) : d.name}
+                  {locked ? (d.season ? 'Seasonal: arrives with its festival' : `Unlocks at level ${d.level}: keep playing to earn XP`) : d.name}
                   {!locked && masteryTier(s, p) > 0 && (
                     <span className="badge-medal" title={`${['', 'Bronze', 'Silver', 'Gold'][masteryTier(s, p)]} mastery: ${s.lifetime.sold[p] ?? 0} sold`}>
                       <Sprite name={['', 'medalBronze', 'medalSilver', 'medalGold'][masteryTier(s, p)]} scale={2} />
@@ -342,6 +380,18 @@ function RecipeBook() {
 
 const SPRITE_NAMES: Record<string, true> = Object.fromEntries(Object.keys(SPRITES).map((k) => [k, true]));
 
+/** The guess questions, worded a few ways so the card doesn't feel the same every time. */
+const ASKS = {
+  buyers: {
+    q: [(n: string) => `Will more people buy ${n} now, or fewer?`, (n: string) => `Out of every 100 shoppers, will more pick ${n}, or fewer?`, (n: string) => `Will ${n} fly off the shelf, or slow down?`],
+    opts: ['More buy it', 'About the same', 'Fewer buy it'],
+  },
+  money: {
+    q: [(n: string) => `Will ${n} bring in more money now, or less?`, (n: string) => `Fewer sales at a higher price, or more at a lower one: will your ${n} money go up or down?`, (n: string) => `Will the till get more from ${n} today, or less?`],
+    opts: ['More money', 'About the same', 'Less money'],
+  },
+} as const;
+
 /** Predict: after a price change, one guess before the day plays out. */
 function PredictCard() {
   const { state: s, dispatch } = useGame();
@@ -349,31 +399,41 @@ function PredictCard() {
   if (!p || s.phase !== 'morning') return null;
   const d = PRODUCTS[p.product];
   const up = p.to > p.from;
+  const ask = ASKS[p.ask ?? 'buyers'];
+  const pickedLabel = p.guess === 'more' ? ask.opts[0] : p.guess === 'fewer' ? ask.opts[2] : ask.opts[1];
   if (p.guess) {
     return (
       <Card className="predict-card" title="Your guess is in" icon="note">
         <p className="small">
-          {d.name} {up ? 'up' : 'down'} from {money2(p.from)} to {money2(p.to)}. You guessed <b>{p.guess === 'more' ? 'more sold' : p.guess === 'fewer' ? 'fewer sold' : 'about the same'}</b>. Open the doors and see; the report will show what happened.
+          {d.name} {up ? 'up' : 'down'} from {money2(p.from)} to {money2(p.to)}. You guessed <b>{pickedLabel.toLowerCase()}</b>. Open the doors and see; the report will show what happened.
         </p>
       </Card>
     );
   }
+  const question = ask.q[(s.day + (s.predictions?.length ?? 0)) % ask.q.length](d.name);
   return (
-    <Card className="predict-card" title="What do you think will happen?" icon="note" spot="predict">
+    <Card className="predict-card" title="Make your guess" icon="note" spot="predict">
       <p className="small">
-        You moved <b>{d.name}</b> {up ? 'up' : 'down'} from {money2(p.from)} to {money2(p.to)}. Lately about <b>{Math.round((p.rateBefore ?? 0) * 10)} of every 100 shoppers</b> bought it. Will more or fewer buy it now? The report shows the answer (any guess earns XP; a right one earns more).
+        You moved <b>{d.name}</b> {up ? 'up' : 'down'} from {money2(p.from)} to {money2(p.to)}.{' '}
+        {p.ask === 'money' ? (
+          <>Lately it brought in about <b>{money2(p.moneyBefore ?? 0)} for every 10 shoppers</b>.</>
+        ) : (
+          <>Lately about <b>{Math.round((p.rateBefore ?? 0) * 10)} of every 100 shoppers</b> bought it.</>
+        )}
       </p>
+      <p className="predict-q">{question}</p>
       <div className="predict-choices" role="group" aria-label="Your prediction">
         <Btn onClick={() => dispatch({ type: 'predict', guess: 'more' })}>
-          <Sprite name="faceHappy" scale={2} /> More sold
+          <Sprite name="faceHappy" scale={2} /> {ask.opts[0]}
         </Btn>
         <Btn onClick={() => dispatch({ type: 'predict', guess: 'same' })}>
-          <Sprite name="faceOk" scale={2} /> About the same
+          <Sprite name="faceOk" scale={2} /> {ask.opts[1]}
         </Btn>
         <Btn onClick={() => dispatch({ type: 'predict', guess: 'fewer' })}>
-          <Sprite name="faceWorried" scale={2} /> Fewer sold
+          <Sprite name="faceWorried" scale={2} /> {ask.opts[2]}
         </Btn>
       </div>
+      <p className="small muted">Any guess earns 5 XP; a right one earns 10 more. The day report shows the answer.</p>
     </Card>
   );
 }
@@ -422,6 +482,23 @@ function PlanCard() {
           Bake the plan now
         </Btn>
       )}
+    </Card>
+  );
+}
+
+/** What sold, and what people wanted but couldn't get: right where you decide the menu. */
+function AskedFor() {
+  const { state: s } = useGame();
+  const recent = s.history.slice(-14);
+  if (!recent.length) return null;
+  const rows = PRODUCT_ORDER.map((p) => {
+    const missed = recent.reduce((t, h) => t + (h.wished?.[p] ?? 0), 0);
+    return { label: PRODUCTS[p].name, value: recent.reduce((t, h) => t + (h.sold[p] ?? 0), 0), note: missed ? `+${missed} missed` : undefined };
+  }).filter((r) => r.value > 0 || r.note);
+  return (
+    <Card title="What people ask for" icon="chart">
+      <BarList title="Units sold in the last 14 days" rows={rows} />
+      <p className="small muted">“Missed” counts people who asked for something you’d run out of: bake more of those, or keep them on the menu.</p>
     </Card>
   );
 }
@@ -524,6 +601,7 @@ export function KitchenPanel() {
       )}
       {feature('kitchen.prices') && show('prices') && <PredictCard />}
       {feature('kitchen.menu') && show('menu') && <MenuCard />}
+      {feature('kitchen.menu') && show('menu') && <AskedFor />}
       {feature('kitchen.plan') && show('plan') && <PlanCard />}
       {feature('kitchen.menu') && show('menu') && <RecipeBook />}
     </div>

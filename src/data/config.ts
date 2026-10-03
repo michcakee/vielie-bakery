@@ -47,6 +47,11 @@ export const ECON = {
   },
 
   demand: {
+    /** Selling a customer group's favourites: each one on the menu draws 12% more of that group, and the
+        street as a whole comes in more when the menu covers what people love (relative to a typical menu). */
+    favouriteDraw: 0.12,
+    favouritePull: 0.3,
+    favouriteBaseline: 0.23,
     /** Walk-ins per day for an average shop at reputation 50 in a 1.0-traffic neighbourhood. */
     baseWalkIns: 24,
     walkInsPerLevel: 6,

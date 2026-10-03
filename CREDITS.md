@@ -18,6 +18,7 @@ Everything in Viet Bake Shop, with where it came from and its licence. "UNKNOWN"
 | Be Vietnam Pro | Lam Bao, Tony Le and contributors | https://fonts.google.com/specimen/Be+Vietnam+Pro | SIL Open Font License 1.1 (`public/fonts/OFL.txt`) |
 | Press Start 2P | CodeMan38 | https://fonts.google.com/specimen/Press+Start+2P | SIL Open Font License 1.1 (`public/fonts/OFL.txt`); wordmark only |
 | Pixelify Sans | Stefie Justprince | https://fonts.google.com/specimen/Pixelify+Sans | SIL Open Font License 1.1 (`public/fonts/OFL.txt`) |
+| VT323 | Peter Hull and the VT323 Project Authors | https://fonts.google.com/specimen/VT323 | SIL Open Font License 1.1 (`public/fonts/OFL.txt`); paragraph text |
 
 ## Code libraries
 

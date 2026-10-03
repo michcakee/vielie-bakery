@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { PRODUCTS } from '../../src/data/catalog';
+import { PRODUCTS, PRODUCT_ORDER } from '../../src/data/catalog';
+import { favouritesPull } from '../../src/engine/economy';
 import { TRAITS } from '../../src/data/world';
 import { ARC } from '../../src/engine/arc';
 import { CHALLENGE, challengeText } from '../../src/engine/challenge';
@@ -148,5 +149,59 @@ describe('staff personalities', () => {
     const servers = makeServers({ ...s, staff: [mk(1, 'careful'), mk(2, 'speedy')] }, false);
     const q = (id: number) => servers.find((x) => x.id === `staff:${id}`)!.quality;
     expect(q(1)).toBeGreaterThan(q(2));
+  });
+});
+
+describe('tester round 4', () => {
+  it('Bà’s help earns no tips and no XP', () => {
+    let s = act(start(71), { type: 'open' });
+    for (let i = 0; i < 40 && !s.service!.visits.some((v) => v.status === 'waiting'); i++) s = act(s, { type: 'tick', minutes: 4 });
+    s = act(s, { type: 'handOver' });
+    const xp = s.today.xp;
+    for (let i = 0; i < 30; i++) s = act(s, { type: 'tick', minutes: 4 });
+    const byBa = s.service!.visits.filter((v) => v.servedBy === 'owner');
+    expect(byBa.length).toBeGreaterThan(0);
+    for (const v of byBa) expect(v.tip).toBe(0);
+    expect(s.today.xp).toBe(xp);
+  });
+
+  it('quick bake is locked until you have baked a recipe by hand three times, then gives normal quality', () => {
+    let s: GameState = { ...start(72), allUnlocked: false };
+    const quick = (x: GameState) => act(x, { type: 'bake', item: 'baguette', process: 100, quick: true });
+    expect(quick(s).traysToday).toBe(s.traysToday);
+    for (let i = 0; i < 3; i++) s = act(s, { type: 'bake', item: 'baguette', process: 90 });
+    expect(s.questProgress.handBakes_baguette).toBe(3);
+    const after = quick({ ...s, traysToday: 0, pantry: { ...s.pantry, flour: { ...s.pantry.flour, qty: 50 } } });
+    expect(after.traysToday).toBe(1);
+  });
+
+  it('stars from daily goals buy cosmetics, once, and locked looks can’t be worn', () => {
+    let s: GameState = { ...start(73), questProgress: { ...start(73).questProgress, stars: 12 } };
+    const crowned = act(s, { type: 'setLook', look: { ...s.look, accessory: 11 } });
+    expect(crowned.look.accessory).toBe(0);
+    s = act(s, { type: 'buyCosmetic', id: 'catEars' });
+    expect(s.cosmetics).toContain('catEars');
+    expect(s.questProgress.starsSpent).toBe(10);
+    expect(act(s, { type: 'buyCosmetic', id: 'crown' })).toBe(s);
+    expect(act(s, { type: 'setLook', look: { ...s.look, accessory: 9 } }).look.accessory).toBe(9);
+  });
+
+  it('the guess question takes turns between buyers and money', () => {
+    let s = playDay(playDay(start(74)));
+    s = morning(s);
+    s = act(s, { type: 'setPrice', product: 'banhMi', price: s.prices.banhMi + 0.5 });
+    expect(s.pendingPrediction?.ask).toBe('buyers');
+    s = act(s, { type: 'predict', guess: 'fewer' });
+    s = finish(runService(s));
+    s = morning(s);
+    s = act(s, { type: 'setPrice', product: 'banhMi', price: s.prices.banhMi - 0.5 });
+    expect(s.pendingPrediction?.ask).toBe('money');
+    expect(s.pendingPrediction?.moneyBefore).toBeGreaterThan(0);
+  });
+
+  it('putting a group’s favourites on the menu brings more customers', () => {
+    const s = start(75);
+    expect(favouritesPull({ ...s, menu: ['banhMi'] })).toBeLessThan(favouritesPull(s));
+    expect(favouritesPull({ ...s, menu: PRODUCT_ORDER })).toBeGreaterThan(favouritesPull(s));
   });
 });

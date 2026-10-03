@@ -1,12 +1,11 @@
 import { PRODUCTS, PRODUCT_ORDER } from '../../data/catalog';
 import { SEGMENTS, SEGMENT_ORDER } from '../../data/world';
-import { activeRivals, expectedQuality, levelOf, playerShare, segmentMix } from '../../engine/economy';
+import { activeRivals, expectedQuality, favouritesOnMenu, favouritesPull, levelOf, playerShare, segmentMix, topFavourites } from '../../engine/economy';
 import { CAMPAIGNS } from '../../engine/state';
-import type { CampaignKind, ProductId } from '../../engine/types';
+import type { CampaignKind } from '../../engine/types';
 import { money, money2, pct } from '../../lib/format';
-import { BarList } from '../charts';
 import { useGame } from '../GameContext';
-import { Btn, Card, Empty, Tip } from '../kit';
+import { LevelLock, Btn, Card, Empty, Tip } from '../kit';
 import { Sprite } from '../pixel/Sprite';
 import { Neighbours } from './HomePanel';
 
@@ -53,24 +52,35 @@ export function CustomersPanel() {
       </div>
 
       {feature('customers.regulars') && <Neighbours />}
-      {feature('customers.regulars') && <Card title="Who comes in" icon="people" fresh={fresh('customers.regulars')}>
-        <p className="small muted">Different customers want different things and react differently to price. Your neighbourhood decides the mix.</p>
+      {feature('customers.regulars') && <Card title="Who comes in" icon="people" fresh={fresh('customers.regulars')} spot="segments">
+        <p className="small">
+          Each group has three favourites. <b>Every favourite on your menu brings in more of that group</b>, and a menu that covers what people love brings more people overall: right now <b>{favouritesPull(s) >= 1 ? '+' : '−'}{Math.abs(Math.round((favouritesPull(s) - 1) * 100))}%</b> customers from your menu.
+        </p>
         <ul className="segment-list">
           {SEGMENT_ORDER.filter((seg) => mix[seg] > 0.005 || served[seg]).map((seg) => {
             const d = SEGMENTS[seg];
-            const favs = (Object.entries(d.prefs) as [ProductId, number][])
-              .sort((a, b) => b[1] - a[1])
-              .slice(0, 3)
-              .map(([p]) => PRODUCTS[p].name);
+            const favs = topFavourites(seg);
+            const on = favouritesOnMenu(s, seg);
             return (
               <li key={seg}>
                 <div className="seg-head">
                   <b>{d.name}</b> <span className="muted small" lang="vi">{d.vi}</span>
-                  <span className="seg-share">{pct(mix[seg])} of passers-by</span>
+                  <span className="seg-share">{pct(mix[seg])} of shoppers</span>
                 </div>
                 <span className="small">{d.blurb}</span>
+                <span className="fav-row">
+                  {favs.map((p) => {
+                    const sells = s.menu.includes(p);
+                    const known = s.unlocked.includes(p);
+                    return (
+                      <span key={p} className={`fav ${sells ? 'on' : ''}`} title={sells ? 'On your menu' : known ? 'Add it to your menu in the Kitchen' : `Unlocks at level ${PRODUCTS[p].level}`}>
+                        <Sprite name={sells ? 'check' : known ? p : 'lock'} scale={1} /> {PRODUCTS[p].name}
+                      </span>
+                    );
+                  })}
+                </span>
                 <span className="small muted">
-                  Loves {favs.join(', ')} · price sensitivity {d.sensitivity >= 1.3 ? 'high' : d.sensitivity <= 0.7 ? 'low' : 'medium'} · {s.loyal[seg] ?? 0} loyal · {served[seg] ?? 0} served lately
+                  {on === 3 ? 'You sell all their favourites!' : on > 0 ? `You sell ${on} of 3: ${3 - on} more would bring even more of them.` : 'You sell none of their favourites yet.'} · price sensitivity {d.sensitivity >= 1.3 ? 'high' : d.sensitivity <= 0.7 ? 'low' : 'medium'} · {served[seg] ?? 0} served lately
                 </span>
               </li>
             );
@@ -136,7 +146,7 @@ export function CustomersPanel() {
         )}
       </Card>}
 
-      {feature('customers.marketing') && <Card title="Marketing" icon="phone" spot="marketing" fresh={fresh('customers.marketing')} aside={levelOf(s.xp) < 2 ? <span className="lock-tag">Level 2</span> : undefined}>
+      {feature('customers.marketing') && <Card title="Marketing" icon="phone" spot="marketing" fresh={fresh('customers.marketing')} aside={levelOf(s.xp) < 2 ? <LevelLock level={2} /> : undefined}>
         <ul className="choice-list">
           {(Object.keys(CAMPAIGNS) as CampaignKind[]).map((k) => {
             const c = CAMPAIGNS[k];
@@ -207,15 +217,6 @@ export function CustomersPanel() {
         )}
       </Card>}
 
-      {recent.length > 0 && feature('customers.regulars') && (
-        <Card title="What people ask for" icon="chart">
-          <BarList
-            title="Units sold in the last 14 days"
-            rows={PRODUCT_ORDER.map((p) => ({ label: PRODUCTS[p].name, value: recent.reduce((t, h) => t + (h.sold[p] ?? 0), 0), note: recent.reduce((t, h) => t + (h.wished?.[p] ?? 0), 0) ? `+${recent.reduce((t, h) => t + (h.wished?.[p] ?? 0), 0)} missed` : undefined })).filter((r) => r.value > 0 || r.note)}
-          />
-          <p className="small muted">"Missed" counts people who asked for something you'd run out of. Sales alone undercount demand.</p>
-        </Card>
-      )}
     </div>
   );
 }

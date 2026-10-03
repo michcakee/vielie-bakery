@@ -1,8 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useState, type ReactNode } from 'react';
-import { FEATURE, type TabId } from '../data/unlocks';
+import { FEATURES, FEATURE, type TabId } from '../data/unlocks';
 import { introStep } from '../engine/unlocks';
 import { useGame } from './GameContext';
-import { Btn, Card } from './kit';
+import { Btn } from './kit';
 import { Sprite } from './pixel/Sprite';
 
 /**
@@ -102,41 +102,55 @@ export function IntroCard() {
   const { state: s, dispatch, prefs } = useGame();
   const { showMe } = useGuide();
   const intro = s.intro;
-  // One voice at a time: a morning event is answered first, then the intro quest speaks.
+  // One voice at a time: a morning event is answered first, then the lesson speaks.
   if (!intro?.active || s.events.length > 0 || (s.phase !== 'morning' && s.phase !== 'report')) return null;
   const f = FEATURE[intro.active];
   const at = introStep(s);
+  const steps = f.intro.steps;
+  const now = at >= 0 ? steps[at] : null;
+  // Lesson 1 is the first day; each system Bà teaches after that is the next lesson.
+  const lesson = FEATURES.findIndex((x) => x.id === f.id) + 2;
   return (
-    <Card className="intro-card" title={f.intro.who} icon="note" fresh={!intro.replay} spot="intro-card">
-      <p className="handwrite" lang="vi">
+    <section className="tutorial-bar lesson-card" aria-label={`Today's lesson: ${f.name}`} data-spot="intro-card">
+      <div className="tut-head">
+        <Sprite name="book" scale={3} />
+        <div>
+          <span className="tut-count">
+            Today’s lesson · Lesson {lesson} · from {f.intro.who}
+          </span>
+          <b className="tut-title">{f.name.replace(/^[^:]*: /, '').replace(/^./, (c) => c.toUpperCase())}</b>
+        </div>
+        <button type="button" className="link-btn tut-skip" onClick={() => dispatch({ type: 'introLater' })}>
+          Later
+        </button>
+      </div>
+      <p className="handwrite lesson-line" lang="vi">
         {f.intro.vi}
       </p>
-      {prefs.translations && <p className="small muted">“{f.intro.en}”</p>}
-      <ol className="coach-steps">
-        {f.intro.steps.map((st, i) => {
-          const done = i < at || at === -1 ? true : st.done(s, intro.base);
-          return (
-            <li key={i} className={done ? 'done' : i === at ? 'now' : ''}>
-              {done ? <Sprite name="check" scale={2} /> : <span className="num">{i + 1}</span>}
-              <span>
-                {st.text}{' '}
-                {i === at && (st.tab || st.spot) && (
-                  <button type="button" className="link-btn" onClick={() => showMe(st.tab, st.spot)}>
-                    Show me
-                  </button>
-                )}
-              </span>
-            </li>
-          );
-        })}
-      </ol>
-      <div className="btn-row">
-        <Btn kind="ghost" onClick={() => dispatch({ type: 'introLater' })}>
-          Later
-        </Btn>
-        <span className="small muted">{intro.replay ? 'Replaying: no reward this time.' : `Reward: ${f.intro.xp} XP`}</span>
+      {prefs.translations && <p className="small muted lesson-en">“{f.intro.en}”</p>}
+      {now && (
+        <p className="tut-text">
+          <b>
+            Step {at + 1}
+            {steps.length > 1 ? ` of ${steps.length}` : ''}:
+          </b>{' '}
+          {now.text}
+        </p>
+      )}
+      <div className="tut-foot">
+        <ol className="tut-dots" aria-hidden="true">
+          {steps.map((_, i) => (
+            <li key={i} className={i < at || at === -1 ? 'done' : i === at ? 'now' : ''} />
+          ))}
+        </ol>
+        <span className="small muted">{intro.replay ? 'Replay: no reward' : `+${f.intro.xp} XP`}</span>
+        {now && (now.tab || now.spot) && (
+          <Btn kind="primary" onClick={() => showMe(now.tab, now.spot)}>
+            Show me
+          </Btn>
+        )}
       </div>
-    </Card>
+    </section>
   );
 }
 
@@ -188,7 +202,7 @@ export function WhatNow({ onClose, goTo, todo }: { onClose: () => void; goTo: (t
       { text: 'Tap a customer’s order. Pastries are one tap. Bánh mì and drinks: tap the steps in order (the glowing one is next).' },
       { text: 'Serve the person with the worried face first, before they leave!' },
       { text: 'Fill the star bar at the top: more sales, more stars.' },
-      { text: 'Too busy? Tap Bà, help! and Bà serves for you. Tap I’ll serve to take over again.' },
+      { text: 'Too busy? Tap Bà, help! and Bà serves for you, but her orders earn no tips and no XP. Tap I’ll serve to take over again.' },
     );
   else if (phase === 'closing') now.push({ text: 'Choose what to do with leftovers. Donating makes the neighbours happy.' });
   else now.push({ text: 'Read how the day went, then tap the button at the bottom for the next morning.' });

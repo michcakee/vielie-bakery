@@ -1,6 +1,8 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { NOTEBOOK } from '../data/notebook';
 import { play } from './audio';
+import { LEVELS } from '../data/catalog';
+import { useGame } from './GameContext';
 import { Sprite } from './pixel/Sprite';
 
 export function Btn({
@@ -201,5 +203,18 @@ export function ConfirmBtn({ children, title, lines, warn, onConfirm, disabled, 
         </div>
       )}
     </>
+  );
+}
+
+/** A padlock that says how to get it: the level, and how much XP is left. */
+export function LevelLock({ level }: { level: number }) {
+  const { state: s } = useGame();
+  const need = LEVELS[level - 1]?.xp ?? 0;
+  const left = Math.max(0, Math.ceil(need - s.xp));
+  return (
+    <span className="lock-tag level-lock" title="Serve customers, finish quests and earn daily stars to get XP. Play more to unlock.">
+      <Sprite name="lock" scale={2} /> Level {level}
+      <span className="lock-how">{left > 0 ? `${left.toLocaleString('en-US')} XP to go` : 'next morning'}</span>
+    </span>
   );
 }

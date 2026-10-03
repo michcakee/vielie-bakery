@@ -624,3 +624,12 @@ The shop scene is now a top-down room modelled on the owner’s reference pictur
 - **Customers** come in at the bottom-left, walk up to the queue and face the counter (characters have a back view now). Happy customers sometimes sit at a table for a while before leaving. This is display only: it reads the same visit data and changes no game numbers.
 - **Staff** stand along the counter; the barista and the baker face the coffee corner and the oven.
 - Every decoration and upgrade still shows, in a new place: the festival prize and radio on the back counter, the bench under the window, the runner rug under the queue, the compost bin by the right wall, and the neon sign in the window.
+
+### Tester round 4
+- **Tutorial:** day 1 is a seven-step walkthrough pinned at the top (`src/ui/Tutorial.tsx`); the Today page shows nothing else while it runs. Later lessons use the same step card.
+- **Quick bake:** gated per recipe behind 3 hand bakes and fixed at quality 72 (Genshin's auto-cook rule: mastery first, then a normal result).
+- **Bà's help:** orders served by the owner autopilot pay no tip and no XP, so jumping in is worth it.
+- **Stars:** a spendable currency for cosmetics only (`src/data/cosmetics.ts`), so they never buy an advantage.
+- **Customers:** walk-ins arrive evenly spaced within each part of the day and the daily count varies ±5% (was ±10%). Each favourite of a group on the menu draws 12% more of that group, and a menu covering what the street loves raises total walk-ins (neutral for the starting menu, up to about +20%).
+- **Staff:** hiring unlocks by day 7 (was 12), or after 2 people give up waiting.
+- **Fonts:** VT323 for paragraph text, headings unchanged.

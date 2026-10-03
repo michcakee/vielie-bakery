@@ -27,7 +27,7 @@ export function mix(a: string, b: string, t: number): string {
 }
 
 const INK = '#2a1f33';
-const EYES = ['#7a4a2a', '#c0503a', '#3f6fb5', '#4f9a5b', '#8e5bb5', '#d98a1f', '#c2477a'];
+export const EYES = ['#7a4a2a', '#c0503a', '#3f6fb5', '#4f9a5b', '#8e5bb5', '#d98a1f', '#c2477a'];
 /** Dark natural hair gets brown or amber eyes; dyed hair gets a colour to match. */
 const EYE_FOR_HAIR = [0, 0, 5, 1, 6, 3, 2, 6, 4, 3, 5];
 
@@ -112,11 +112,53 @@ const STYLES: HairStyle[] = [
       g.set(15, 2, h, 'hair');
     },
   },
+  // Ponytail: swept back, with a tail that swings out behind one shoulder
+  {
+    rx: 9.6,
+    ry: 8.8,
+    cy: 12.4,
+    fringe: SWEPT,
+    back: (g, h) => {
+      g.ellipse(20.2, 17, 2.4, 6.8, h, 'hair');
+      g.rect(19, 10, 21, 11, '#ea7286', 'acc');
+    },
+  },
+  // Twin buns: a bun on each side of the head
+  {
+    rx: 9.8,
+    ry: 9,
+    cy: 12.6,
+    fringe: FRINGE,
+    extra: (g, h) => {
+      g.ellipse(4.2, 4.6, 3.2, 3, h, 'hair');
+      g.ellipse(18.8, 4.6, 3.2, 3, h, 'hair');
+    },
+  },
+  // Curly: big and bouncy, with curls all round the edge
+  {
+    rx: 10.6,
+    ry: 9.8,
+    cy: 13,
+    fringe: FRINGE,
+    back: (g, h) => {
+      for (const [x, y] of [[1.5, 12], [1, 17], [2, 21], [21.5, 12], [22, 17], [21, 21], [5, 4], [11.5, 2.5], [18, 4]]) g.ellipse(x, y, 2.4, 2.4, h, 'hair');
+    },
+  },
+  // Spiky: short, with spikes standing up
+  {
+    rx: 9.4,
+    ry: 8.4,
+    cy: 12,
+    fringe: SWEPT,
+    extra: (g, h) => {
+      for (const sx of [5, 9, 13, 17]) for (let i = 0; i < 4; i++) g.row(4 - i, sx - (i < 2 ? 1 : 0), sx + (i < 2 ? 1 : 0) - (i === 3 ? 1 : 0), h, 'hair');
+    },
+  }
 ];
 
 function accessory(g: Grid, id: number, back = false) {
   // From behind, things worn on the face or the fringe can't be seen.
-  if (back && (id === 1 || id === 8)) return;
+  if (back && (id === 1 || id === 8 || id === 12)) return;
   switch (id) {
     case 1: {
       // Glasses: thin frames round both eyes and a bridge
@@ -188,6 +230,63 @@ function accessory(g: Grid, id: number, back = false) {
       g.set(22, 14, '#e3f4fa', 'acc');
       break;
     }
+    case 9: {
+      // Cat ears on a headband
+      for (const [x0, dir] of [[4, 1], [19, -1]] as const) {
+        for (let i = 0; i < 5; i++) g.row(5 - i, Math.min(x0, x0 + dir * (4 - i)), Math.max(x0, x0 + dir * (4 - i)), '#3e3340', 'acc');
+        g.set(x0 + dir, 3, '#f4a3b8', 'acc');
+        g.set(x0 + dir * 2, 4, '#f4a3b8', 'acc');
+      }
+      g.row(6, 5, 18, '#3e3340', 'acc');
+      break;
+    }
+    case 10: {
+      // Flower crown
+      const petals = ['#f4a3b8', '#ffffff', '#f4dc8c', '#c9b3ea'];
+      for (let i = 0; i < 6; i++) {
+        const x = 3 + i * 3.4;
+        g.ellipse(x, 6, 1.4, 1.2, petals[i % petals.length], 'acc');
+        g.set(Math.round(x), 6, '#e3b23c', 'acc');
+      }
+      for (const x of [5, 12, 19]) g.set(x, 7, '#6f9e58', 'acc');
+      break;
+    }
+    case 11: {
+      // A gold crown
+      const gold = '#e3b23c';
+      g.rect(7, 3, 16, 5, gold, 'acc');
+      for (const x of [7, 11, 12, 16]) g.rect(x, 0, x, 2, gold, 'acc');
+      g.rect(9, 1, 9, 2, gold, 'acc');
+      g.rect(14, 1, 14, 2, gold, 'acc');
+      g.set(11, 4, '#d97a62', 'acc');
+      g.set(12, 4, '#d97a62', 'acc');
+      g.set(8, 4, '#8fd0e6', 'acc');
+      g.set(15, 4, '#8fd0e6', 'acc');
+      break;
+    }
+    case 12: {
+      // Sunglasses
+      const ink = '#2a1f33';
+      for (const x0 of [6, 13]) {
+        g.rect(x0, 15, x0 + 4, 18, ink, 'acc');
+        g.set(x0 + 1, 16, '#6b6f8a', 'acc');
+      }
+      g.row(15, 11, 12, ink, 'acc');
+      g.set(5, 15, ink, 'acc');
+      g.set(18, 15, ink, 'acc');
+      break;
+    }
+    case 13: {
+      // A star hair clip
+      const star = '#f4dc8c';
+      g.row(6, 17, 17, star, 'acc');
+      g.row(7, 15, 19, star, 'acc');
+      g.row(8, 16, 18, star, 'acc');
+      g.set(15, 9, star, 'acc');
+      g.set(19, 9, star, 'acc');
+      g.set(17, 7, '#e3b23c', 'acc');
+      break;
+    }
     case 8: {
       // Heart clips
       const c = '#f0608a';
@@ -206,7 +305,8 @@ function drawPerson(look: Look, step: boolean, back = false, wink = false): Grid
   const shirt = SHIRTS[look.shirt % SHIRTS.length];
   const apron = look.apron >= 0 ? APRONS[look.apron % APRONS.length] : null;
   const bottoms = PANTS[(look.shirt + look.skin) % PANTS.length];
-  const eye = EYES[EYE_FOR_HAIR[look.hairColor % EYE_FOR_HAIR.length]];
+  // Eye colour: chosen, or (0 / missing) picked to suit the hair.
+  const eye = look.eyes ? EYES[(look.eyes - 1) % EYES.length] : EYES[EYE_FOR_HAIR[look.hairColor % EYE_FOR_HAIR.length]];
   const style = STYLES[look.hair % STYLES.length];
 
   // 1. hair that hangs behind the body (seen from the front)

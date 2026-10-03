@@ -1,4 +1,6 @@
 import { DECOR } from '../data/catalog';
+import { cosmeticFor, owns, type CosmeticKind } from '../data/cosmetics';
+import { Sprite } from './pixel/Sprite';
 import { decorSpot, DEFAULT_STYLE, MOVABLE } from '../engine/state';
 import { useGame } from './GameContext';
 import { Btn } from './kit';
@@ -12,6 +14,10 @@ export function Painter() {
   const style = s.style ?? DEFAULT_STYLE;
   const wall = WALLS[style.wall % WALLS.length];
   const movable = MOVABLE.filter((d) => s.decor.includes(d));
+  const lockedPaint = (kind: CosmeticKind, i: number) => {
+    const c = cosmeticFor(kind, i);
+    return !!c && !owns(s, c.id);
+  };
   return (
     <div className="painter" data-spot="painter">
       <p className="small muted">It’s your shop: paint it how you like. It’s free, and you can change it any time.</p>
@@ -19,7 +25,8 @@ export function Painter() {
         <legend>Wall colour</legend>
         <div className="paint-swatches">
           {WALLS.map((w, i) => (
-            <button key={w.name} type="button" className={`paint-swatch ${style.wall === i ? 'on' : ''}`} aria-pressed={style.wall === i} onClick={() => dispatch({ type: 'setStyle', key: 'wall', value: i })}>
+            <button key={w.name} type="button" className={`paint-swatch ${style.wall === i ? 'on' : ''} ${lockedPaint('wall', i) ? 'locked' : ''}`} aria-pressed={style.wall === i} disabled={lockedPaint('wall', i)} title={lockedPaint('wall', i) ? `Unlock in the star shop (${cosmeticFor('wall', i)!.cost}★)` : undefined} onClick={() => dispatch({ type: 'setStyle', key: 'wall', value: i })}>
+              {lockedPaint('wall', i) && <span className="paint-lock"><Sprite name="lock" scale={1} /> {cosmeticFor('wall', i)!.cost}★</span>}
               <i style={{ background: `linear-gradient(90deg, ${w.c} 0 60%, ${w.accent} 60%)` }} />
               {w.name}
             </button>
@@ -52,7 +59,8 @@ export function Painter() {
         <legend>Floor</legend>
         <div className="paint-swatches">
           {FLOORS.map((f, i) => (
-            <button key={f.name} type="button" className={`paint-swatch ${style.floor === i ? 'on' : ''}`} aria-pressed={style.floor === i} onClick={() => dispatch({ type: 'setStyle', key: 'floor', value: i })}>
+            <button key={f.name} type="button" className={`paint-swatch ${style.floor === i ? 'on' : ''} ${lockedPaint('floor', i) ? 'locked' : ''}`} aria-pressed={style.floor === i} disabled={lockedPaint('floor', i)} title={lockedPaint('floor', i) ? `Unlock in the star shop (${cosmeticFor('floor', i)!.cost}★)` : undefined} onClick={() => dispatch({ type: 'setStyle', key: 'floor', value: i })}>
+              {lockedPaint('floor', i) && <span className="paint-lock"><Sprite name="lock" scale={1} /> {cosmeticFor('floor', i)!.cost}★</span>}
               <i style={{ background: f.tiles ? `conic-gradient(${f.b} 25%, ${f.a} 0 50%, ${f.b} 0 75%, ${f.a} 0) 0 0 / 12px 12px` : `repeating-linear-gradient(${f.a} 0 5px, ${f.line} 5px 6px)` }} />
               {f.name}
             </button>
@@ -63,7 +71,8 @@ export function Painter() {
         <legend>Counter</legend>
         <div className="paint-swatches">
           {COUNTERS.map((c, i) => (
-            <button key={c.name} type="button" className={`paint-swatch ${style.counter === i ? 'on' : ''}`} aria-pressed={style.counter === i} onClick={() => dispatch({ type: 'setStyle', key: 'counter', value: i })}>
+            <button key={c.name} type="button" className={`paint-swatch ${style.counter === i ? 'on' : ''} ${lockedPaint('counter', i) ? 'locked' : ''}`} aria-pressed={style.counter === i} disabled={lockedPaint('counter', i)} title={lockedPaint('counter', i) ? `Unlock in the star shop (${cosmeticFor('counter', i)!.cost}★)` : undefined} onClick={() => dispatch({ type: 'setStyle', key: 'counter', value: i })}>
+              {lockedPaint('counter', i) && <span className="paint-lock"><Sprite name="lock" scale={1} /> {cosmeticFor('counter', i)!.cost}★</span>}
               <i style={{ background: `linear-gradient(${c.top} 0 30%, ${c.body} 30%)` }} />
               {c.name}
             </button>

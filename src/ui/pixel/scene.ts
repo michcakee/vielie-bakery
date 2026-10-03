@@ -65,6 +65,7 @@ export const WALLS = [
   { name: 'Sky', c: '#e1e8f5', accent: '#c5d0ea' },
   { name: 'Butter', c: '#f3f1cb', accent: '#eee3a8' },
   { name: 'Rose', c: '#f8e1e8', accent: '#f4b9cb' },
+  { name: 'Lavender', c: '#ece4f5', accent: '#d6c8ea' },
 ];
 export const PATTERNS = ['Stripes', 'Plain', 'Dots', 'Checks'];
 export const FLOORS = [
@@ -72,12 +73,14 @@ export const FLOORS = [
   { name: 'Wood', a: '#dcae74', b: '#dcae74', line: '#b98352', tiles: false },
   { name: 'Terracotta', a: '#e0a57c', b: '#d69870', line: '#b9795a', tiles: true },
   { name: 'Dark wood', a: '#b98363', b: '#b98363', line: '#8f6249', tiles: false },
+  { name: 'Pink tiles', a: '#f8e6ea', b: '#f1cfd8', line: '#e4b6c2', tiles: true },
 ];
 export const COUNTERS = [
   { name: 'Wood and green', body: '#d9b07a', top: '#4f7d46' },
   { name: 'Pink', body: '#f8e1e8', top: '#d97a62' },
   { name: 'Blue', body: '#e1e8f5', top: '#8fb0bd' },
   { name: 'Wood', body: '#e0b072', top: '#a87545' },
+  { name: 'Gold', body: '#f3e2b0', top: '#e3b23c' },
 ];
 /** Where movable decorations can go (stage px, top-left of the sprite). */
 export const FLOOR_SPOTS = [

@@ -26,9 +26,10 @@ import { StaffPanel } from './panels/StaffPanel';
 import { Sprite } from './pixel/Sprite';
 import { BakeryScene } from './scene/BakeryScene';
 import { Painter } from './Painter';
+import { TutorialBar, tutorialOn } from './Tutorial';
 import { IntroLines, Loading, NewGame, Setup, Title } from './screens/Screens';
 import { GuideProvider, TabHelp, WhatNow } from './Guide';
-import { FEATURE } from '../data/unlocks';
+import { FEATURE, TAB_FEATURES } from '../data/unlocks';
 import { introStep, nextFeature, tabOn } from '../engine/unlocks';
 import { Settings } from './Settings';
 
@@ -288,7 +289,7 @@ function Game({ onQuit }: { onQuit: () => void }) {
               } else setActiveId(v.id);
             }}
           />
-          {s.phase === 'morning' && !intro && s.events.length === 0 && (
+          {s.phase === 'morning' && !intro && s.events.length === 0 && !tutorialOn(s) && (
             <button type="button" className="paint-btn" onClick={() => setDrawer('paint')} aria-label="Paint and arrange your shop" data-spot="paint-btn">
               <Sprite name="spark" scale={2} /> Paint
             </button>
@@ -349,7 +350,7 @@ function Game({ onQuit }: { onQuit: () => void }) {
                   </span>
                 </span>
               ))}
-              {moreTabs.length > 0 && (
+              {(moreTabs.length > 0 || lockedTabs.length > 0) && (
               <button type="button" className={`tab mobile-only ${!current.mobile ? 'on' : ''}`} aria-haspopup="dialog" onClick={() => (play('click'), setDrawer('more'))}>
                 <Sprite name="gear" scale={2} />
                 <span className="tab-label">More</span>
@@ -361,6 +362,7 @@ function Game({ onQuit }: { onQuit: () => void }) {
               )}
             </nav>
           )}
+          <TutorialBar />
           <div className="tabpanel" role={service || s.phase === 'closing' ? undefined : 'tabpanel'} id="tabpanel" aria-labelledby={service ? undefined : `tab-${tab}`}>
             {service ? (
               <ServicePanel paused={paused} setPaused={setPaused} speed={speed} setSpeed={setSpeed} activeId={activeId} setActiveId={setActiveId} />
@@ -369,7 +371,7 @@ function Game({ onQuit }: { onQuit: () => void }) {
             ) : (
               <>
                 {tab !== 'today' && <TabHelp tab={tab} />}
-                {tab === 'today' && <HomePanel goTo={goTo} onOpen={open} onRunDay={() => dispatch({ type: 'runDay' })} />}
+                {tab === 'today' && <HomePanel goTo={goTo} onOpen={open} onRunDay={() => dispatch({ type: 'runDay' })} onQuests={() => setDrawer('quests')} />}
                 {tab === 'kitchen' && <KitchenPanel />}
                 {tab === 'market' && <MarketPanel />}
                 {tab === 'staff' && <StaffPanel />}
@@ -468,6 +470,24 @@ function Game({ onQuit }: { onQuit: () => void }) {
               <b>Settings</b>
             </button>
           </div>
+          {lockedTabs.length > 0 && (
+            <>
+              <h3>Coming soon</h3>
+              <p className="small muted">These open as you keep playing. Bà teaches each one when it arrives.</p>
+              <ul className="coming-soon">
+                {lockedTabs.map((t) => {
+                  const day = Math.min(...(TAB_FEATURES[t.id] ?? []).map((f) => FEATURE[f].fallbackDay));
+                  return (
+                    <li key={t.id}>
+                      <Sprite name="lock" scale={2} />
+                      <b>{t.label}</b>
+                      <span className="small muted">{Number.isFinite(day) && day < 999 ? (day <= s.day + 1 ? 'opens tomorrow' : `around day ${day}`) : 'later'}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
+          )}
         </Modal>
       )}
     </div>

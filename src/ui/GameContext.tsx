@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState, type Dispatch, type ReactNode } from 'react';
-import { loadGame, loadPrefs, saveGame, savePrefs, type Prefs } from '../engine/save';
+import { slotInfo, loadGame, loadPrefs, saveGame, savePrefs, type Prefs } from '../engine/save';
 import { createNewGame, gameReducer, type Action } from '../engine/state';
 import type { GameState } from '../engine/types';
 import { featureOn } from '../engine/unlocks';
@@ -35,8 +35,16 @@ function safeReducer(s: GameState, a: Action): GameState {
 }
 
 export function GameProvider({ children }: { children: ReactNode }) {
-  const [prefs, setPrefsState] = useState<Prefs>(() => loadPrefs());
-  const [saved, setSaved] = useState(() => loadGame(loadPrefs().slot));
+  // Start on the remembered slot; if it's empty but another slot has a bakery, use the newest one.
+  const [prefs, setPrefsState] = useState<Prefs>(() => {
+    const p = loadPrefs();
+    if (loadGame(p.slot)) return p;
+    const newest = slotInfo()
+      .filter((x): x is NonNullable<typeof x> => !!x)
+      .sort((a, b) => b.updated - a.updated)[0];
+    return newest ? { ...p, slot: newest.slot } : p;
+  });
+  const [saved, setSaved] = useState(() => loadGame(prefs.slot));
   const [state, dispatch] = useReducer(safeReducer, saved, (s) => s ?? createNewGame());
   const [osReduced, setOsReduced] = useState(() => typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches);
   const lastSave = useRef(0);

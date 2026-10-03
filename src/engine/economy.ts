@@ -346,6 +346,7 @@ export function segmentMix(s: GameState, location = s.location): Record<SegmentI
     if (seg === 'tourists' && dateOf(s.day).season === 'hot') w *= 1.3;
     if (seg === 'budget' && s.macro.regime === 'recession') w *= 1.4;
     if (seg === 'premium' && s.macro.regime === 'recession') w *= 0.6;
+    w *= 1 + ECON.demand.favouriteDraw * favouritesOnMenu(s, seg);
     out[seg] = w;
     total += w;
   }
@@ -469,9 +470,36 @@ export function marketTraffic(s: GameState, location = s.location): number {
   return n;
 }
 
+/** How many of a customer group's three favourite items are on your menu (0–3). */
+export function favouritesOnMenu(s: Pick<GameState, 'menu'>, seg: SegmentId): number {
+  return topFavourites(seg).filter((p) => s.menu.includes(p)).length;
+}
+
+export function topFavourites(seg: SegmentId): ProductId[] {
+  return (Object.entries(SEGMENTS[seg].prefs) as [ProductId, number][])
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([p]) => p);
+}
+
+/** More of the street comes in when your menu has what they love (1 = an average menu). */
+export function favouritesPull(s: GameState): number {
+  const loc = LOCATIONS[s.location];
+  let total = 0;
+  let share = 0;
+  for (const seg of SEGMENT_ORDER) {
+    const w = loc.segments[seg] ?? 0;
+    total += w;
+    share += w * (favouritesOnMenu(s, seg) / 3);
+  }
+  const avg = total ? share / total : 0;
+  return 1 + ECON.demand.favouritePull * (avg - ECON.demand.favouriteBaseline);
+}
+
 export function expectedWalkIns(s: GameState): number {
   if (s.day === 1 && s.scenario === 'family') return 7;
   let n = marketTraffic(s);
+  n *= favouritesPull(s);
   n *= 0.72 + (0.56 * s.reputation) / 100;
   n *= momentum(s);
   if (has(s, 'corner')) n *= 1.2;

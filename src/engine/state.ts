@@ -43,6 +43,7 @@ import {
 } from './economy';
 import { EVENTS, eventFor, refreshKinds, visibleChoices } from './events';
 import { pickChallenge, settleChallenge } from './challenge';
+import { allowedLook, allowedStyle, COSMETICS, owns, starsToSpend } from '../data/cosmetics';
 import { arcDayEnd } from './arc';
 import { bondCapacity, borrowingLimit, creditLimit, creditLineRate, investorTerms, makeLoan, quoteLoan, valuation } from './finance';
 import { suggestedTrays, forecast, ingredientsNeeded } from './forecast';
@@ -57,6 +58,7 @@ import { businessTip, recap } from './report';
 import { newSeed, rngFor } from './rng';
 import { endService, fastForward, keepsOvernight, openShop, serve, setLastCall, tick } from './service';
 import type {
+  PredictAsk,
   ByProduct,
   CampaignKind,
   CoopId,
@@ -281,6 +283,7 @@ export function createNewGame(seedOrOpts: number | NewGameOptions = {}): GameSta
 export type Action =
   | { type: 'setup'; name: string; look: Look; location?: LocationId }
   | { type: 'setLook'; look: Look }
+  | { type: 'buyCosmetic'; id: string }
   | { type: 'rename'; name: string }
   | { type: 'buy'; ingredient: IngredientId; supplier: SupplierId; packs: number }
   | { type: 'setReorder'; ingredient: IngredientId; below: number; packs: number; supplier: SupplierId }
@@ -288,7 +291,7 @@ export type Action =
   | { type: 'buyForecast'; supplier: SupplierId }
   | { type: 'signContract'; ingredient: IngredientId; supplier: SupplierId; packsPerWeek: number; weeks: number }
   | { type: 'cancelContract'; id: number }
-  | { type: 'bake'; item: ProductId | 'baguette'; process: number }
+  | { type: 'bake'; item: ProductId | 'baguette'; process: number; quick?: boolean }
   | { type: 'autoBake' }
   | { type: 'setPlan'; item: ProductId | 'baguette'; trays: number | null }
   | { type: 'setAutoStock'; on: boolean }
@@ -511,12 +514,14 @@ function settlePrediction(s: GameState): GameState {
   const unitsAfter = s.today.sold[p.product] ?? 0;
   // Compare per 10 shoppers, so a busier street doesn't make a higher price look like it sold more.
   const rateAfter = s.today.customers > 0 ? (unitsAfter / s.today.customers) * 10 : 0;
-  const before = p.rateBefore ?? p.unitsBefore;
-  const after = p.rateBefore !== undefined ? rateAfter : unitsAfter;
+  const moneyAfter = s.today.customers > 0 ? ((s.today.revenueBy[p.product] ?? 0) / s.today.customers) * 10 : 0;
+  const money = p.ask === 'money' && p.moneyBefore !== undefined;
+  const before = money ? p.moneyBefore! : p.rateBefore ?? p.unitsBefore;
+  const after = money ? moneyAfter : p.rateBefore !== undefined ? rateAfter : unitsAfter;
   const diff = before > 0 ? (after - before) / before : after > 0 ? 1 : 0;
   const result: Guess = diff > 0.1 ? 'more' : diff < -0.1 ? 'fewer' : 'same';
   const right = p.guess !== undefined && p.guess === result;
-  const record: Prediction = { day: s.day, product: p.product, from: p.from, to: p.to, unitsBefore: p.unitsBefore, unitsAfter, rateBefore: p.rateBefore, rateAfter, guess: p.guess, result };
+  const record: Prediction = { day: s.day, product: p.product, from: p.from, to: p.to, unitsBefore: p.unitsBefore, unitsAfter, rateBefore: p.rateBefore, rateAfter, guess: p.guess, result, ask: p.ask, moneyBefore: p.moneyBefore, moneyAfter };
   let next: GameState = { ...s, pendingPrediction: null, predictions: [...(s.predictions ?? []).slice(-29), record], xp: s.xp + (right ? 10 : 0) };
   next = { ...next, questProgress: { ...next.questProgress, predictions: (next.questProgress.predictions ?? 0) + (p.guess ? 1 : 0), predictionsRight: (next.questProgress.predictionsRight ?? 0) + (right ? 1 : 0) } };
   return learn(next, 'elasticity', p.to > p.from ? 'elasticityCompare' : 'elasticity');
@@ -1044,6 +1049,12 @@ export function actionFeature(a: Action): FeatureId | undefined {
   return ACTION_FEATURE[a.type];
 }
 
+/** Quick bake: unlocked per recipe after a few bakes by hand, always normal quality. */
+export const QUICK_BAKE = { practice: 3, quality: 72 };
+export const handBakes = (s: GameState, item: ProductId | 'baguette') => s.questProgress[`handBakes_${item}`] ?? 0;
+/** Experienced bakers (everything unlocked) skip the practice. */
+export const quickBakeReady = (s: GameState, item: ProductId | 'baguette') => s.allUnlocked !== false || handBakes(s, item) >= QUICK_BAKE.practice;
+
 export const DEFAULT_STYLE: ShopStyle = { wall: 0, pattern: 0, floor: 0, counter: 0, spots: {} };
 /** Decorations the player can move between three spots. */
 export const MOVABLE: DecorId[] = ['plant', 'hoaMai', 'birdcage'];
@@ -1069,7 +1080,7 @@ function reduce(s: GameState, a: Action): GameState {
   switch (a.type) {
     case 'setup': {
       if (s.phase !== 'setup') return s;
-      let next: GameState = { ...s, bakeryName: a.name.trim().slice(0, 28) || 'Viet Bake Shop', look: a.look, phase: 'morning' };
+      let next: GameState = { ...s, bakeryName: a.name.trim().slice(0, 28) || 'Viet Bake Shop', look: allowedLook(s, a.look), phase: 'morning' };
       if (a.location && a.location !== s.location && !SCENARIOS[s.scenario].location) {
         next = { ...next, location: a.location, competitors: seedCompetitors(a.location, SCENARIOS[s.scenario].extraRivals) };
         const left = ECON.calendar.daysPerMonth - dateOf(1).dom + 1;
@@ -1079,7 +1090,13 @@ function reduce(s: GameState, a: Action): GameState {
       return next;
     }
     case 'setLook':
-      return { ...s, look: a.look };
+      return { ...s, look: allowedLook(s, a.look) };
+    case 'buyCosmetic': {
+      const c = COSMETICS.find((x) => x.id === a.id);
+      if (!c || owns(s, c.id) || starsToSpend(s) < c.cost) return s;
+      const next = { ...s, cosmetics: [...(s.cosmetics ?? []), c.id], questProgress: { ...s.questProgress, starsSpent: (s.questProgress.starsSpent ?? 0) + c.cost } };
+      return toast(next, 'unlock', `Unlocked: ${c.name}!`, c.kind === 'hair' || c.kind === 'accessory' ? 'Change your look any time from the star shop.' : 'Choose it in Paint, under the shop picture.');
+    }
     case 'rename':
       return { ...s, bakeryName: a.name.trim().slice(0, 28) || s.bakeryName };
     case 'buy':
@@ -1113,8 +1130,13 @@ function reduce(s: GameState, a: Action): GameState {
       const next = spend(s, Math.min(fee, Math.max(0, s.cash)), false) ?? s;
       return toast({ ...next, contracts: next.contracts.filter((x) => x.id !== a.id) }, 'info', 'Contract cancelled', `A $${fee.toFixed(0)} cancellation fee (two weeks of deliveries).`);
     }
-    case 'bake':
-      return bake(s, a.item, clamp(a.process, 0, 100));
+    case 'bake': {
+      // Quick bake is earned, like auto-cook in Genshin: practise a recipe by hand first, and it only
+      // ever comes out at normal quality. Baking by hand can reach perfect.
+      if (a.quick) return quickBakeReady(s, a.item) ? bake(s, a.item, QUICK_BAKE.quality) : s;
+      const next = bake(s, a.item, clamp(a.process, 0, 100));
+      return next === s ? s : { ...next, questProgress: { ...next.questProgress, [`handBakes_${a.item}`]: (next.questProgress[`handBakes_${a.item}`] ?? 0) + 1 } };
+    }
     case 'autoBake':
       return autoBake(s);
     case 'setPlan':
@@ -1131,7 +1153,10 @@ function reduce(s: GameState, a: Action): GameState {
       const unitsBefore = recent.length ? recent.reduce((t, h) => t + (h.sold[a.product] ?? 0), 0) / recent.length : 0;
       const shoppers = recent.reduce((t, h) => t + h.customers, 0);
       const rateBefore = shoppers > 0 ? (recent.reduce((t, h) => t + (h.sold[a.product] ?? 0), 0) / shoppers) * 10 : 0;
-      const pending = s.pendingPrediction?.product === a.product ? { ...s.pendingPrediction, to: price } : { product: a.product, from: s.prices[a.product], to: price, unitsBefore, rateBefore };
+      // The question takes turns: how many will buy it, then how much money it will bring in.
+      const ask: PredictAsk = (s.predictions?.length ?? 0) % 2 === 0 ? 'buyers' : 'money';
+      const moneyBefore = shoppers > 0 ? (recent.reduce((t, h) => t + (h.revenueBy?.[a.product] ?? 0), 0) / shoppers) * 10 : 0;
+      const pending = s.pendingPrediction?.product === a.product ? { ...s.pendingPrediction, to: price } : { product: a.product, from: s.prices[a.product], to: price, unitsBefore, rateBefore, ask, moneyBefore };
       let next: GameState = { ...s, prices: { ...s.prices, [a.product]: price }, questProgress: { ...s.questProgress, priceTouched: 1 }, pendingPrediction: pending.from === pending.to ? null : pending };
       const last = s.decisions[s.decisions.length - 1];
       if (last && last.kind === 'price' && last.product === a.product && last.day === s.day) {
@@ -1218,8 +1243,8 @@ function reduce(s: GameState, a: Action): GameState {
     case 'sellEquipment':
       return sellEquipment(s, a.uid);
     case 'setStyle': {
-      const style = s.style ?? DEFAULT_STYLE;
-      return { ...s, style: { ...style, [a.key]: Math.max(0, Math.min(7, Math.round(a.value))) } };
+      const style = { ...(s.style ?? DEFAULT_STYLE), [a.key]: Math.max(0, Math.min(7, Math.round(a.value))) };
+      return allowedStyle(s, style) ? { ...s, style } : s;
     }
     case 'moveDecor': {
       if (!MOVABLE.includes(a.id) || !s.decor.includes(a.id)) return s;

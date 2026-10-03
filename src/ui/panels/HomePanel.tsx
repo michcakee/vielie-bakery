@@ -1,12 +1,11 @@
-import { BAGUETTE, INGREDIENTS, PRODUCTS, STAGES } from '../../data/catalog';
+import { BAGUETTE, LEVELS, PRODUCTS, PRODUCT_ORDER, UPGRADES, WEATHER } from '../../data/catalog';
 import { ECON } from '../../data/config';
 import { REGULARS } from '../../data/people';
-import { GOALS, LOCATIONS } from '../../data/world';
 import { incomeStatement, inventoryValue } from '../../engine/accounting';
 import { dateLabel, daysToMonthStart, festivalsOn, FESTIVALS } from '../../engine/calendar';
-import { activeRivals, businessStage, canBakeTray, effectActive, makeable, onMenu, rent, trayCapacity, effectivePrice } from '../../engine/economy';
+import { activeRivals, canBakeTray, effectActive, has, levelOf, levelProgress, makeable, onMenu, rent, trayCapacity, effectivePrice } from '../../engine/economy';
 import { REGIMES } from '../../engine/macro';
-import { activeQuests, WEEKLY_GOALS, nextUnlock } from '../../engine/progression';
+import { activeQuests, nextUnlock } from '../../engine/progression';
 import type { GameState } from '../../engine/types';
 import { money, money2, signedMoney } from '../../lib/format';
 import { Spark } from '../charts';
@@ -18,7 +17,11 @@ import { ARC, ARC_TITLES } from '../../engine/arc';
 import { IntroCard, useGuide } from '../Guide';
 import { dailyGoal } from '../../engine/goals';
 import { nextFeature, tabOn } from '../../engine/unlocks';
+import { tutorialOn, tutorialStep } from '../Tutorial';
 import { FEATURE, FEATURES, type FeatureId } from '../../data/unlocks';
+import { COSMETICS, owns, starsToSpend } from '../../data/cosmetics';
+
+const WEATHER_ICON = { sunny: 'sun', cloudy: 'cloud', rainy: 'rain', hot: 'hot', cool: 'cool' } as const;
 
 export type Tab = 'today' | 'kitchen' | 'market' | 'staff' | 'customers' | 'growth' | 'money' | 'analytics' | 'eco';
 
@@ -46,41 +49,76 @@ export function readiness(s: GameState) {
 }
 
 /**
- * Bà's first lesson: the only required tutorial, and only the core loop.
- * Bake, serve, close up. Done by doing; the "why" comes in the report.
+ * What to aim for: the next level and what it brings, the next thing worth saving for, stars to
+ * spend, and the quests. So there's always a clear next goal.
  */
-function Coach() {
-  const { state: s, dispatch } = useGame();
-  const { showMe } = useGuide();
-  if (s.hints.includes('coachDone') || s.intro?.active || s.allUnlocked !== false) return null;
-  // Wait for Bà's welcome lines to finish first.
-  if (s.scenario === 'family' && s.history.length === 0 && !s.hints.includes('intro')) return null;
-  const steps = [
-    { done: s.traysToday > 0 || s.history.length > 0, text: 'The pastry case is empty! Bake a tray of bánh flan in the Kitchen. Tap “Take it out” when it’s golden.', tab: 'kitchen' as Tab, spot: 'bake-flan' },
-    { done: s.lifetime.served > 0, text: 'Open the doors and serve your first customer.', tab: 'today' as Tab, spot: 'open' },
-    { done: s.history.length > 0, text: 'When the day ends, choose what to do with leftovers (donating is kind!), then see your stars.' },
-  ];
-  if (steps.every((x) => x.done)) return null;
-  const at = steps.findIndex((x) => !x.done);
+function AimFor({ onQuests }: { onQuests: () => void }) {
+  const { state: s, feature } = useGame();
+  const lp = levelProgress(s.xp);
+  const level = levelOf(s.xp);
+  const next = LEVELS[lp.level];
+  const newRecipes = next ? PRODUCT_ORDER.filter((p) => PRODUCTS[p].level === next.level && !PRODUCTS[p].season).map((p) => PRODUCTS[p].name) : [];
+  const pi = s.macro.priceIndex;
+  const save = feature('growth.equipment')
+    ? Object.values(UPGRADES)
+        .filter((u) => u.level <= level && !has(s, u.id) && (!u.requires || has(s, u.requires)) && (u.group === 'kitchen' || u.group === 'shop'))
+        .sort((a, b) => a.cost - b.cost)[0]
+    : undefined;
+  const stars = starsToSpend(s);
+  const nextLook = COSMETICS.filter((c) => !owns(s, c.id)).sort((a, b) => a.cost - b.cost)[0];
+  const quests = activeQuests(s);
   return (
-    <Card className="coach-card intro-card" title="Bà’s first lesson" icon="bell" spot="coach" aside={<button type="button" className="link-btn" onClick={() => dispatch({ type: 'hint', id: 'coachDone' })}>Skip</button>}>
-      <p className="handwrite" lang="vi">Làm từng bước thôi con.</p>
-      <ol className="coach-steps">
-        {steps.map((st, i) => (
-          <li key={i} className={st.done ? 'done' : i === at ? 'now' : ''}>
-            {st.done ? <Sprite name="check" scale={2} /> : <span className="num">{i + 1}</span>}
-            <span>
-              {st.text}{' '}
-              {i === at && st.spot && (
-                <button type="button" className="link-btn" onClick={() => showMe(st.tab, st.spot)}>
-                  Show me
-                </button>
-              )}
-            </span>
+    <Card className="aim-card" title="What to aim for" icon="star" spot="aim">
+      <ul className="aim-list">
+        {next && (
+          <li>
+            <Sprite name="crown" scale={2} />
+            <div>
+              <b>
+                Level {next.level}: {next.name}
+              </b>
+              <span className="small">
+                {Math.max(0, Math.ceil(next.xp - s.xp)).toLocaleString('en-US')} XP to go. Bà sends ${100 * next.level}
+                {newRecipes.length ? `, plus new recipes: ${newRecipes.slice(0, 2).join(', ')}` : ''}.
+              </span>
+              <Meter value={lp.into / lp.span} tone="xp" label="Progress to the next level" />
+            </div>
           </li>
-        ))}
-      </ol>
-      <p className="small muted">“One step at a time, my dear.”</p>
+        )}
+        {save && (
+          <li>
+            <Sprite name="coin" scale={2} />
+            <div>
+              <b>Save up for: {save.name}</b>
+              <span className="small">
+                {save.effect}. Costs {money(save.cost * pi)}; you have {money(s.cash)}.
+              </span>
+              <Meter value={s.cash / (save.cost * pi)} tone="xp" label={`Saving for ${save.name}`} />
+            </div>
+          </li>
+        )}
+        <li>
+          <Sprite name="star" scale={2} />
+          <div>
+            <b>
+              {stars}★ to spend
+            </b>
+            <span className="small">{nextLook ? `Earn stars from your daily goal. Next look: ${nextLook.name} for ${nextLook.cost}★.` : 'You’ve unlocked every look!'}</span>
+          </div>
+        </li>
+        <li>
+          <Sprite name="book" scale={2} />
+          <div>
+            <b>
+              {quests.length} {quests.length === 1 ? 'quest' : 'quests'} to do
+            </b>
+            <span className="small">{quests[0] ? `Next: ${quests[0].title}. ${quests[0].text}` : 'All done!'}</span>
+          </div>
+        </li>
+      </ul>
+      <Btn kind="primary" onClick={onQuests} data-spot="open-quests">
+        Quests & star shop
+      </Btn>
     </Card>
   );
 }
@@ -107,159 +145,122 @@ function TodayGoal() {
   );
 }
 
-export function HomePanel({ goTo, onOpen, onRunDay }: { goTo: (t: Tab) => void; onOpen: () => void; onRunDay: () => void }) {
-  const { state: s, business, feature, fresh } = useGame();
+export function HomePanel({ goTo, onOpen, onRunDay, onQuests }: { goTo: (t: Tab) => void; onOpen: () => void; onRunDay: () => void; onQuests: () => void }) {
+  const { state: s, business, feature } = useGame();
   const { showMe } = useGuide();
   const t = s.today;
   const is = incomeStatement(t.books);
   const warnings = readiness(s);
-  const quests = activeQuests(s);
-  const goal = s.weeklyGoal ? WEEKLY_GOALS[s.weeklyGoal.id] : null;
   const regime = REGIMES[s.macro.regime];
   const fest = festivalsOn(s.day);
   const rivals = activeRivals(s);
   const morning = s.phase === 'morning';
   const recent = s.history.slice(-14);
-  const firstDay = s.day === 1 && s.history.length === 0 && (s.scenario === 'family' || s.scenario === 'community' || s.scenario === 'recession');
   const teamCanRun = s.staff.some((e) => e.branch === null);
   const delegate = feature('today.teamDay');
-  const stage = businessStage(s);
   const catering = s.effects.find((e) => e.id === 'catering' && Number(e.data?.day) === s.day);
-  // While Bà's first lesson runs, it is the only voice on this page.
-  const lesson = s.allUnlocked === false && s.history.length === 0 && !s.hints.includes('coachDone');
+  // While the first-day walkthrough runs, it is the only voice: this page shows just the Open card.
+  const lesson = tutorialOn(s);
+
+  if (lesson)
+    return (
+      <div className="panel-stack">
+        {morning && tutorialStep(s) >= 2 && (
+          <Card title="Open for business" icon="shop">
+            <TodayGoal />
+            <Btn kind="go" className="big" onClick={onOpen} disabled={s.events.length > 0} sfx="bell" data-spot="open">
+              Open the shop
+            </Btn>
+          </Card>
+        )}
+      </div>
+    );
 
   return (
     <div className="panel-stack">
-      <div className="dash-tiles">
-        <div className="tile">
-          <Sprite name="coin" scale={3} />
-          <span>Cash</span>
-          <b className={s.cash < 0 ? 'neg' : ''}>{money(s.cash)}</b>
-          <Spark values={recent.map((h) => h.cash)} label="Cash trend" />
-        </div>
-        <div className="tile">
-          <Sprite name="chart" scale={3} />
-          <span>Today's sales</span>
-          <b>{money(is.revenue)}</b>
-          <Spark values={recent.map((h) => h.revenue)} label="Sales trend" />
-        </div>
-        {business && (
-        <div className="tile">
-          <Sprite name="star" scale={3} />
-          <span>Today's profit</span>
-          <b className={is.netProfit < 0 ? 'neg' : 'pos'}>{signedMoney(is.netProfit)}</b>
-          <span className="tiny muted">{s.phase === 'morning' ? 'Before rent, wages & power' : ''}</span>
-        </div>
-        )}
-        {business && (
-        <div className="tile">
-          <Sprite name="box" scale={3} />
-          <span>
-            <Tip concept="inventory">Inventory</Tip>
-          </span>
-          <b>{money(inventoryValue(s))}</b>
-        </div>
-        )}
-        <div className="tile">
-          <Sprite name="people" scale={3} />
-          <span>Customers today</span>
-          <b>
-            {t.served}/{t.customers}
-          </b>
-        </div>
-        {business && (
-        <div className="tile">
-          <Sprite name="heart" scale={3} />
-          <span>Reputation</span>
-          <b>{Math.round(s.reputation)}</b>
-        </div>
-        )}
-      </div>
-
-      <Coach />
       <IntroCard />
-      <Card className={`economy-card regime-${s.macro.regime}`} title={feature('analytics.economy') ? regime.name : `Day ${s.day}`} icon="chart" aside={<span className="small muted">{dateLabel(s.day)}</span>}>
-        {feature('analytics.economy') && <p className="small">{regime.forYou}</p>}
-        {business && feature('analytics.economy') && (
-          <p className="small muted">
-            Inflation {(s.macro.inflation * 100).toFixed(1)}% · interest rate {(s.macro.rate * 100).toFixed(1)}% · unemployment {(s.macro.unemployment * 100).toFixed(1)}% · consumer confidence {Math.round(s.macro.confidence)}
-          </p>
-        )}
-        {fest.length > 0 && (
-          <p className="festival-chip">
-            {fest.map((f) => (
-              <span key={f} className="chip">
-                <span lang="vi">{FESTIVALS[f].vi}</span>: {FESTIVALS[f].blurb}
-              </span>
-            ))}
-          </p>
-        )}
-        <p className="small muted">
-          {LOCATIONS[s.location].name} · {STAGES[stage - 1].name} · Goal: {GOALS[s.goal]?.name}
-        </p>
-      </Card>
 
-      {s.special && (
-        <Card className="special-card" title="Today’s special" icon="star" spot="special" fresh={fresh('today.special')} aside={<span className="small muted">pays ×{ECON.service.dailySpecial.mult}</span>}>
-          <div className="special-row">
-            <Sprite name={s.special} scale={3} />
-            <div>
-              <b>{PRODUCTS[s.special].name}</b>
-              <span className="small">Sells for {money2(effectivePrice(s, s.special))} today instead of {money2(s.prices[s.special])}, and customers are happy to pay it. {PRODUCTS[s.special].kind === 'tray' ? 'Bake extra!' : 'Make sure you have the ingredients!'}</span>
-            </div>
-          </div>
-        </Card>
-      )}
-      {!s.intro?.active && !lesson && (s.allUnlocked === false ? <LessonPath /> : <NextUp />)}
-
-      {lesson ? null : firstDay ? (
-        <Card className="ba-note" title="A note from Bà" icon="note">
-          <p className="handwrite">Con ơi, the bakery is yours now. I left you baguettes, a tray of flan and enough for coffee. Open the doors, and someone will be hungry soon. Thương con.</p>
-          <p className="small muted">"My dear, the bakery is yours now…" — Bà (grandma)</p>
-        </Card>
-      ) : (
-        warnings.length > 0 && (
-          <Card title="Before you open" icon="bell">
-            <ul className="warnings">
-              {warnings.map((w) => (
-                <li key={w.text}>
-                  <Sprite name="bell" scale={2} />
-                  <span>{w.text}</span>
-                  <button type="button" className="link-btn" onClick={() => (w.spot ? showMe(w.tab, w.spot) : goTo(w.tab))}>
-                    {w.spot ? 'Show me' : 'Go'}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </Card>
-        )
-      )}
-
+      {/* The important things for today, in one place, ending with the Open button. */}
       {morning && (
-        <Card title="Open for business" icon="shop">
+        <Card className="today-card" title={`Today: ${WEATHER[s.market.weather].name}`} icon={WEATHER_ICON[s.market.weather]} aside={<span className="small muted">Day {s.day} · {dateLabel(s.day)}</span>}>
+          <p className="small today-weather">{WEATHER[s.market.weather].tip}</p>
+          {fest.length > 0 && (
+            <p className="festival-chip">
+              {fest.map((f) => (
+                <span key={f} className="chip">
+                  <span lang="vi">{FESTIVALS[f].vi}</span>: {FESTIVALS[f].blurb}
+                </span>
+              ))}
+            </p>
+          )}
           <TodayGoal />
+          {s.special && (
+            <div className="special-row today-special" data-spot="special">
+              <Sprite name={s.special} scale={3} />
+              <div>
+                <b>
+                  Today’s special: {PRODUCTS[s.special].name} <span className="special-tag">×{ECON.service.dailySpecial.mult} price</span>
+                </b>
+                <span className="small">
+                  Sells for {money2(effectivePrice(s, s.special))} today instead of {money2(s.prices[s.special])}. {PRODUCTS[s.special].kind === 'tray' ? 'Bake extra!' : 'Have the ingredients ready!'}
+                </span>
+              </div>
+            </div>
+          )}
           <ChallengeChip />
           {catering && <p className="chip">Catering at noon: {String(catering.data?.qty)} bánh mì</p>}
+          {warnings.length > 0 && (
+            <>
+              <b className="todo-head">Before you open</b>
+              <ul className="warnings">
+                {warnings.slice(0, 2).map((w) => (
+                  <li key={w.text}>
+                    <Sprite name="bell" scale={2} />
+                    <span>{w.text}</span>
+                    <button type="button" className="link-btn" onClick={() => (w.spot ? showMe(w.tab, w.spot) : goTo(w.tab))}>
+                      {w.spot ? 'Show me' : 'Go'}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              {warnings.length > 2 && (
+                <details className="more-todos">
+                  <summary>{warnings.length - 2} more</summary>
+                  <ul className="warnings">
+                    {warnings.slice(2).map((w) => (
+                      <li key={w.text}>
+                        <Sprite name="bell" scale={2} />
+                        <span>{w.text}</span>
+                        <button type="button" className="link-btn" onClick={() => (w.spot ? showMe(w.tab, w.spot) : goTo(w.tab))}>
+                          {w.spot ? 'Show me' : 'Go'}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              )}
+            </>
+          )}
           {effectActive(s, 'closedDay') && <p className="warn">The shop has to stay closed today.</p>}
           <div className="open-choices">
             <Btn kind="go" className="big" onClick={onOpen} disabled={s.events.length > 0} sfx="bell" data-spot="open">
-              <span lang="vi">Mở cửa!</span> Run the counter yourself
+              Open the shop
             </Btn>
             {delegate && (
-            <Btn kind="primary" onClick={onRunDay} disabled={s.events.length > 0} sfx="bell" data-spot="team-day">
-              {teamCanRun ? 'Let the team run today' : 'Let Bà run today'}
-            </Btn>
+              <Btn kind="primary" onClick={onRunDay} disabled={s.events.length > 0} sfx="bell" data-spot="team-day">
+                {teamCanRun ? 'Let the team run today' : 'Let Bà run today'}
+                <span className="btn-sub">{teamCanRun ? 'instant · you can’t help' : 'instant · no tips or XP'}</span>
+              </Btn>
             )}
           </div>
-          {delegate && <p className="small muted">
-            {teamCanRun
-              ? 'Your team (and Bà) bake from the plan in the Kitchen, restock and serve everyone they can. The day finishes straight away. You serve better than they do, so jump in on busy days.'
-              : 'The autopilot bakes, restocks and serves for you at a fair, slightly slower pace. Handy for long games; you\'ll learn more running the counter yourself at first.'}
-          </p>}
         </Card>
       )}
 
-      {s.story && !lesson && <StoryCard />}
+      <AimFor onQuests={onQuests} />
+
+      {s.story && <StoryCard />}
+      {!s.intro?.active && (s.allUnlocked === false ? <LessonPath /> : <NextUp />)}
+      {s.intro?.active && s.allUnlocked === false && <LessonPath folded />}
 
       {rivals.length > 0 && feature('customers.rivals') && (
         <Card title="On your street" icon="shop">
@@ -277,42 +278,48 @@ export function HomePanel({ goTo, onOpen, onRunDay }: { goTo: (t: Tab) => void; 
         </Card>
       )}
 
-      {!lesson && !s.intro?.active && (
-      <Card title="Quests" icon="book">
-        <ul className="quests">
-          {quests.map((q) => {
-            const v = Math.min(q.target, q.progress(s));
-            return (
-              <li key={q.id}>
-                <div>
-                  <b>{q.title}</b>
-                  <span className="small">{q.text}</span>
-                </div>
-                <Meter value={v / q.target} tone="xp" label={`${q.title} progress`} />
-                <span className="small muted">
-                  {v}/{q.target} · Reward: {q.rewardText}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-        {goal && s.weeklyGoal && (
-          <div className="weekly-goal">
-            <b>This week: {goal.title}</b>
-            <span className="small">
-              {goal.text(s.weeklyGoal.target)} Now: {Math.round(goal.measure(s, s.weeklyGoal.startDay))}
-            </span>
+      <div className="dash-tiles">
+        <div className="tile">
+          <Sprite name="chart" scale={3} />
+          <span>Today's sales</span>
+          <b>{money(is.revenue)}</b>
+          <Spark values={recent.map((h) => h.revenue)} label="Sales trend" />
+        </div>
+        <div className="tile">
+          <Sprite name="people" scale={3} />
+          <span>Customers today</span>
+          <b>
+            {t.served}/{t.customers}
+          </b>
+        </div>
+        {business && (
+          <div className="tile">
+            <Sprite name="star" scale={3} />
+            <span>Today's profit</span>
+            <b className={is.netProfit < 0 ? 'neg' : 'pos'}>{signedMoney(is.netProfit)}</b>
           </div>
         )}
-      </Card>
+        {business && (
+          <div className="tile">
+            <Sprite name="box" scale={3} />
+            <span>
+              <Tip concept="inventory">Inventory</Tip>
+            </span>
+            <b>{money(inventoryValue(s))}</b>
+          </div>
+        )}
+      </div>
+
+      {feature('analytics.economy') && (
+        <Card className={`economy-card regime-${s.macro.regime}`} title={regime.name} icon="chart">
+          <p className="small">{regime.forYou}</p>
+          {business && (
+            <p className="small muted">
+              Inflation {(s.macro.inflation * 100).toFixed(1)}% · interest rate {(s.macro.rate * 100).toFixed(1)}% · unemployment {(s.macro.unemployment * 100).toFixed(1)}% · consumer confidence {Math.round(s.macro.confidence)}
+            </p>
+          )}
+        </Card>
       )}
-
-      {!lesson && s.intro?.active && s.allUnlocked === false && <LessonPath folded />}
-
-      <p className="small muted">
-        Pantry check: {Object.entries(s.pantry).filter(([, p]) => p.qty > 0).length} ingredients in stock
-        {s.deliveries.length ? ` · ${s.deliveries.length} deliveries on the way (${s.deliveries.map((d) => INGREDIENTS[d.ingredient].name.toLowerCase()).join(', ')})` : ''}. Rent: about {money(rent(s) * 30)} a month, paid on the 1st.
-      </p>
     </div>
   );
 }

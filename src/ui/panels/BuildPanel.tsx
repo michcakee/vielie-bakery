@@ -9,8 +9,8 @@ import type { DecorId, LocationId, SegmentId, UpgradeId } from '../../engine/typ
 import { money, money2, pct } from '../../lib/format';
 import { useGame } from '../GameContext';
 import { Painter } from '../Painter';
-import { Btn, Card, ConfirmBtn, Tip } from '../kit';
-import { LookEditor } from '../LookEditor';
+import { LevelLock, Btn, Card, ConfirmBtn, Tip } from '../kit';
+import { LookChanger } from '../LookEditor';
 import { Sprite } from '../pixel/Sprite';
 
 const UP_ICON: Record<UpgradeId, string> = {
@@ -110,9 +110,7 @@ export function BuildPanel() {
               <Sprite name="check" scale={2} /> Yours
             </span>
           ) : locked ? (
-            <span className="lock-tag">
-              <Sprite name="lock" scale={2} /> Level {u.level}
-            </span>
+            <LevelLock level={u.level} />
           ) : needs ? (
             <span className="lock-tag">Needs {needs}</span>
           ) : (
@@ -174,7 +172,7 @@ export function BuildPanel() {
       )}
 
       {feature('growth.branches') && (
-      <Card spot="branches" fresh={fresh('growth.branches')} title="More shops" icon="shop" aside={level < 4 ? <span className="lock-tag">Level 4</span> : undefined}>
+      <Card spot="branches" fresh={fresh('growth.branches')} title="More shops" icon="shop" aside={level < 4 ? <LevelLock level={4} /> : undefined}>
         {openBranches.map((b) => (
           <div key={b.id} className="branch-card">
             <b>
@@ -270,9 +268,7 @@ export function BuildPanel() {
                       <Sprite name="check" scale={2} /> Yours
                     </span>
                   ) : locked ? (
-                    <span className="lock-tag">
-                      <Sprite name="lock" scale={2} /> Level {d.level}
-                    </span>
+                    <LevelLock level={d.level} />
                   ) : (
                     <Btn kind="primary" disabled={!shopping || s.cash < d.cost} onClick={() => dispatch({ type: 'buyDecor', id })} sfx="sparkle">
                       {money(d.cost)}
@@ -304,7 +300,7 @@ export function BuildPanel() {
             Rename
           </Btn>
         </form>
-        <LookEditor look={s.look} onChange={(look) => dispatch({ type: 'setLook', look })} big={6} />
+        <LookChanger big={6} />
         <p className="muted small">
           Level {level}: {LEVELS[level - 1].name}. {LEVELS[level] ? `Next: ${LEVELS[level].name} at ${LEVELS[level].xp.toLocaleString('en-US')} XP.` : 'You made it. Viet Bake Shop is a local legend.'}
         </p>

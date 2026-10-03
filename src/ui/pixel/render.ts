@@ -79,10 +79,10 @@ export function spriteURL(name: string): { url: string; w: number; h: number } {
 
 // ------------------------------------------------------------------ people
 
-export const HAIR_STYLES = ['Bob', 'Bun', 'Short', 'Long', 'Pigtails'];
-export const ACCESSORY_NAMES = ['None', 'Glasses', 'Bow', 'Helmet', 'Baker\'s hat', 'Headscarf', 'Nón lá', 'Headphones', 'Heart clips'];
+export const HAIR_STYLES = ['Bob', 'Bun', 'Short', 'Long', 'Pigtails', 'Ponytail', 'Twin buns', 'Curly', 'Spiky'];
+export const ACCESSORY_NAMES = ['None', 'Glasses', 'Bow', 'Helmet', 'Baker\'s hat', 'Headscarf', 'Nón lá', 'Headphones', 'Heart clips', 'Cat ears', 'Flower crown', 'Crown', 'Sunglasses', 'Star clip'];
 
-const lookKey = (l: Look) => `${l.skin}.${l.hair}.${l.hairColor}.${l.shirt}.${l.apron}.${l.accessory}`;
+const lookKey = (l: Look) => `${l.skin}.${l.hair}.${l.hairColor}.${l.shirt}.${l.apron}.${l.accessory}.${l.eyes ?? 0}`;
 
 /** Person cell: 24×36, feet on the bottom row. */
 export const PERSON_W = CHIBI_W;

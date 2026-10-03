@@ -209,8 +209,8 @@ export const FEATURES: FeatureDef[] = [
     name: 'Staff: your first hire',
     chapter: 2,
     tab: 'staff',
-    fallbackDay: 12,
-    trigger: (s) => (last(s)?.lostSlow ?? 0) >= 3,
+    fallbackDay: 7,
+    trigger: (s) => (last(s)?.lostSlow ?? 0) >= 2,
     requires: ['market.wet'],
     teaser: 'Unlocks soon: hiring help',
     intro: {

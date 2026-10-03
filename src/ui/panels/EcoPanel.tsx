@@ -4,7 +4,7 @@ import { canShop } from '../../engine/state';
 import type { PackagingId, UpgradeId } from '../../engine/types';
 import { money, money2 } from '../../lib/format';
 import { useGame } from '../GameContext';
-import { Btn, Card, Meter, Tip } from '../kit';
+import { LevelLock, Btn, Card, Meter, Tip } from '../kit';
 import { Sprite } from '../pixel/Sprite';
 
 const ECO_UPS: UpgradeId[] = ['compost', 'solar', 'garden'];
@@ -97,9 +97,7 @@ export function EcoPanel() {
                       <Sprite name="check" scale={2} /> Yours
                     </span>
                   ) : level < u.level ? (
-                    <span className="lock-tag">
-                      <Sprite name="lock" scale={2} /> Level {u.level}
-                    </span>
+                    <LevelLock level={u.level} />
                   ) : (
                     <Btn kind="primary" disabled={!canShop(s) || s.cash < u.cost} onClick={() => dispatch({ type: 'buyUpgrade', id })} sfx="sparkle">
                       {money(u.cost)}

@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { CONFIG, PRODUCTS } from '../../data/catalog';
+import { CONFIG } from '../../data/catalog';
 import { competitorOpen, isTet, onMenu } from '../../engine/economy';
 import { lightPhase } from '../../engine/time';
 import type { GameState, Look, Mood, ProductId, RoleId, TraitId, Visit } from '../../engine/types';
@@ -10,6 +10,33 @@ import { CAGE_SPOTS, drawCounter, drawFront, drawRoom, drawWindowFront, FLOOR_SP
 import { PERSON_H } from '../pixel/render';
 import { Person, Sprite } from '../pixel/Sprite';
 import { money2 } from '../../lib/format';
+
+/** Short English names that fit on the chalkboard. */
+const BOARD_NAMES: Record<ProductId, string> = {
+  banhMi: 'Banh mi',
+  caPhe: 'Iced coffee',
+  flan: 'Flan',
+  michcake: 'Michcake',
+  pateChaud: 'Meat pie',
+  traTac: 'Kumquat tea',
+  banhBao: 'Pork bun',
+  banhChuoi: 'Banana cake',
+  banhBo: 'Pandan cake',
+  che: 'Bean dessert',
+  banhKem: 'Party cake',
+  mutDua: 'Coconut box',
+  banhTrungThu: 'Mooncake',
+  gressCupcake: 'Gress cupcake',
+  gressTeaLight: 'Gress tea',
+  gressOreo: 'Gress cookies',
+  gressCoffee: 'Gress coffee',
+  gressHoneycomb: 'Gress cake',
+  gressBoba: 'Gress boba',
+  gressPie: 'Apple pie',
+  gressMilkshake: 'Milkshake',
+  gressCrepe: 'Crepe cake',
+  gressCake: 'Big Gress cake',
+};
 
 const MOOD_FACE: Record<Mood, string> = { love: 'heart', happy: 'star', ok: 'check', pricey: 'coin', sad: 'box', slow: 'clock', thinking: 'shop' };
 
@@ -500,10 +527,10 @@ export function BakeryScene({ onCustomer, baking = false, caption }: Props) {
           </div>
         )}
         <div className="board" style={{ left: (LAYOUT.board.x + 2) * scale, top: (LAYOUT.board.y + 1) * scale, width: (LAYOUT.board.w - 4) * scale, fontSize: Math.max(9, 4.6 * scale) }}>
-          <div className="board-title">{tet ? 'Chúc Mừng Năm Mới' : 'Thực đơn'}</div>
+          <div className="board-title">{tet ? 'Happy New Year!' : 'Menu'}</div>
           {menu.slice(0, 4).map((p) => (
             <div key={p} className="board-row">
-              <span>{PRODUCTS[p].name.replace('Bánh ', 'B. ').replace('Hộp ', '')}</span>
+              <span>{BOARD_NAMES[p]}</span>
               <span>{s.prices[p].toFixed(2)}</span>
             </div>
           ))}

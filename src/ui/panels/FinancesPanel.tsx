@@ -11,7 +11,7 @@ import type { CoopId, DaySummary, ProductId } from '../../engine/types';
 import { money, money2, pct, signedMoney } from '../../lib/format';
 import { BarList } from '../charts';
 import { useGame } from '../GameContext';
-import { Btn, Card, ConfirmBtn, Empty, Stepper, Tip } from '../kit';
+import { LevelLock, Btn, Card, ConfirmBtn, Empty, Stepper, Tip } from '../kit';
 
 type Range = 'today' | 'week' | 'month' | 'year' | 'all';
 const RANGES: { id: Range; label: string; days: number }[] = [
@@ -465,7 +465,7 @@ export function FinancesPanel() {
       <Financing />
 
       {feature('finances.capital') && (s.allUnlocked !== false || levelOf(s.xp) >= 6) && (
-      <Card title="Co-op shares" icon="chart" aside={levelOf(s.xp) < 3 ? <span className="lock-tag">Level 3</span> : undefined}>
+      <Card title="Co-op shares" icon="chart" aside={levelOf(s.xp) < 3 ? <LevelLock level={3} /> : undefined}>
         <p className="small">
           Own a slice of the farms you buy from. Prices move every day; each week you get a 1.5% <Tip concept="dividends">dividend</Tip>. A dairy share rises when eggs get pricey for you: a natural <Tip concept="hedging">hedge</Tip>.
         </p>

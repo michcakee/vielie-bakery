@@ -219,7 +219,7 @@ export function MarketPanel() {
             );
           })}
         </ul>
-        {lockable && (
+        {deals && lockable && (
           <p className="muted small">
             Worried a price will jump? <Tip concept="hedging">Locking a price</Tip> costs ${ECON.costs.priceLockFee} and keeps today's market price for 7 days.
           </p>

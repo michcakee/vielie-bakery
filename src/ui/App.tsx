@@ -344,7 +344,7 @@ function Game({ onQuit }: { onQuit: () => void }) {
               {moreTabs.length > 0 && (
               <button type="button" className={`tab mobile-only ${!current.mobile ? 'on' : ''}`} aria-haspopup="dialog" onClick={() => (play('click'), setDrawer('more'))}>
                 <Sprite name="gear" scale={2} />
-                <span className="tab-label">{!current.mobile ? current.label : 'More'}</span>
+                <span className="tab-label">More</span>
                 <span className="tab-vi" lang="vi">
                   Thêm
                 </span>

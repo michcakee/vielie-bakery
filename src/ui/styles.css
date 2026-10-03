@@ -5262,3 +5262,6 @@ html[data-motion='reduced'] .title-logo span {
 @media (max-width: 400px) {
   .tabs .tab-label { font-size: 14px; letter-spacing: -0.02em; }
 }
+@media (max-width: 760px) {
+  .toast { top: 8px; bottom: auto; }
+}

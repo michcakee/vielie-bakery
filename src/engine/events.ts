@@ -112,7 +112,7 @@ export const EVENTS: Record<string, EventDef> = {
     icon: 'rain',
     title: 'Mùa mưa: the rainy season',
     vi: 'Mùa mưa',
-    text: () => 'Three days of rain are coming. Fewer people will walk past, but anyone who does wants something hot: bánh mì, patê sô, bánh bao, cà phê.',
+    text: () => 'Three days of rain are coming. Fewer people will walk past, but anyone who does wants something warm, like a bánh mì or a hot cà phê.',
     choices: (s) => [
       {
         id: 'awning',

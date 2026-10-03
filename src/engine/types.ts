@@ -237,6 +237,8 @@ export interface DayStats {
   served: number;
   love: number;
   comboSales?: number;
+  /** Today's 1-, 2- and 3-star sales targets. */
+  goal?: [number, number, number];
   bestOrder?: { score: number; stars: number; product: ProductId; name: string };
   /** Consumer surplus: what customers would have paid minus what they did, summed over the day. */
   surplus?: number;
@@ -277,6 +279,7 @@ export interface DayStats {
 
 export interface DaySummary {
   day: number;
+  stars?: number;
   weather: Weather;
   revenue: number;
   expenses: number;
@@ -687,6 +690,9 @@ export interface Report {
   savedToFund: number;
   why: string[];
   branchProfit: number;
+  /** Stars earned on today's goal, and the XP they paid. */
+  stars?: number;
+  starXp?: number;
 }
 
 export interface IntroState {

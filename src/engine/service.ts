@@ -1,3 +1,4 @@
+import { dailyGoal } from './goals';
 import { CONFIG, PRODUCTS, type ProductKind } from '../data/catalog';
 import { ECON } from '../data/config';
 import { LINES, REGULARS, WALKIN_NAMES } from '../data/people';
@@ -563,7 +564,7 @@ export function openShop(s: GameState, auto = false): GameState {
   let next: GameState = { ...s, phase: 'service', service: newService(s, auto) };
   next = wholesaleDelivery(next);
   const visits = next.service!.visits;
-  return { ...next, today: { ...next.today, customers: visits.filter((v) => !v.lastCallOnly).length } };
+  return { ...next, today: { ...next.today, customers: visits.filter((v) => !v.lastCallOnly).length, goal: next.today.goal ?? dailyGoal(s) } };
 }
 
 export function tick(s: GameState, dt: number): GameState {

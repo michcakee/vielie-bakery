@@ -5091,3 +5091,41 @@ html[data-motion='reduced'] .title-logo span {
 @media (hover: none) {
   .kbd-hint { display: none; }
 }
+
+/* ---------- daily 3-star goal ---------- */
+.goal-meter { display: grid; gap: 2px; }
+.goal-bar {
+  position: relative;
+  height: 18px;
+  margin: 6px 14px 4px 0;
+  border: 3px solid var(--ink);
+  border-radius: 6px;
+  background: var(--paper);
+}
+.goal-bar > i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--mango);
+  transition: width 0.3s steps(6);
+}
+.goal-star {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  filter: grayscale(1) opacity(0.5);
+}
+.goal-star.lit { filter: none; animation: star-pop 0.4s steps(3); }
+@keyframes star-pop { 50% { transform: translate(-50%, -50%) scale(1.6); } }
+.goal-text { font-family: var(--pixel); font-size: 16px; }
+.today-goal { margin-bottom: 10px; padding: 8px 10px; border: 2px dashed var(--ink-soft); border-radius: 8px; background: var(--cream); }
+.today-goal ol { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 4px 0; padding: 0; list-style: none; }
+.today-goal li { display: inline-flex; align-items: center; gap: 2px; font-family: var(--pixel); font-size: 17px; }
+.today-goal li span { margin-left: 6px; }
+.report-stars { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px; margin-top: 6px; }
+.report-stars > span:not(.small) { filter: grayscale(1) opacity(0.35); }
+.report-stars > span.lit { filter: none; animation: star-pop-in 0.5s steps(3) both; animation-delay: calc(var(--i) * 0.35s); }
+@keyframes star-pop-in { 0% { transform: scale(0); } 60% { transform: scale(1.4); } 100% { transform: scale(1); } }
+.report-stars .small { flex-basis: 100%; text-align: center; }
+@media (prefers-reduced-motion: reduce) {
+  .goal-star.lit, .report-stars > span.lit { animation: none; }
+}

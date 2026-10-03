@@ -212,6 +212,19 @@ export function DayReport() {
         <span className="eyebrow">Day {r.day}</span>
         <h2>BAKERY CLOSED!</h2>
         <p className="report-mood">{mood}</p>
+        {r.stars !== undefined && t.goal && (
+          <div className={`report-stars stars-${r.stars}`} aria-label={`${r.stars} of 3 stars`}>
+            {[1, 2, 3].map((i) => (
+              <span key={i} className={i <= r.stars! ? 'lit' : ''} style={{ ['--i' as string]: i }}>
+                <Sprite name="star" scale={5} />
+              </span>
+            ))}
+            <span className="small">
+              {r.stars === 3 ? 'Three stars! ' : r.stars === 0 ? `Sell ${money(t.goal[0])} tomorrow for your first star. ` : `Next star at ${money(t.goal[r.stars])}. `}
+              {r.starXp ? `+${r.starXp} XP` : ''}
+            </span>
+          </div>
+        )}
       </div>
       {leveled && (
         <div className="level-up">

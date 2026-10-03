@@ -1,11 +1,12 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { dailyGoal, salesToday, starsFor } from '../../engine/goals';
 import { CONFIG, PRODUCTS } from '../../data/catalog';
 import { translate } from '../../data/people';
 import { effectivePrice, has, makeable, onMenu } from '../../engine/economy';
 import { rngFor } from '../../engine/rng';
 import { clockLabel } from '../../engine/time';
 import type { ProductId, Visit } from '../../engine/types';
-import { money2 } from '../../lib/format';
+import { money, money2 } from '../../lib/format';
 import { play } from '../audio';
 import { useGame } from '../GameContext';
 import { Btn } from '../kit';
@@ -187,6 +188,35 @@ function GradeCard({ visit }: { visit: Visit }) {
   );
 }
 
+/** Today's 3-star goal, filling up as you sell. */
+export function GoalMeter({ compact = false }: { compact?: boolean }) {
+  const { state: s } = useGame();
+  const goal = s.today.goal ?? dailyGoal(s);
+  const sales = salesToday(s);
+  const stars = starsFor(sales, goal);
+  const pct = Math.min(1, sales / goal[2]);
+  const prev = useRef(stars);
+  useEffect(() => {
+    if (stars > prev.current) play('sparkle');
+    prev.current = stars;
+  }, [stars]);
+  return (
+    <div className={`goal-meter ${compact ? 'compact' : ''}`} role="img" aria-label={`Today's goal: ${stars} of 3 stars. Sales ${money2(sales)}; next star at ${money2(goal[Math.min(2, stars)])}`}>
+      <div className="goal-bar">
+        <i style={{ width: `${pct * 100}%` }} />
+        {goal.map((g, i) => (
+          <span key={i} className={`goal-star ${sales >= g ? 'lit' : ''}`} style={{ left: `${(g / goal[2]) * 100}%` }}>
+            <Sprite name="star" scale={2} />
+          </span>
+        ))}
+      </div>
+      <span className="goal-text">
+        {stars === 3 ? '3 stars! Amazing day!' : `${money(sales)} / ${money(goal[stars])} for ${stars === 0 ? 'your first star' : `star ${stars + 1}`}`}
+      </span>
+    </div>
+  );
+}
+
 export function ServicePanel({ paused, setPaused, speed, setSpeed, activeId, setActiveId }: { paused: boolean; setPaused: (p: boolean) => void; speed: number; setSpeed: (n: number) => void; activeId: number | null; setActiveId: (id: number | null) => void }) {
   const { state: s, dispatch, prefs } = useGame();
   const svc = s.service!;
@@ -238,6 +268,7 @@ export function ServicePanel({ paused, setPaused, speed, setSpeed, activeId, set
         <span style={{ left: '58%' }}>Afternoon</span>
         <span style={{ left: '84%' }}>Last call</span>
       </div>
+      <GoalMeter />
       <div className="service-controls">
         <Btn kind="ghost" onClick={() => setPaused(!paused)} aria-label={paused ? 'Resume' : 'Pause'} aria-pressed={paused}>
           <Sprite name={paused ? 'playIcon' : 'pause'} scale={2} /> {paused ? 'Resume' : 'Pause'}

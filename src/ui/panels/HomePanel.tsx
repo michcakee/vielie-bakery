@@ -14,6 +14,7 @@ import { useGame } from '../GameContext';
 import { Btn, Card, Meter, Tip } from '../kit';
 import { Person, Sprite } from '../pixel/Sprite';
 import { IntroCard, useGuide } from '../Guide';
+import { dailyGoal } from '../../engine/goals';
 import { tabOn } from '../../engine/unlocks';
 
 export type Tab = 'today' | 'kitchen' | 'market' | 'staff' | 'customers' | 'growth' | 'money' | 'analytics' | 'eco';
@@ -70,6 +71,28 @@ function Coach() {
       </ol>
       <p className="small muted">“One step at a time, my dear.”</p>
     </Card>
+  );
+}
+
+/** The day's three sales targets, shown before opening so there's something to aim for. */
+function TodayGoal() {
+  const { state: s } = useGame();
+  const goal = s.today.goal ?? dailyGoal(s);
+  return (
+    <div className="today-goal">
+      <b>Today’s goal</b>
+      <ol>
+        {goal.map((g, i) => (
+          <li key={i}>
+            {Array.from({ length: i + 1 }).map((_, k) => (
+              <Sprite key={k} name="star" scale={2} />
+            ))}
+            <span>sell {money(g)}</span>
+          </li>
+        ))}
+      </ol>
+      <span className="small muted">More stars, more XP. Bake enough, price it right and keep the line moving!</span>
+    </div>
   );
 }
 
@@ -200,6 +223,7 @@ export function HomePanel({ goTo, onOpen, onRunDay }: { goTo: (t: Tab) => void; 
 
       {morning && (
         <Card title="Open for business" icon="shop">
+          <TodayGoal />
           {catering && <p className="chip">Catering at noon: {String(catering.data?.qty)} bánh mì</p>}
           {effectActive(s, 'closedDay') && <p className="warn">The shop has to stay closed today.</p>}
           <div className="open-choices">

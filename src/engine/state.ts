@@ -1,3 +1,4 @@
+import { STAR_XP, starsFor } from './goals';
 import { BAGUETTE, DECOR, INGREDIENTS, INGREDIENT_ORDER, PRODUCTS, PRODUCT_ORDER, START_PRODUCTS, SUPPLIERS, UPGRADES } from '../data/catalog';
 import { DIFFICULTY, ECON, type Difficulty } from '../data/config';
 import { LOCATIONS, ROLES, SCENARIOS } from '../data/world';
@@ -207,7 +208,7 @@ export function createNewGame(seedOrOpts: number | NewGameOptions = {}): GameSta
     market,
     macro,
     service: null,
-    today: { ...emptyDay(1, market.weather), made: { ...zeroProducts(), flan: sc.inherited ? 8 : 0 } },
+    today: { ...emptyDay(1, market.weather), made: { ...zeroProducts(), flan: sc.inherited && !opts.guided ? 8 : 0 } },
     history: [],
     months: [],
     leftoverPlan: {},
@@ -704,13 +705,15 @@ function finishDay(s: GameState): GameState {
   const made = PRODUCT_ORDER.reduce((a, p) => a + t.made[p], 0);
   const wasteRate = made > 0 ? t.wasteUnits / made : 0;
   const sourcingEco = t.purchasedUnits > 0 ? t.purchasedEco / t.purchasedUnits : next.ecoHistory.length ? next.ecoHistory[next.ecoHistory.length - 1].sourcingEco : 50;
-  const xpGain = t.xp + Math.max(0, Math.round(profit / ECON.progression.xpProfitDivisor));
+  const stars = starsFor(incomeStatement(t.books).revenue, t.goal);
+  const starXp = STAR_XP[stars];
+  const xpGain = t.xp + starXp + Math.max(0, Math.round(profit / ECON.progression.xpProfitDivisor));
   next = {
     ...next,
     safetyFund: fund,
     reputation: round2(clamp(next.reputation + reputationDrift(next, t), 0, 100)),
     xp: next.xp + xpGain,
-    questProgress: { ...next.questProgress, bestFund: Math.max(next.questProgress.bestFund ?? 0, fund), bestMorning: Math.max(next.questProgress.bestMorning ?? 0, t.servedBeforeNoon) },
+    questProgress: { ...next.questProgress, stars: (next.questProgress.stars ?? 0) + stars, threeStarDays: (next.questProgress.threeStarDays ?? 0) + (stars === 3 ? 1 : 0), bestFund: Math.max(next.questProgress.bestFund ?? 0, fund), bestMorning: Math.max(next.questProgress.bestMorning ?? 0, t.servedBeforeNoon) },
     ecoHistory: [...next.ecoHistory, { day: next.day, sourcingEco, wasteRate }].slice(-30),
     lifetime: {
       ...next.lifetime,
@@ -721,7 +724,7 @@ function finishDay(s: GameState): GameState {
     leftoverPlan: {},
     staff: updateMorale(next, next.service ? next.service.servers.filter((x) => x.served > 0).length / Math.max(1, next.service.servers.length) : 0.5),
   };
-  next = { ...next, history: [...next.history, summarise(next, t)].slice(-400) };
+  next = { ...next, history: [...next.history, { ...summarise(next, t), stars }].slice(-400) };
   if (t.wasteUnits > 0) next = learn(next, 'waste');
   if (profit < 0) next = learn(next, 'fixedCost');
   next = learn(next, 'revenue', 'profit');
@@ -732,6 +735,8 @@ function finishDay(s: GameState): GameState {
     stats: next.today,
     expenses: incomeStatement(next.today.books).revenue - profit,
     profit,
+    stars,
+    starXp,
     cashBefore,
     cashAfter: next.cash,
     recap: recap(s, next.today),

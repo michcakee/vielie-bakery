@@ -1,4 +1,4 @@
-VT323: Copyright 2011, The VT323 Project Authors (peter.hull@oikoi.com)
+Press Start 2P: Copyright 2012 The Press Start 2P Project Authors (cody@zone38.net)
 Pixelify Sans: Copyright 2023 The Pixelify Sans Project Authors (https://github.com/eifetx/Pixelify-Sans)
 Be Vietnam Pro: Copyright 2021 The Be Vietnam Pro Project Authors (https://github.com/bettergui/BeVietnamPro)
 

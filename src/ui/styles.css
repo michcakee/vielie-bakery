@@ -1,37 +1,50 @@
 /* Viet Bake Shop v2: warm pixel-art cozy UI */
 :root {
-  --ink: #3b2a25;
-  --ink-soft: #5a4038;
-  --muted: #6b5447;
-  /* Two main colours: cream and mint (from the owner's swatch). */
-  --cream: #f7f5ea;
-  --paper: #fbfaf3;
-  --paper-2: #e4eee2;
-  --bg: #edeada;
-  --mint: #bfe0c4;
-  --mint-dark: #8fc79c;
-  --mango: #bfe0c4;
-  --gold: #8fc79c;
-  --crust: #b5651d;
-  --coffee: #6b3f2a;
-  --pandan: #74b885;
-  --pandan-dark: #559a68;
-  --forest: #2f5a3f;
-  --leaf: #a8d672;
-  --pink: #ee8a9e;
-  --peach: #f7c5a0;
-  --red: #c2453d;
-  --teal: #4f9c94;
-  --sky: #bfe3ef;
-  --good: #2d7524;
-  --bad: #b23a32;
+  /* pastel-16 by polyphrog (Lospec): the only colours allowed in UI chrome */
+  --ink: #58525a;
+  --slate: #777f8f;
+  --stone: #a2a6a9;
+  --oat: #d6cec2;
+  --cream: #eeede3;
+  --peach: #f5d1b6;
+  --apricot: #eab281;
+  --crust: #bf796d;
+  --butter: #e3e19f;
+  --rose: #ea7286;
+  --pink: #f4a4bf;
+  --lavender: #a07ca7;
+  --periwinkle: #a3b2d2;
+  --aqua: #bfded8;
+  --matcha: #a9c484;
+  --pine: #5d937b;
+  /* legacy names still used across the stylesheet, mapped onto the palette */
+  --ink-soft: var(--slate);
+  --muted: var(--slate);
+  --paper: var(--cream);
+  --paper-2: var(--aqua);
+  --bg: var(--cream);
+  --mint: var(--aqua);
+  --mint-dark: var(--matcha);
+  --mango: var(--butter);
+  --gold: var(--apricot);
+  --coffee: var(--crust);
+  --pandan: var(--matcha);
+  --pandan-dark: var(--pine);
+  --forest: var(--pine);
+  --leaf: var(--matcha);
+  --red: var(--rose);
+  --teal: var(--periwinkle);
+  --sky: var(--aqua);
+  --good: var(--pine);
+  --bad: var(--rose);
   --shadow: 0 4px 0 var(--ink);
   --shadow-sm: 0 2px 0 var(--ink);
   --r: 6px;
   --font: 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --pixel: 'VT323', ui-monospace, monospace;
+  --pixel: 'Pixelify Sans', 'Be Vietnam Pro', system-ui, sans-serif;
+  --title: 'Press Start 2P', 'Pixelify Sans', monospace;
   /* Cube display face, used on headings and numbers (set in caps for the pixel-sign look). */
-  --cube: 'Kawaii Cubes', 'Pixelify Sans', 'VT323', ui-monospace, monospace;
+  --cube: 'Pixelify Sans', 'Be Vietnam Pro', system-ui, sans-serif;
   color-scheme: light;
 }
 
@@ -46,6 +59,7 @@ body {
 
 body {
   font-family: var(--font);
+  font-synthesis: none;
   font-size: 15px;
   line-height: 1.5;
   color: var(--ink);
@@ -170,7 +184,7 @@ kbd {
   background: var(--mango);
 }
 .btn-primary:hover:not(:disabled) {
-  background: #d4ebd7;
+  background: var(--aqua);
 }
 .btn-go {
   background: var(--pandan);
@@ -178,7 +192,7 @@ kbd {
   text-shadow: 0 2px 0 var(--forest);
 }
 .btn-go:hover:not(:disabled) {
-  background: #86c796;
+  background: var(--matcha);
 }
 .btn-danger {
   background: var(--red);
@@ -265,7 +279,7 @@ kbd {
   height: 12px;
   border: 2px solid var(--ink);
   border-radius: 3px;
-  background: #f1e1c2;
+  background: var(--peach);
   overflow: hidden;
   min-width: 60px;
 }
@@ -486,7 +500,7 @@ kbd {
   font-size: 13px;
 }
 .hud-day .muted {
-  color: #c9d8c4;
+  color: var(--oat);
 }
 .tet-chip {
   margin-left: 6px;
@@ -623,16 +637,17 @@ kbd {
 .stage-wrap {
   position: relative;
   width: 100%;
-  aspect-ratio: 240 / 135;
+  /* height is set from the integer scale; the stage sits centred, letterboxed on the cream weave */
   overflow: hidden;
+  background-image: repeating-linear-gradient(45deg, var(--oat) 0 2px, transparent 2px 8px);
   border: 4px solid var(--ink);
   border-radius: 10px;
-  background: #fbe3c4;
+  background: var(--peach);
   box-shadow: 0 6px 0 var(--ink);
 }
 .stage {
   position: absolute;
-  left: 0;
+  left: 50%;
   top: 0;
   width: 240px;
   height: 135px;
@@ -658,7 +673,7 @@ kbd {
   top: 0;
   bottom: 0;
   width: 2px;
-  background: #8fc79c;
+  background: var(--matcha);
   z-index: 5;
   pointer-events: none;
 }
@@ -939,15 +954,15 @@ kbd {
   }
 }
 .oven-fire {
-  background: #3a221a;
+  background: var(--ink);
   transition: background 600ms;
 }
 .oven-fire.on {
-  background: radial-gradient(ellipse at 50% 100%, #ffb347, #e86a2a 45%, #5a2a14 80%);
+  background: radial-gradient(ellipse at 50% 100%, var(--apricot), var(--crust) 45%, var(--ink) 80%);
   animation: flicker 0.9s steps(3) infinite;
 }
 .oven-fire.hot {
-  background: radial-gradient(ellipse at 50% 100%, #fff1a6, #ffb347 40%, #e8552a 80%);
+  background: radial-gradient(ellipse at 50% 100%, var(--butter), var(--apricot) 40%, var(--crust) 80%);
 }
 @keyframes flicker {
   33% {
@@ -1024,7 +1039,7 @@ kbd {
 }
 .board {
   font-family: var(--pixel);
-  color: #f6f1e4;
+  color: var(--cream);
   line-height: 1.05;
 }
 .board-title {
@@ -1041,8 +1056,8 @@ kbd {
 }
 .neon {
   font-family: var(--pixel);
-  color: #ffd1dc;
-  text-shadow: 0 0 4px #ff6f91, 0 0 10px #ff6f91;
+  color: var(--cream);
+  text-shadow: 0 0 4px var(--rose), 0 0 10px var(--rose);
   animation: neon 3s steps(1) infinite;
 }
 @keyframes neon {
@@ -1166,7 +1181,7 @@ kbd {
   height: 34px;
   border: 3px solid var(--ink);
   border-radius: var(--r);
-  background: linear-gradient(90deg, #ffe6b0, #bfe3ef 30%, #bfe3ef 55%, #f6b98a 82%, #6b5a8a);
+  background: linear-gradient(90deg, var(--peach), var(--aqua) 30%, var(--aqua) 55%, var(--apricot) 82%, var(--slate));
   overflow: hidden;
 }
 .day-fill {
@@ -1283,10 +1298,10 @@ kbd {
   font-size: 20px;
 }
 .stock-chip.low {
-  background: #ffe7a8;
+  background: var(--peach);
 }
 .stock-chip.out {
-  background: #f3c2bc;
+  background: var(--peach);
   opacity: 0.7;
 }
 
@@ -1294,14 +1309,14 @@ kbd {
   display: grid;
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
   gap: 12px;
-  background: #e9d3a6;
+  background: var(--butter);
   border: 3px solid var(--ink);
   border-radius: 10px;
   padding: 12px;
   box-shadow: var(--shadow);
 }
 .ticket {
-  background: #fffdf6;
+  background: var(--cream);
   border: 2px dashed var(--ink-soft);
   padding: 10px;
   transform: rotate(-1deg);
@@ -1361,7 +1376,7 @@ kbd {
 }
 .build-stack {
   min-height: 84px;
-  background: repeating-linear-gradient(90deg, #c98a4a 0 10px, #b77a3e 10px 12px);
+  background: repeating-linear-gradient(90deg, var(--crust) 0 10px, var(--crust) 10px 12px);
   border: 3px solid var(--ink);
   border-radius: 8px;
   display: flex;
@@ -1392,7 +1407,7 @@ kbd {
 .sparkles::after {
   content: '✦';
   position: absolute;
-  color: #fff6b0;
+  color: var(--peach);
   font-size: 20px;
   text-shadow: 0 0 4px #fff;
   /* 0.8 s per on/off cycle = 1.25 flashes a second, under the 3/s seizure-safety limit */
@@ -1438,7 +1453,7 @@ kbd {
   box-shadow: none;
 }
 .step-btn.glow {
-  background: #fff6c8;
+  background: var(--cream);
   animation: glow 0.8s steps(2) infinite;
 }
 @keyframes glow {
@@ -1448,7 +1463,7 @@ kbd {
 }
 .step-btn.shake {
   animation: shake 0.3s steps(4);
-  background: #f9c9c2;
+  background: var(--peach);
 }
 @keyframes shake {
   25% {
@@ -1480,7 +1495,7 @@ kbd {
   background: var(--mango);
 }
 .trays i.used {
-  background: var(--stone, #d8cdb4);
+  background: var(--stone, var(--oat));
   opacity: 0.5;
 }
 .trays span {
@@ -1550,13 +1565,13 @@ kbd {
   height: 120px;
   border: 4px solid var(--ink);
   border-radius: 12px;
-  background: radial-gradient(ellipse at 50% 110%, #ffb347, #b5441d 60%, #3a1a10);
+  background: radial-gradient(ellipse at 50% 110%, var(--apricot), var(--crust) 60%, var(--ink));
   display: grid;
   place-items: center;
-  box-shadow: inset 0 0 0 6px #6b3f2a;
+  box-shadow: inset 0 0 0 6px var(--ink);
 }
 .oven-window.zone-golden {
-  box-shadow: inset 0 0 0 6px #6b3f2a, 0 0 0 4px var(--mango);
+  box-shadow: inset 0 0 0 6px var(--ink), 0 0 0 4px var(--mango);
 }
 .oven-window.zone-burnt {
   background: radial-gradient(ellipse at 50% 110%, #555, #222 70%);
@@ -1579,7 +1594,7 @@ kbd {
   height: 22px;
   border: 3px solid var(--ink);
   border-radius: 4px;
-  background: linear-gradient(90deg, #f6ead2, #f2c35a 60%, #b5651d 85%, #3b2a25);
+  background: linear-gradient(90deg, var(--cream), var(--apricot) 60%, var(--crust) 85%, var(--ink));
 }
 .heat-golden {
   position: absolute;
@@ -1661,7 +1676,7 @@ kbd {
   color: var(--good);
 }
 .tone-meh {
-  color: #9a6b10;
+  color: var(--crust);
 }
 .tone-bad {
   color: var(--bad);
@@ -1678,7 +1693,7 @@ kbd {
 
 /* ------------------------------------------------------------- market */
 .paper {
-  background: #fbf3e0;
+  background: var(--cream);
   background-image: repeating-linear-gradient(transparent 0 23px, rgba(59, 42, 37, 0.06) 23px 24px);
 }
 .headline {
@@ -1708,7 +1723,7 @@ kbd {
   cursor: pointer;
 }
 .supplier.on {
-  background: #fff3c6;
+  background: var(--cream);
   box-shadow: 0 0 0 3px var(--mango), var(--shadow-sm);
 }
 .supplier > b {
@@ -1808,7 +1823,7 @@ kbd {
   opacity: 0.65;
 }
 .shop-item.owned .shop-icon {
-  background: #dff0cd;
+  background: var(--cream);
 }
 .shop-icon {
   width: 60px;
@@ -1869,7 +1884,7 @@ textarea {
   display: grid;
   place-items: center;
   padding: 16px 24px 10px;
-  background: radial-gradient(circle at 50% 40%, #fff6dd, #f6d7a0);
+  background: radial-gradient(circle at 50% 40%, var(--cream), var(--butter));
   border: 3px solid var(--ink);
   border-radius: 12px;
 }
@@ -1970,7 +1985,7 @@ textarea {
   cursor: pointer;
 }
 .pack.on {
-  background: #e6f4d6;
+  background: var(--cream);
   box-shadow: 0 0 0 3px var(--pandan), var(--shadow-sm);
 }
 
@@ -2117,7 +2132,7 @@ textarea {
   height: 28px;
   border: 3px solid var(--ink);
   border-radius: var(--r);
-  background: #f1e1c2;
+  background: var(--peach);
   overflow: hidden;
   margin: 6px 0;
 }
@@ -2178,7 +2193,7 @@ textarea {
 
 /* ------------------------------------------------------------- bakery panel */
 .ba-note {
-  background: #fff8e4;
+  background: var(--cream);
   transform: rotate(-0.5deg);
 }
 .handwrite {
@@ -2196,7 +2211,7 @@ textarea {
   gap: 8px;
   align-items: center;
   padding: 6px 8px;
-  background: #fff1c7;
+  background: var(--cream);
   border: 2px solid var(--ink);
   border-radius: 6px;
   margin-top: 6px;
@@ -2243,7 +2258,7 @@ textarea {
   display: grid;
   margin-top: 10px;
   padding: 8px 10px;
-  background: #e6f4d6;
+  background: var(--cream);
   border: 2px solid var(--ink);
   border-radius: 6px;
 }
@@ -2399,14 +2414,14 @@ textarea {
   font: inherit;
   color: inherit;
   padding: 12px 14px;
-  background: #fffdf6;
+  background: var(--cream);
   border: 3px solid var(--ink);
   border-radius: 8px;
   box-shadow: var(--shadow-sm);
   cursor: pointer;
 }
 .choice:hover:not(:disabled) {
-  background: #fff3c6;
+  background: var(--cream);
 }
 .choice b {
   font-family: var(--pixel);
@@ -2453,7 +2468,7 @@ textarea {
   gap: 2px;
   justify-items: center;
   text-align: center;
-  background: #fffdf6;
+  background: var(--cream);
   border: 3px solid var(--ink);
   border-radius: 8px;
   padding: 10px 6px;
@@ -2475,7 +2490,7 @@ textarea {
   font-weight: 600;
 }
 .num.big {
-  background: #fff3c6;
+  background: var(--cream);
 }
 .num.big b {
   font-size: 40px;
@@ -2519,7 +2534,7 @@ textarea {
   border: 2px solid var(--ink);
 }
 .biz-tip {
-  background: #e6f4d6;
+  background: var(--cream);
   border: 3px solid var(--ink);
   border-radius: 8px;
   padding: 10px 12px;
@@ -2607,11 +2622,11 @@ textarea {
   padding: 8px;
   border: 2px solid var(--ink);
   border-radius: 8px;
-  background: #efe5d2;
+  background: var(--cream);
   opacity: 0.6;
 }
 .badges li.got {
-  background: #fff3c6;
+  background: var(--cream);
   opacity: 1;
 }
 .badges b {
@@ -2653,7 +2668,7 @@ textarea {
   background: var(--mango);
 }
 .toast-quest {
-  background: #e6f4d6;
+  background: var(--cream);
 }
 @keyframes toast-in {
   from {
@@ -2685,7 +2700,7 @@ textarea {
   height: 26px;
   border: 3px solid var(--ink);
   border-radius: 14px;
-  background: #e5d7bd;
+  background: var(--oat);
   position: relative;
 }
 .toggle-ui::after {
@@ -2725,7 +2740,7 @@ textarea {
   min-width: 180px;
 }
 .note {
-  background: #fff3c6;
+  background: var(--cream);
   border: 2px solid var(--ink);
   border-radius: 6px;
   padding: 6px 10px;
@@ -2739,7 +2754,7 @@ textarea {
   border: 3px dashed var(--bad);
   border-radius: 8px;
   padding: 12px;
-  background: #fdeceb;
+  background: var(--cream);
 }
 
 /* ------------------------------------------------------------- loading & title */
@@ -2774,7 +2789,7 @@ textarea {
   top: 30px;
   height: 50px;
   border: 4px solid var(--ink);
-  background: radial-gradient(ellipse at 50% 100%, #ffd36a, #e86a2a 50%, #3a1a10);
+  background: radial-gradient(ellipse at 50% 100%, var(--apricot), var(--crust) 50%, var(--ink));
   animation: flicker 0.6s steps(3) infinite;
 }
 .loading-baker {
@@ -2824,10 +2839,13 @@ textarea {
 .exterior {
   width: 100%;
 }
+.exterior {
+  background-image: repeating-linear-gradient(45deg, var(--oat) 0 2px, transparent 2px 8px);
+  border-radius: 14px;
+}
 .ext-stage {
   position: relative;
-  width: 100%;
-  aspect-ratio: 240 / 135;
+  margin: 0 auto;
   border: 4px solid var(--ink);
   border-radius: 14px;
   overflow: hidden;
@@ -2838,6 +2856,7 @@ textarea {
   width: 100%;
   height: 100%;
   display: block;
+  image-rendering: pixelated;
 }
 .ext-stage > div {
   position: absolute;
@@ -2857,8 +2876,8 @@ textarea {
   top: 6%;
   width: 14%;
   height: 6%;
-  background: #fff8ea;
-  border: 0.5cqw solid #f0d6b4;
+  background: var(--cream);
+  border: 0.5cqw solid var(--peach);
   border-radius: 40px;
   animation: cloud 40s linear infinite;
 }
@@ -2869,7 +2888,7 @@ textarea {
   top: -70%;
   width: 45%;
   height: 120%;
-  background: #fff8ea;
+  background: var(--cream);
   border-radius: 40px 40px 0 0;
 }
 .ext-cloud.c2 {
@@ -2996,8 +3015,9 @@ textarea {
 }
 .title-logo {
   display: grid;
-  font-size: clamp(64px, 9vw, 120px);
-  line-height: 0.82;
+  font-family: var(--title);
+  font-size: clamp(28px, 5vw, 56px);
+  line-height: 1.25;
   color: var(--forest);
   text-shadow: 4px 4px 0 var(--paper), 8px 8px 0 var(--ink);
 }
@@ -3313,7 +3333,7 @@ html {
   margin: 16px 0 8px;
 }
 .note {
-  background: #fff3c6;
+  background: var(--cream);
   border: 2px solid var(--ink);
   border-radius: 6px;
   padding: 6px 10px;
@@ -3337,13 +3357,13 @@ html {
   font-size: 11px;
 }
 .economy-card.regime-boom {
-  background: #eaf6dc;
+  background: var(--cream);
 }
 .economy-card.regime-recession {
-  background: #f6e3df;
+  background: var(--cream);
 }
 .economy-card.regime-inflation {
-  background: #fff0cf;
+  background: var(--cream);
 }
 .festival-chip {
   display: flex;
@@ -3351,7 +3371,7 @@ html {
   gap: 6px;
 }
 .coach-card {
-  background: #fff8e4;
+  background: var(--cream);
   border-color: var(--crust);
 }
 .coach-steps {
@@ -3407,7 +3427,7 @@ html {
 }
 .capacity > div {
   display: grid;
-  background: #fffdf6;
+  background: var(--cream);
   border: 2px solid var(--ink);
   border-radius: 6px;
   padding: 6px 8px;
@@ -3471,7 +3491,7 @@ html {
   color: var(--ink);
 }
 .marginal {
-  background: #eef6e3;
+  background: var(--cream);
   border-radius: 6px;
   padding: 4px 8px;
 }
@@ -3521,7 +3541,7 @@ html {
   border-bottom: 2px solid var(--ink);
 }
 .data-table tr.you {
-  background: #fff3c6;
+  background: var(--cream);
 }
 .data-table td .tiny {
   display: block;
@@ -3554,7 +3574,7 @@ html {
 .ratio-grid li {
   display: grid;
   gap: 2px;
-  background: #fffdf6;
+  background: var(--cream);
   border: 2px solid var(--ink);
   border-radius: 8px;
   padding: 8px 10px;
@@ -3582,7 +3602,7 @@ html {
 }
 .be-out > div {
   display: grid;
-  background: #fffdf6;
+  background: var(--cream);
   border: 2px solid var(--ink);
   border-radius: 6px;
   padding: 6px 8px;
@@ -3594,7 +3614,7 @@ html {
 }
 .be-out .be-big {
   grid-column: span 2;
-  background: #fff3c6;
+  background: var(--cream);
 }
 .be-big b {
   font-size: 28px;
@@ -3698,14 +3718,14 @@ html {
 .chart-svg {
   width: 100%;
   height: auto;
-  background: #fffdf6;
+  background: var(--cream);
   border: 2px solid var(--ink);
   border-radius: 6px;
   touch-action: pan-y;
 }
 .chart-tick {
   font-size: 9px;
-  fill: #7d6558;
+  fill: var(--ink);
   font-family: var(--font);
 }
 .chart-legend {
@@ -3737,7 +3757,7 @@ html {
 }
 .barlist-track {
   height: 14px;
-  background: #f1e1c2;
+  background: var(--peach);
   border: 2px solid var(--ink);
   border-radius: 3px;
   overflow: hidden;
@@ -3799,7 +3819,7 @@ html {
 .goal-box {
   display: grid;
   gap: 4px;
-  background: #fffdf6;
+  background: var(--cream);
   border: 2px solid var(--ink);
   border-radius: 8px;
   padding: 8px 10px;
@@ -3811,7 +3831,7 @@ html {
 .branch-card {
   display: grid;
   gap: 4px;
-  background: #eef6e3;
+  background: var(--cream);
   border: 2px solid var(--ink);
   border-radius: 8px;
   padding: 8px 10px;
@@ -3836,7 +3856,7 @@ html {
   box-shadow: var(--shadow-sm);
 }
 .slot.on {
-  background: #fff3c6;
+  background: var(--cream);
   box-shadow: 0 0 0 3px var(--mango), var(--shadow-sm);
 }
 .slot-pick {
@@ -3876,7 +3896,7 @@ html {
   cursor: pointer;
 }
 .scenario.on {
-  background: #e6f4d6;
+  background: var(--cream);
   box-shadow: 0 0 0 3px var(--pandan), var(--shadow-sm);
 }
 .scenario > b {
@@ -4084,7 +4104,6 @@ html[data-motion='reduced'] .app.shake {
 }
 
 /* ---------- cube display face (Pixelify Sans; set in caps for the pixel-sign look) ---------- */
-.title-logo,
 .hud-name h1,
 .ext-sign,
 h3,
@@ -4095,8 +4114,7 @@ h3,
 .level-up b,
 .eyebrow {
   font-family: var(--cube);
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
+  font-weight: 700;
 }
 .hud-stat b,
 .hud-float,
@@ -4112,7 +4130,8 @@ h3,
 .stepper output,
 .stock-chip b {
   font-family: var(--cube);
-  text-transform: uppercase;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
 /* ---------- order grade card ---------- */
@@ -4136,7 +4155,7 @@ h3,
   pointer-events: none;
 }
 .grade-card.stars-5 {
-  background: #fff8d6;
+  background: var(--cream);
   border-color: var(--gold);
   box-shadow: 0 4px 0 var(--gold), 0 0 0 3px var(--paper);
 }

@@ -39,11 +39,11 @@ export interface SceneOpts {
 }
 
 const SKY: Record<Weather, string[]> = {
-  sunny: ['#ffe6b0', '#bfe3ef', '#bfe3ef', '#f6b98a', '#2b3049'],
-  cloudy: ['#efe2c8', '#d5dfe0', '#d5dfe0', '#d9b59a', '#30364a'],
-  rainy: ['#b8c4c6', '#9fb0b5', '#9fb0b5', '#8f8e96', '#262b3a'],
-  hot: ['#ffd99a', '#ffe7a8', '#ffd28a', '#f39a6a', '#2f2b45'],
-  cool: ['#e6eef0', '#c9e2ec', '#c9e2ec', '#e3b9a0', '#283048'],
+  sunny: ['#f5d1b6', '#bfded8', '#bfded8', '#eab281', '#58525a'],
+  cloudy: ['#f5d1b6', '#bfded8', '#bfded8', '#eab281', '#58525a'],
+  rainy: ['#a3b2d2', '#a2a6a9', '#a2a6a9', '#777f8f', '#58525a'],
+  hot: ['#e3e19f', '#f5d1b6', '#e3e19f', '#eab281', '#58525a'],
+  cool: ['#eeede3', '#bfded8', '#bfded8', '#eab281', '#58525a'],
 };
 
 function rect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, c: string) {
@@ -75,7 +75,7 @@ export function drawStreet(ctx: CanvasRenderingContext2D, o: SceneOpts) {
   ctx.rect(ix, iy, iw, ih);
   ctx.clip();
   rect(ctx, ix, iy, iw, ih, sky);
-  if (o.light === 4) for (const [sx, sy] of [[ix + 6, iy + 4], [ix + 22, iy + 8], [ix + 40, iy + 3], [ix + 54, iy + 9]]) rect(ctx, sx, sy, 1, 1, '#fff4de');
+  if (o.light === 4) for (const [sx, sy] of [[ix + 6, iy + 4], [ix + 22, iy + 8], [ix + 40, iy + 3], [ix + 54, iy + 9]]) rect(ctx, sx, sy, 1, 1, '#eeede3');
   // power lines
   ctx.fillStyle = 'rgba(59,42,37,0.55)';
   for (let i = 0; i < iw; i++) {
@@ -85,65 +85,65 @@ export function drawStreet(ctx: CanvasRenderingContext2D, o: SceneOpts) {
   // building across the street
   const bx = ix + 4;
   const by = iy + 14;
-  rect(ctx, bx, by, 34, 26, o.light === 4 ? '#55665a' : '#cfe9d7');
+  rect(ctx, bx, by, 34, 26, o.light === 4 ? '#58525a' : '#bfded8');
   rect(ctx, bx, by, 34, 2, PAL.ink);
-  for (let i = 0; i < 3; i++) box(ctx, bx + 3 + i * 10, by + 4, 7, 6, o.light >= 3 ? '#ffd98a' : '#cfe8f0');
+  for (let i = 0; i < 3; i++) box(ctx, bx + 3 + i * 10, by + 4, 7, 6, o.light >= 3 ? '#e3e19f' : '#bfded8');
   // shop awning: flowers, or Cô Tư's bánh mì stand later in the year
-  const awn = o.competitor ? ['#c2453d', '#fff4de'] : ['#6fa84b', '#fff4de'];
+  const awn = o.competitor ? ['#bf796d', '#eeede3'] : ['#5d937b', '#eeede3'];
   for (let i = 0; i < 34; i++) rect(ctx, bx + i, by + 13, 1, 3, awn[Math.floor(i / 3) % 2]);
-  rect(ctx, bx, by + 16, 34, 10, o.light === 4 ? '#3e3240' : '#e8e0d0');
-  box(ctx, bx + 4, by + 18, 12, 8, '#7b4a6b');
-  if (o.competitor) box(ctx, bx + 19, by + 18, 12, 7, '#f6c343');
-  else for (let i = 0; i < 4; i++) rect(ctx, bx + 19 + i * 3, by + 20, 2, 2, ['#ee8a9e', '#f6c343', '#fff4de', '#c2453d'][i]);
+  rect(ctx, bx, by + 16, 34, 10, o.light === 4 ? '#58525a' : '#eeede3');
+  box(ctx, bx + 4, by + 18, 12, 8, '#58525a');
+  if (o.competitor) box(ctx, bx + 19, by + 18, 12, 7, '#eab281');
+  else for (let i = 0; i < 4; i++) rect(ctx, bx + 19 + i * 3, by + 20, 2, 2, ['#ea7286', '#eab281', '#eeede3', '#bf796d'][i]);
   // second building and a tree
-  rect(ctx, ix + 41, iy + 8, 18, 32, o.light === 4 ? '#4f5a66' : '#dff3e2');
+  rect(ctx, ix + 41, iy + 8, 18, 32, o.light === 4 ? '#58525a' : '#eeede3');
   rect(ctx, ix + 41, iy + 8, 18, 2, PAL.ink);
-  for (let r = 0; r < 3; r++) for (let c = 0; c < 2; c++) box(ctx, ix + 43 + c * 8, iy + 12 + r * 9, 6, 6, o.light >= 3 ? '#ffd98a' : '#bfe3ef');
+  for (let r = 0; r < 3; r++) for (let c = 0; c < 2; c++) box(ctx, ix + 43 + c * 8, iy + 12 + r * 9, 6, 6, o.light >= 3 ? '#e3e19f' : '#bfded8');
   rect(ctx, ix + 37, iy + 24, 3, 18, PAL.coffee);
   for (const [tx, ty, r] of [[38, 18, 7], [33, 22, 5], [43, 22, 5]]) {
-    ctx.fillStyle = o.light === 4 ? '#24442f' : PAL.pandan;
+    ctx.fillStyle = o.light === 4 ? '#58525a' : PAL.pandan;
     ctx.beginPath();
     ctx.arc(ix + tx, iy + ty, r, 0, Math.PI * 2);
     ctx.fill();
   }
   // sidewalk and road
-  rect(ctx, ix, iy + 40, iw, 3, '#d8cdb4');
-  rect(ctx, ix, iy + 43, iw, ih - 43, o.light === 4 ? '#3a3a44' : '#7d7a78');
-  for (let i = 2; i < iw; i += 10) rect(ctx, ix + i, iy + 46, 5, 1, '#f2e6c8');
+  rect(ctx, ix, iy + 40, iw, 3, '#d6cec2');
+  rect(ctx, ix, iy + 43, iw, ih - 43, o.light === 4 ? '#58525a' : '#777f8f');
+  for (let i = 2; i < iw; i += 10) rect(ctx, ix + i, iy + 46, 5, 1, '#f5d1b6');
   if (o.decor.includes('bike')) {
     rect(ctx, ix + 48, iy + 36, 12, 1, PAL.ink);
-    for (const wx of [ix + 48, ix + 58]) box(ctx, wx - 2, iy + 37, 5, 5, '#e8e0d0');
-    box(ctx, ix + 46, iy + 32, 6, 4, '#ee8a9e');
+    for (const wx of [ix + 48, ix + 58]) box(ctx, wx - 2, iy + 37, 5, 5, '#eeede3');
+    box(ctx, ix + 46, iy + 32, 6, 4, '#ea7286');
   }
   ctx.restore();
 }
 
 /** The room's palette: off-white, light green and pink, with a warm wooden floor. */
 const ROOM = {
-  cornice: '#bfe0c4',
-  wall: '#fff8df',
-  wallStripe: '#fbefc4',
-  trim: '#a8d6b0',
-  dado: '#d9ecdc',
-  dadoPanel: '#e6f3e8',
-  dadoLine: '#b7d6bf',
-  lamp: '#f7e49c',
-  plank: '#d9a877',
-  plankLine: '#b98556',
-  plankHi: '#e8bf91',
-  table: '#f7e7a8',
-  tableRim: '#fffbe6',
-  tableLeg: '#8c5a3c',
-  chair: '#bfe0c4',
-  chairLeg: '#7fa98a',
-  counter: '#fff8df',
-  counterTop: '#8fc79c',
-  counterPanel: '#e3f0e6',
-  caseBase: '#f7e7a8',
-  register: '#8fc79c',
-  frame: '#8fc79c',
-  sill: '#fffbe6',
-  door: '#a8d6b0',
+  cornice: '#bfded8',
+  wall: '#eeede3',
+  wallStripe: '#f5d1b6',
+  trim: '#bfded8',
+  dado: '#eeede3',
+  dadoPanel: '#eeede3',
+  dadoLine: '#bfded8',
+  lamp: '#e3e19f',
+  plank: '#eab281',
+  plankLine: '#bf796d',
+  plankHi: '#eab281',
+  table: '#e3e19f',
+  tableRim: '#eeede3',
+  tableLeg: '#58525a',
+  chair: '#bfded8',
+  chairLeg: '#777f8f',
+  counter: '#eeede3',
+  counterTop: '#a9c484',
+  counterPanel: '#eeede3',
+  caseBase: '#e3e19f',
+  register: '#a9c484',
+  frame: '#a9c484',
+  sill: '#eeede3',
+  door: '#bfded8',
 };
 
 /** A little round café table with two chairs and a cake. (tx, ty) is the table's left/top. */
@@ -189,7 +189,7 @@ export function drawRoom(ctx: CanvasRenderingContext2D, o: SceneOpts) {
     rect(ctx, lx, 16, 9, 1, PAL.ink);
     rect(ctx, lx - 1, 17, 11, 4, ROOM.lamp);
     rect(ctx, lx - 1, 21, 11, 1, PAL.ink);
-    rect(ctx, lx + 3, 22, 3, 1, '#fff6c8');
+    rect(ctx, lx + 3, 22, 3, 1, '#eeede3');
   }
   // wooden floor: planks with staggered joints
   rect(ctx, 0, L.floorY, STAGE_W, STAGE_H - L.floorY, ROOM.plank);
@@ -233,12 +233,12 @@ export function drawRoom(ctx: CanvasRenderingContext2D, o: SceneOpts) {
   // menu board and shelf
   const B = L.board;
   box(ctx, B.x - 2, B.y - 2, B.w + 4, B.h + 4, PAL.crust);
-  rect(ctx, B.x, B.y, B.w, B.h, '#2f3e36');
+  rect(ctx, B.x, B.y, B.w, B.h, '#58525a');
   rect(ctx, L.shelf.x - 2, L.shelf.y, L.shelf.w + 4, 3, PAL.crust);
   rect(ctx, L.shelf.x - 2, L.shelf.y + 3, L.shelf.w + 4, 1, PAL.ink);
   const jars = [PAL.mango, PAL.pink, PAL.leaf, PAL.coffee, PAL.orange];
   jars.forEach((c, i) => {
-    box(ctx, L.shelf.x + 2 + i * 9, L.shelf.y - 8, 7, 8, '#e8f4f6');
+    box(ctx, L.shelf.x + 2 + i * 9, L.shelf.y - 8, 7, 8, '#eeede3');
     rect(ctx, L.shelf.x + 3 + i * 9, L.shelf.y - 5, 5, 4, c);
     rect(ctx, L.shelf.x + 2 + i * 9, L.shelf.y - 9, 7, 2, PAL.crust);
   });
@@ -251,7 +251,7 @@ export function drawRoom(ctx: CanvasRenderingContext2D, o: SceneOpts) {
   // lacquer art
   if (o.decor.includes('art')) {
     box(ctx, 158, 18, 32, 22, PAL.mango);
-    rect(ctx, 160, 20, 28, 18, '#2a1a1a');
+    rect(ctx, 160, 20, 28, 18, '#58525a');
     rect(ctx, 162, 30, 24, 6, PAL.redDark);
     ctx.fillStyle = PAL.gold;
     ctx.beginPath();
@@ -264,7 +264,7 @@ export function drawRoom(ctx: CanvasRenderingContext2D, o: SceneOpts) {
   // fridge
   if (o.upgrades.includes('fridge')) {
     const F = L.fridge;
-    box(ctx, F.x, F.y, F.w, F.h, '#f2f6f6');
+    box(ctx, F.x, F.y, F.w, F.h, '#eeede3');
     rect(ctx, F.x + 1, F.y + 13, F.w - 2, 1, PAL.ink);
     rect(ctx, F.x + F.w - 4, F.y + 4, 1, 6, PAL.stoneDark);
     rect(ctx, F.x + F.w - 4, F.y + 17, 1, 8, PAL.stoneDark);
@@ -274,12 +274,12 @@ export function drawRoom(ctx: CanvasRenderingContext2D, o: SceneOpts) {
   const C = L.coffee;
   box(ctx, C.x, C.y, C.w, C.h, ROOM.counter);
   rect(ctx, C.x + 1, C.y + 1, C.w - 2, 2, ROOM.counterTop);
-  for (let i = 0; i < 2; i++) box(ctx, C.x + 3 + i * 14, C.y + 6, 12, 10, '#c98a4a');
+  for (let i = 0; i < 2; i++) box(ctx, C.x + 3 + i * 14, C.y + 6, 12, 10, '#bf796d');
   const phins = o.upgrades.includes('coffeeBar') ? 4 : 2;
   for (let i = 0; i < phins; i++) {
     const px = C.x + 3 + i * 7;
-    box(ctx, px, C.y - 9, 6, 4, '#c8c8c8');
-    box(ctx, px + 1, C.y - 5, 4, 5, '#d6eef5');
+    box(ctx, px, C.y - 9, 6, 4, '#d6cec2');
+    box(ctx, px + 1, C.y - 5, 4, 5, '#eeede3');
     rect(ctx, px + 2, C.y - 3, 2, 3, PAL.coffee);
   }
   box(ctx, C.x + C.w - 7, C.y - 7, 6, 7, PAL.red);
@@ -287,9 +287,9 @@ export function drawRoom(ctx: CanvasRenderingContext2D, o: SceneOpts) {
 
   // oven
   const O = L.oven;
-  box(ctx, O.x, O.y, O.w, O.h, o.upgrades.includes('oven3') ? '#9aa3a6' : o.upgrades.includes('oven2') ? '#c7a07a' : '#b5651d');
+  box(ctx, O.x, O.y, O.w, O.h, o.upgrades.includes('oven3') ? '#a2a6a9' : o.upgrades.includes('oven2') ? '#eab281' : '#bf796d');
   for (let y = O.y + 3; y < O.y + O.h - 2; y += 5) for (let x = O.x + 2 + ((y / 5) % 2) * 3; x < O.x + O.w - 3; x += 7) rect(ctx, x, y, 5, 1, 'rgba(59,42,37,0.25)');
-  box(ctx, O.x + 5, O.y + 14, O.w - 10, 20, '#3a221a');
+  box(ctx, O.x + 5, O.y + 14, O.w - 10, 20, '#58525a');
   rect(ctx, O.x + 4, O.y + 36, O.w - 8, 2, PAL.ink);
   for (let i = 0; i < 3; i++) box(ctx, O.x + 7 + i * 8, O.y + 41, 5, 5, PAL.stone);
   rect(ctx, O.x + 4, O.y - 4, O.w - 8, 4, PAL.stoneDark);
@@ -308,8 +308,8 @@ export function drawRoom(ctx: CanvasRenderingContext2D, o: SceneOpts) {
     rect(ctx, 90, 101, 2, 4, ROOM.chairLeg);
   }
   if (o.decor.includes('rug')) {
-    rect(ctx, 86, 126, 76, 8, '#d9b36a');
-    for (let x = 88; x < 160; x += 4) rect(ctx, x, 128, 2, 4, '#b5651d');
+    rect(ctx, 86, 126, 76, 8, '#eab281');
+    for (let x = 88; x < 160; x += 4) rect(ctx, x, 128, 2, 4, '#bf796d');
     rect(ctx, 86, 126, 76, 1, PAL.crust);
   }
 }
@@ -328,16 +328,16 @@ export function drawCounter(ctx: CanvasRenderingContext2D, o: SceneOpts) {
   }
   const S = LAYOUT.case;
   rect(ctx, S.x, S.y, S.w, S.h, PAL.ink);
-  rect(ctx, S.x + 1, S.y + 1, S.w - 2, S.h - 2, o.upgrades.includes('display') ? '#eef8f7' : '#fbf3ea');
+  rect(ctx, S.x + 1, S.y + 1, S.w - 2, S.h - 2, o.upgrades.includes('display') ? '#eeede3' : '#eeede3');
   rect(ctx, S.x + 1, S.y + S.h - 4, S.w - 2, 3, ROOM.caseBase);
   for (let i = 0; i < 4; i++) rect(ctx, S.x + 4 + i * 2, S.y + 2 + i, 1, 4, 'rgba(255,255,255,0.9)');
   if (o.upgrades.includes('display')) rect(ctx, S.x + 1, S.y + 1, S.w - 2, 1, PAL.mango);
   const R = LAYOUT.register;
   box(ctx, R.x, R.y, R.w, R.h, ROOM.register);
-  rect(ctx, R.x + 2, R.y + 2, R.w - 4, 3, '#cfe8f0');
+  rect(ctx, R.x + 2, R.y + 2, R.w - 4, 3, '#bfded8');
   rect(ctx, R.x + 2, R.y + 7, R.w - 4, 1, PAL.ink);
   if (o.decor.includes('flowers')) {
-    box(ctx, 180, 96, 6, 8, '#cfe8f0');
+    box(ctx, 180, 96, 6, 8, '#bfded8');
     for (const [fx, fy, c] of [[179, 92, PAL.pink], [183, 90, PAL.mango], [186, 93, PAL.red]] as const) rect(ctx, fx, fy, 3, 3, c);
   }
 }

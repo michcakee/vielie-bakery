@@ -52,9 +52,14 @@ function useStageScale(ref: React.RefObject<HTMLDivElement>) {
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const ro = new ResizeObserver(() => setScale(el.clientWidth / STAGE_W));
+    // Whole device pixels only: the largest integer multiple that fits, expressed in CSS pixels.
+    const fit = () => {
+      const dpr = window.devicePixelRatio || 1;
+      setScale(Math.max(1, Math.floor((el.clientWidth * dpr) / STAGE_W)) / dpr);
+    };
+    const ro = new ResizeObserver(fit);
     ro.observe(el);
-    setScale(el.clientWidth / STAGE_W);
+    fit();
     return () => ro.disconnect();
   }, [ref]);
   return scale;
@@ -82,6 +87,8 @@ export function BakeryScene({ onCustomer, baking = false, caption }: Props) {
   useEffect(() => {
     const r = roomRef.current?.getContext('2d');
     const c = counterRef.current?.getContext('2d');
+    if (r) r.imageSmoothingEnabled = false;
+    if (c) c.imageSmoothingEnabled = false;
     if (r) {
       r.clearRect(0, 0, STAGE_W, STAGE_H);
       drawRoom(r, opts);
@@ -103,8 +110,8 @@ export function BakeryScene({ onCustomer, baking = false, caption }: Props) {
   const diverted = s.service?.visits.filter((v) => v.divertedTo && v.status === 'done' && clock - (v.doneAt ?? 0) < 25) ?? [];
 
   return (
-    <div className={`stage-wrap light-${light} ${open ? 'is-open' : ''} ${reduced ? 'still' : ''}`} ref={wrap}>
-      <div className="stage" style={{ transform: `scale(${scale})` }} aria-hidden="true">
+    <div className={`stage-wrap light-${light} ${open ? 'is-open' : ''} ${reduced ? 'still' : ''}`} ref={wrap} style={{ height: STAGE_H * scale }}>
+      <div className="stage" style={{ transform: `translateX(${-120 * scale}px) scale(${scale})` }} aria-hidden="true">
         <canvas ref={roomRef} width={STAGE_W} height={STAGE_H} className="layer" />
 
         {/* street life through the window */}

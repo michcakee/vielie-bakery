@@ -127,6 +127,9 @@ export function BakeryScene({ onCustomer, baking = false, caption }: Props) {
                   <Sprite name="moto" scale={1} />
                 </div>
               )}
+              <div className="mover cat" aria-hidden="true">
+                <Sprite name="cat" scale={1} />
+              </div>
               <div className="mover walker w1">
                 <Person look={{ skin: 2, hair: 3, hairColor: 1, shirt: 3, apron: -1, accessory: 0 }} scale={1} walking />
               </div>

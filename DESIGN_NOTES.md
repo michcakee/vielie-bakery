@@ -310,3 +310,12 @@ Hooks added to game logic: none (the oven result is read from the bake's quality
 Known issues: effects were verified in the DOM and by ear-less inspection; the burnt path shares the same component as the ding path but wasn't triggered in the pane (a tray must be left past the end of the dial)
 Next step proposed: Phase 5 (ambient: cat past the window, plant sway, wordmark bob)
 ```
+
+```
+Phase 5 – done
+Changed: src/ui/pixel/sprites.ts (cat), src/ui/scene/BakeryScene.tsx (a cat crosses the window every ~48 s), styles (cat walk, wordmark bob; the plant already swayed; the window sky already follows the time of day; the title street already had clouds, walkers, a moto and steam)
+New assets: none
+Hooks added to game logic: none
+Known issues: none
+Next step proposed: Phase 6 (simulation core: diminishing returns for extra bakers, the brief's lesson tests, Sprinkle/Pro labels)
+```

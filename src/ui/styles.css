@@ -4779,3 +4779,45 @@ html[data-motion='reduced'] .cust.hop .person-sprite,
 html[data-motion='reduced'] .bell-bounce {
   animation: none;
 }
+
+/* ---------- Phase 5: ambient life ---------- */
+/* a cat crosses the window every so often (long cycle, mostly idle off-screen) */
+.mover.cat {
+  bottom: 4px;
+  animation: cat-walk 48s linear infinite;
+  animation-delay: -10s;
+}
+@keyframes cat-walk {
+  0%,
+  78% {
+    transform: translateX(-16px);
+  }
+  100% {
+    transform: translateX(96px);
+  }
+}
+.mover.cat img {
+  animation: cat-step 0.5s steps(2) infinite;
+}
+@keyframes cat-step {
+  50% {
+    transform: translateY(-1px);
+  }
+}
+/* the wordmark breathes */
+.title-logo span {
+  display: inline-block;
+  animation: logo-bob 3.2s ease-in-out infinite;
+}
+.title-logo span:last-child {
+  animation-delay: 0.4s;
+}
+@keyframes logo-bob {
+  50% {
+    transform: translateY(-3px);
+  }
+}
+html[data-motion='reduced'] .mover.cat,
+html[data-motion='reduced'] .title-logo span {
+  animation: none;
+}

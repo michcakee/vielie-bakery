@@ -420,6 +420,7 @@ export const SPRITES: Record<string, string[]> = {
     '................',
     '................',
   ],
+  cat: ['..........o.', '.o.......oo.', 'oKo.....oK..', 'oKKooooooK..', 'oKwKKKKKKo..', 'oKKKKKKKKo..', '.oKKKKKKo...', '.oKoo.oKo...', '.oo...oo....'],
   baguette: [
     '................',
     '................',

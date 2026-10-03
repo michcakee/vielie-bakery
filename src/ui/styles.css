@@ -1235,7 +1235,7 @@ kbd {
   justify-items: start;
 }
 .intro-vi {
-  font-family: var(--pixel);
+  font-family: 'Be Vietnam Pro', var(--pixel);
   font-size: 44px;
   line-height: 1;
   color: var(--forest);
@@ -1642,6 +1642,7 @@ kbd {
   gap: 10px;
   justify-items: center;
   text-align: center;
+  scroll-margin-top: 0;
 }
 .oven-window {
   width: 100%;
@@ -1968,9 +1969,12 @@ textarea {
   display: grid;
   place-items: center;
   padding: 16px 24px 10px;
+  width: 180px;
+  height: 280px;
   background: radial-gradient(circle at 50% 40%, var(--cream), var(--butter));
   border: 3px solid var(--ink);
   border-radius: 12px;
+  flex-shrink: 0;
 }
 .look-floor {
   width: 80%;

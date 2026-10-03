@@ -162,6 +162,13 @@ function OvenCard() {
     return () => window.clearTimeout(h);
   }, [result]);
 
+  // Prevent page scroll when starting the oven game
+  useEffect(() => {
+    if (!baking) return;
+    const y = window.scrollY;
+    window.scrollTo(0, y);
+  }, [baking]);
+
   return (
     <Card
       className="oven-card"

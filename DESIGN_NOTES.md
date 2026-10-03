@@ -498,3 +498,69 @@ Everything in the table is off at `newGame` unless "Experienced baker" is ticked
 ### Phase A summary line
 
 Phase A – done (report only). Changed: DESIGN_NOTES.md. Unlocks added/changed: none (plan proposed above, 30 ids over 6 chapters). Tests: 113 passing, new: none. Known issues: autopilot bypasses actions so gating must be engine-side; tests and old saves need a full-unlock path; 14 overlapping guidance voices on days 1–10. Next step proposed: sign off the table, then Phase B builds `FEATURE_UNLOCKS`, `featureOn()`, the save migration and the Experienced-baker toggle with no content changes.
+
+## Onboarding, Unlocks and Intro Quests: Phases B–F
+
+### Phase B – done
+Changed: `src/data/unlocks.ts` (new), `src/engine/unlocks.ts` (new), `src/engine/state.ts`, `src/engine/types.ts`, `src/engine/progression.ts`, `src/engine/save.ts`, `src/data/catalog.ts`, `tests/engine/unlocks.test.ts` (new), `tests/engine/stress.test.ts`.
+Unlocks added: 26 feature ids over 6 chapters (table below). Recipe days moved to 4, 6, 9, 11 and 13 so a recipe and a system never share a morning.
+Tests: 118 passing; new: guided day-1 locks, 40-day guided run (one unlock a day at most, never on a recipe day, prerequisites first, no locked action ever changes state), intro quest loop (finish, replay, Later, Experienced baker), v3 migration at day 50 and day 5 with a loan, scenario starting unlocks.
+Known issues: none open.
+
+How it works:
+- `FEATURES` is the single source of truth: chapter, tab, fallback day, optional trigger (unlocks early), optional gate (hard condition such as a level), prerequisites, teaser, and the intro quest (speaker, Vietnamese line, translation, 1–3 steps, the "why" shown after, XP).
+- `GameState.allUnlocked === false` marks a guided game; missing or `true` means everything is open. Tests, old saves and Experienced bakers therefore need no flag. New games from the UI pass `guided: true`. (The brief named the field `unlocked`; that name was taken by recipes, so it is `features`.)
+- Gating is in the reducer: `actionFeature()` maps each action to a feature (buying from another supplier or more than 5 packs needs `market.suppliers`); a locked action returns the same state. Actions that only remove an obligation (repay, cancel, fire, close, clear a rule) are never gated, so nobody gets stuck.
+- The autopilot calls internal functions, not actions, so `autoStock` checks `market.wet` and buys in 5-pack lots until bulk tiers unlock. `runDay` and `handOver` need `today.teamDay`. The daily special is only picked once `today.special` is on.
+- Each morning `applyFeatureUnlocks` adds at most one feature: due ones sorted by fallback day, a fired trigger counts as "due today", and `urgent` (only the team day) jumps the queue. Never on a recipe day.
+- Save version 4. v3 saves get every feature whose fallback day has passed plus anything already in use (loans, staff, contracts, deliveries, campaigns, branches, safety fund, extra equipment, deals, a production plan), with their intro quests marked done.
+
+### Phase C – done
+Changed: `src/ui/App.tsx`, `src/ui/GameContext.tsx`, `src/ui/Guide.tsx` (new), `src/ui/kit.tsx`, `src/ui/panels/HomePanel.tsx`, `src/ui/panels/KitchenPanel.tsx`, `src/ui/panels/MarketPanel.tsx`, `src/ui/screens/Screens.tsx`, `src/ui/Settings.tsx`, `src/engine/save.ts` (prefs `graduated`), `src/ui/styles.css`.
+- Day 1 of a fresh guided game shows **Today and Kitchen only**, with **10 controls** across both tabs (Phase A: 164). Acceptance was under a third (55).
+- Bà's first lesson replaces the old coach: bake a tray, open and serve, close up and choose leftovers. Done by doing; Skip is there.
+- Casual view is the default; Business view appears in Finances and Settings only once `finances.income` unlocks, and the context ignores a stored business preference until then.
+- New game: one Start button for Bà's bakery on Sprinkle (the brief asked the owner to choose Sprinkle or Normal; Sprinkle was picked for younger players, Normal is one tap away). Scenarios, difficulty and Experienced baker sit under More options. Other scenarios are locked with "Finish Bà's first week to unlock" until any game reaches day 8 (`prefs.graduated`) or Experienced baker is ticked. Guided scenarios start with the chapters their mechanics need (`SCENARIO_START`).
+- Experienced baker: on the new-game screen and in Settings (confirm once).
+
+### Phases D and E – done
+- Intro quests for every feature, spoken by Bà, Mai, Chú Tư (farm co-op), Cô Lan (bank officer) or Cô Ngọc (critic); Vietnamese line plus translation; Show me and Later; XP only, never power.
+- Spotlight: dims everything but one control, bouncing pixel arrow, focus moves there; Esc, any tap, or 9 seconds ends it. Never during service or closing.
+- NEW: a dot on tabs (and the More button) and a chip on cards until seen; the tab on screen clears its own.
+- Phone: locked tabs are hidden from the bar and the More sheet; More disappears while it would be empty. Desktop: locked tabs are padlocks whose tooltip is the teaser.
+- One voice: while an intro quest is active, Bà's lesson and Next up step aside; while a morning event is waiting, the intro card waits too. Next up now teases the next system or recipe, whichever is sooner. Quests that need a locked system are hidden.
+- Panel gating: Kitchen (prices, menu and recipe book, plan, deals, prediction), Market (suppliers, 10/20 packs, reorder, locks, contracts), Staff (applicants; training needs staff management), Customers (who comes in, rivals, marketing), Growth (equipment and building, decor, branches and worth), Finances (safety fund, loans, credit, investors, bonds, co-op shares), Analytics (why, trends and the rest, economy, Test Kitchen), Eco (whole tab).
+- Casual view trims secondary numbers: Today shows cash, sales and customers; price rows show what you keep; market rows say "pricey today" instead of percentages; applicant rows drop the value estimate; equipment drops book values.
+- Quest book: "Getting to know your bakery" lists deferred quests (Start) and finished ones (Show me again).
+
+### Phase F – partial
+Done: an opt-in scripted playtest (`PLAYTEST=1 npx vitest run tests/engine/playtest.log.test.ts`) logs each morning's voices for 35 days, plus a browser check at 375 px of day 1 and day 14 (event answered first, then Bà's intro card; Show me spotlights the team button).
+
+The calendar a guided game follows (seed 2026, a player who opens every day):
+
+| Day | New system | Same morning |
+|---|---|---|
+| 2 | Market: the wet market | |
+| 3 | Kitchen: prices | Mai arrives; coffee rumour event |
+| 4 | – | Gress cupcake recipe |
+| 5 | Today's special | rainy season event; string lights gift |
+| 6 | – | Trà tắc recipe |
+| 7 | Customers: who comes in | |
+| 8 | Market: more suppliers | Chú Hùng; egg shortage event |
+| 9 | – | Light gress tea recipe |
+| 10 | Analytics: why did this happen? | catering offer |
+| 11 | – | Bánh patê sô recipe |
+| 12 | Staff: your first hire | Green Week event |
+| 13 | – | Gress sandwich cookies recipe |
+| 14 | Let the team run today | heatwave event |
+| 15–22 | Finances, menu, Eco, rivals, decor, safety fund, equipment, plan | rival opens day 15 |
+| 23–30 | trends, contracts, training, deals, loans, marketing | Tết days 24–28 |
+| 35 | The economy | |
+
+Findings and fixes:
+- Twelve mornings had a story event and a new intro quest together. Fixed: the intro card waits until the event is answered.
+- The tab on screen kept its NEW dot until you left and came back. Fixed.
+- The spotlight restarted its timers on every re-render. Fixed.
+- Not changed: reaching level 2 (usually day 2 or 3) still adds a batch of level recipes at once. That is the existing level pacing, not a system unlock; worth watching in a real playtest.
+
+Still to do: the real playtest with 2–3 kids (brief §8 Phase F), watching for every "what do I do?" and every tap on something locked, then retuning fallback days and triggers in `src/data/unlocks.ts`.

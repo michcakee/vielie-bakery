@@ -8,14 +8,31 @@ Welcome to the lane! Bà (grandma) is retiring, and her little Vietnamese bakery
 
 ## Quick start (your first five minutes)
 
-1. **New game.** Pick a save slot, a scenario (start with **Family Business**) and a difficulty (**Normal** is realistic; **Sprinkle** is forgiving, for younger bakers; **Pro** and **Expert** bite). Then pick your look and name your bakery.
+1. **New game.** Pick a save slot and tap **Start**: you get Bà's bakery on **Sprinkle**, the forgiving setting. **More options** has the other scenarios, the difficulties (**Normal** is realistic; **Pro** and **Expert** bite) and **Experienced baker**. The other scenarios open once you finish Bà's first week. Then pick your look and name your bakery.
 2. **Open the doors.** Bà left you baguettes, a tray of flan and enough for coffee. Tap **Mở cửa! Open**.
 3. **Serve Linh.** She asks *"Cho mình một bánh mì!"* (One bánh mì, please!). Tap her order, then the steps in order: **Cắt bánh → Chả lụa → Đồ chua → Rau thơm → Tương ớt.** On your first days the next step glows.
 4. **Keep serving.** Pastries are one tap (**Hand over**); bánh mì and drinks are **Make it**.
 5. **Close up.** At 7pm (or **Close up**), keep, donate or bin what's left, then read the day's report.
 6. **Tomorrow:** stock up in **Market**, bake in **Kitchen**, and open again.
 
-That's the core loop. Everything below is about turning one shop into a business.
+That's the core loop. Bà's first lesson on the Today tab walks you through it once.
+
+### Everything else unlocks as you go
+
+A new bakery starts with just **Today** and **Kitchen**. Every other part of the shop arrives one at a time, at most one a morning, when it becomes useful or on its day at the latest. Each one comes with a tiny intro quest from Bà or a neighbour: one to three things to *do*, with a **Show me** button that points at the right control. Tap **Later** to save it for another time; it waits in the quest book and never nags. **Show me again** in the quest book replays any of them.
+
+| Around day | What opens |
+| --- | --- |
+| 2–3 | The wet market, then setting your own prices (with a guess about what will happen) |
+| 5–8 | Today's special, getting to know your regulars, more suppliers and bulk packs |
+| 10–14 | Why did this happen?, your first hire, then letting the team run a day |
+| 15–22 | Money pages, the menu and recipe book, Eco, rivals, the safety fund, equipment, the baking plan, trends |
+| 23–35 | Contracts and price locks, training, combos and sizes, bank loans, marketing, the economy |
+| Later | Investors and bonds, the Test Kitchen, more shops |
+
+Know the game already? Tick **Experienced baker** on the new-game screen, or in Settings, and everything opens at once. Bakeries saved before this update keep everything they already had.
+
+Everything below is about turning one shop into a business.
 
 ---
 
@@ -34,7 +51,7 @@ You can switch mid-day: **Hand over the counter** lets the team take over while 
 
 ## The tabs
 
-On a phone, the first four are in the bottom bar and the rest are under **More**.
+On a phone, the first four are in the bottom bar and the rest are under **More**. Tabs you haven't unlocked yet are hidden on phones and shown with a padlock on bigger screens.
 
 | Tab | What it's for |
 | --- | --- |

@@ -227,12 +227,12 @@ function Game({ onQuit }: { onQuit: () => void }) {
   useServiceClock(running, rate);
   useServiceSounds(s);
 
+  const [openCheck, setOpenCheck] = useState<string[] | null>(null);
   if (s.phase === 'setup') return <Setup />;
 
   const service = s.phase === 'service';
   const first = s.service?.visits.find((v) => v.status === 'waiting' && !v.servedBy);
   const firstHint = service && s.lifetime.served === 0 && first ? `${first.name} wants ${PRODUCTS[first.wants].name}! Tap the order to make it.` : null;
-  const [openCheck, setOpenCheck] = useState<string[] | null>(null);
   const reallyOpen = () => {
     setOpenCheck(null);
     dispatch({ type: 'open' });

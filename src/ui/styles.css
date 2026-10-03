@@ -5265,3 +5265,4 @@ html[data-motion='reduced'] .title-logo span {
 @media (max-width: 760px) {
   .toast { top: 8px; bottom: auto; }
 }
+.crash-screen { display: grid; gap: 12px; justify-items: center; max-width: 480px; margin: 15vh auto; padding: 16px; text-align: center; }

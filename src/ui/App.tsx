@@ -7,6 +7,7 @@ import { activeQuests } from '../engine/progression';
 import { money } from '../lib/format';
 import { play } from './audio';
 import { onBack } from './backButton';
+import { confetti } from './pixelUi';
 import { useGame } from './GameContext';
 import { Hud } from './Hud';
 import { Btn } from './kit';
@@ -155,6 +156,8 @@ function Game({ onQuit }: { onQuit: () => void }) {
     if (!t) return;
     shakenFor.current = t.id;
     if (reduced) return;
+    confetti();
+    play('confetti');
     setShake(true);
     const h = window.setTimeout(() => setShake(false), 450);
     return () => window.clearTimeout(h);

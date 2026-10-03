@@ -60,7 +60,7 @@ function Assembly({ visit, onDone, onCancel }: { visit: Visit; onDone: (process:
   const tap = (id: string) => {
     if (finished) return;
     if (steps[done].id === id) {
-      play(id === 'slice' ? 'chop' : id === 'phin' || id === 'tea' || id === 'milk' ? 'pour' : 'pop');
+      play(id === 'slice' ? 'chop' : id === 'phin' || id === 'tea' || id === 'milk' ? 'pour' : 'plop');
       setDone(done + 1);
     } else {
       play('oops');
@@ -141,6 +141,10 @@ function Assembly({ visit, onDone, onCancel }: { visit: Visit; onDone: (process:
 /** Shown for a moment after the player serves someone: stars, the three parts of the score, the tip. */
 function GradeCard({ visit }: { visit: Visit }) {
   const g = visit.grade!;
+  useEffect(() => {
+    if (g.stars >= 4) play('chirp');
+    else if (g.stars <= 2) play('sad');
+  }, [g.stars]);
   const word = g.stars === 5 ? 'PERFECT!' : g.stars === 4 ? 'Great' : g.stars === 3 ? 'Good' : g.stars === 2 ? 'Hmm' : 'Oh no';
   return (
     <div className={`grade-card stars-${g.stars}`} role="status" aria-label={`${visit.name}: ${g.score} out of 100, ${g.stars} stars${g.tip ? `, tip ${money2(g.tip)}` : ''}`}>

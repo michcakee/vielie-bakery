@@ -230,7 +230,7 @@ export function BakeryScene({ onCustomer, baking = false, caption }: Props) {
           const waiting = v.status === 'waiting';
           const patience = waiting ? 1 - (clock - (v.waitStart ?? clock)) / v.patience : 1;
           return (
-            <div key={v.id} className={`cust ${leaving ? 'leaving' : ''}`} style={{ left: x, top }}>
+            <div key={v.id} className={`cust ${leaving ? 'leaving' : ''} ${leaving && v.mood === 'love' ? 'hop' : ''}`} style={{ left: x, top }}>
               <Person look={v.look} scale={1} walking={walking && !reduced} />
               {waiting && (
                 <button type="button" tabIndex={-1} className={`bubble ${patience < 0.3 ? 'urgent' : ''}`} onClick={() => onCustomer?.(v)}>

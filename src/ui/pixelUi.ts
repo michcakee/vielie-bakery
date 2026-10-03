@@ -68,6 +68,24 @@ export function initPixelUi() {
   if (hand.url) root.setProperty('--px-cursor', `url(${hand.url}) 4 1`);
 }
 
+/** Palette confetti from the top of the screen for level-ups. Skipped under reduced motion. */
+export function confetti(count = 28) {
+  if (typeof document === 'undefined' || document.documentElement.dataset.motion === 'reduced') return;
+  const colours = ['#ea7286', '#f4a4bf', '#e3e19f', '#a9c484', '#a3b2d2', '#eab281', '#bfded8'];
+  const box = document.createElement('div');
+  box.className = 'confetti';
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement('i');
+    p.style.left = `${Math.random() * 100}%`;
+    p.style.background = colours[i % colours.length];
+    p.style.animationDelay = `${Math.random() * 0.25}s`;
+    p.style.animationDuration = `${0.7 + Math.random() * 0.4}s`;
+    box.appendChild(p);
+  }
+  document.body.appendChild(box);
+  window.setTimeout(() => box.remove(), 1400);
+}
+
 /** A sparkle at every touch, unless motion is reduced. Desktop pointers get the cursor instead. */
 export function initTouchSparkle() {
   if (typeof document === 'undefined') return;

@@ -1,5 +1,5 @@
 /** Tiny synthesized sound effects and an original pentatonic loop. No audio files. */
-type Sfx = 'coin' | 'bell' | 'pop' | 'ding' | 'oops' | 'sparkle' | 'level' | 'pour' | 'click' | 'chop' | 'sad';
+type Sfx = 'coin' | 'bell' | 'pop' | 'ding' | 'oops' | 'sparkle' | 'level' | 'pour' | 'click' | 'chop' | 'sad' | 'plop' | 'pfft' | 'chirp' | 'confetti';
 
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
@@ -94,6 +94,19 @@ export function play(s: Sfx) {
     case 'sad':
       tone(392, 0, 0.18, 'triangle', 0.1, -60);
       tone(330, 0.15, 0.25, 'triangle', 0.1, -40);
+      break;
+    case 'plop':
+      tone(320, 0, 0.09, 'sine', 0.22, -140);
+      break;
+    case 'pfft':
+      noise(0, 0.28, 0.14, 240);
+      break;
+    case 'chirp':
+      tone(1245, 0, 0.06, 'square', 0.09);
+      tone(1661, 0.07, 0.09, 'square', 0.09);
+      break;
+    case 'confetti':
+      [784, 988, 1175, 1568, 1976].forEach((f, i) => tone(f, i * 0.06, 0.14, 'triangle', 0.1));
       break;
     case 'sparkle':
       [1568, 1976, 2349, 3136].forEach((f, i) => tone(f, i * 0.05, 0.12, 'triangle', 0.08));

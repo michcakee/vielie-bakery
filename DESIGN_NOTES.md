@@ -301,3 +301,12 @@ Hooks added to game logic: none (burnt = tray quality under 45, perfect = 95+, b
 Known issues: light direction and per-material shade counts were not hand-audited across all 97 sprites; night-sky colours are approximations
 Next step proposed: Phase 4 (oven ding, burnt smoke, coin arc, customer hop, level-up confetti, new sounds)
 ```
+
+```
+Phase 4 – done
+Changed: src/ui/audio.ts (plop, pfft, chirp, confetti), src/ui/panels/KitchenPanel.tsx (oven result: bell bounce + ding, or smoke puffs + worried face + pfft; perfect bake sparkles), src/ui/scene/BakeryScene.tsx (customers who loved it hop; coins arc toward the HUD), src/ui/panels/ServicePanel.tsx (ingredients plop and squash into the stack; grade card chirps for 4–5 stars, sighs for 1–2), src/ui/pixelUi.ts + App.tsx (palette confetti and a fanfare on level-up), styles (button squash 110%/90%)
+New assets: none
+Hooks added to game logic: none (the oven result is read from the bake's quality in the UI)
+Known issues: effects were verified in the DOM and by ear-less inspection; the burnt path shares the same component as the ding path but wasn't triggered in the pane (a tray must be left past the end of the dial)
+Next step proposed: Phase 5 (ambient: cat past the window, plant sway, wordmark bob)
+```

@@ -118,14 +118,23 @@ function OvenCard() {
   const items: Bakeable[] = ['baguette', ...onMenu(s).filter((p) => PRODUCTS[p].kind === 'tray')];
   const morning = s.phase === 'morning' && !s.events.length;
 
+  // The moment a tray comes out: a bell for a good bake, a puff of smoke for a burnt one.
+  const [result, setResult] = useState<{ item: Bakeable; q: number; id: number } | null>(null);
   const bake = (item: Bakeable, q: number) => {
     dispatch({ type: 'bake', item, process: q });
-    play('sparkle');
+    play(q < 45 ? 'pfft' : q >= 95 ? 'sparkle' : 'ding');
+    setResult({ item, q, id: Date.now() });
     setBaking(null);
   };
+  useEffect(() => {
+    if (!result) return;
+    const h = window.setTimeout(() => setResult(null), 1500);
+    return () => window.clearTimeout(h);
+  }, [result]);
 
   return (
     <Card
+      className="oven-card"
       title="Oven"
       icon="hot"
       aside={
@@ -137,6 +146,30 @@ function OvenCard() {
         </span>
       }
     >
+      {result && (
+        <div key={result.id} className={`oven-result ${result.q < 45 ? 'burnt' : result.q >= 95 ? 'perfect' : 'good'}`} role="status">
+          {result.q < 45 ? (
+            <>
+              <span className="puffs" aria-hidden="true">
+                <i />
+                <i />
+                <i />
+              </span>
+              <Sprite name={result.item === 'baguette' ? 'baguette:burnt' : `${result.item}:burnt`} scale={3} />
+              <Sprite name="faceWorried" scale={3} />
+              <b>Burnt… it’ll go cheap.</b>
+            </>
+          ) : (
+            <>
+              <span className="bell-bounce" aria-hidden="true">
+                <Sprite name="bell" scale={3} />
+              </span>
+              <Sprite name={result.item === 'baguette' ? (result.q >= 95 ? 'baguette:perfect' : 'baguette') : result.q >= 95 ? `${result.item}:perfect` : result.item} scale={3} />
+              <b>{result.q >= 95 ? 'Perfect bake!' : 'Ding! Out of the oven.'}</b>
+            </>
+          )}
+        </div>
+      )}
       {baking ? (
         <OvenGame item={baking} onDone={(q) => bake(baking, q)} onCancel={() => setBaking(null)} />
       ) : (

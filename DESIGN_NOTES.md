@@ -608,3 +608,12 @@ Round 2 found days 1–5 calm and fair, but from about day 10 a kid couldn't gro
 Kid bot after round 2 (seed 12):
 - **No hire:** level 4 on day 23, about 2 stars a day.
 - **Hires Bà's pick:** level 4 on day 17, and 68–71 served by day 20–30.
+
+### Six additions after tester round 3
+- **Order twists** (`src/engine/twists.ts`): skip a step, double a step, or a rush order, on made-to-order dishes only; 30% of them from day 5 in guided games. Models: Papa’s games and Cooking Fever order variations. The bonus tip is paid only for a flawless assembly (or a quick serve for rush), so staff-served twists pay nothing extra.
+- **Daily challenge** (`src/engine/challenge.ts`): one of seven kinds each morning, with targets a little above the last three days. Pays 20 XP and about $8.
+- **Staff traits** (`TRAITS` in `src/data/world.ts`): speed, quality or tip effects, shown before hiring, plus chatter in the scene.
+- **Paint and arrange** (`ShopStyle`): wall colour and pattern, floor, counter, and three spots each for the plant, hoa mai and birdcage. Free on purpose: it is self-expression, not a money sink.
+- **Lantern Festival arc** (`src/engine/arc.ts`): ten chapters from day 36, about three days apart, ending on day 61. Lane hearts come from choices and from 2-star days; 16 wins. Both endings give a prize on the wall, cash and XP, so nobody loses badly. Older saves past day 36 start it the next morning.
+- **Collection book** (`src/ui/Collection.tsx`): neighbours, recipes and medals, story chapters, events seen and decorations, with a total count.
+- **Characters** redrawn again as 16×26 chibis with tinted outlines, after the reference style the owner picked. All new random streams are separate, so existing schedules and balance tests are unchanged.

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ECON } from '../../data/config';
-import { ROLES, ROLE_ORDER } from '../../data/world';
+import { ROLES, ROLE_ORDER, TRAITS } from '../../data/world';
 import { laborTrays, ovenCapacity, productivity, trayCapacity, wages } from '../../engine/economy';
 import { hireValue, marketWage } from '../../engine/labor';
 import type { Employee, RoleId } from '../../engine/types';
@@ -11,7 +11,7 @@ import { Btn, Card, Empty, Meter, Stepper, Tip } from '../kit';
 import { Person, Sprite } from '../pixel/Sprite';
 
 function EmployeeRow({ e }: { e: Employee }) {
-  const { state: s, dispatch } = useGame();
+  const { state: s, dispatch, prefs } = useGame();
   const [wage, setWage] = useState(e.wage);
   const going = marketWage(s, e.role, e.skill);
   const prod = productivity(e, s.day);
@@ -28,6 +28,15 @@ function EmployeeRow({ e }: { e: Employee }) {
           Skill {Array.from({ length: e.skill }).map((_, i) => (<span key={i} className="star-on"><Sprite name="star" scale={2} /></span>))}
           {Array.from({ length: 5 - e.skill }).map((_, i) => (<span key={i} className="star-off"><Sprite name="star" scale={2} /></span>))} · productivity {Math.round(prod * 100)}% · {e.served} served · since day {e.hiredDay}
         </span>
+        {e.trait && (
+          <span className="small trait">
+            <span className="special-tag trait-tag">{TRAITS[e.trait].name}</span> {TRAITS[e.trait].blurb}
+            <em className="trait-says" lang="vi">
+              “{TRAITS[e.trait].lines[(e.id + s.day) % TRAITS[e.trait].lines.length].vi}”
+            </em>
+            {prefs.translations && <em className="trait-says muted">{TRAITS[e.trait].lines[(e.id + s.day) % TRAITS[e.trait].lines.length].en}</em>}
+          </span>
+        )}
         <span className="small">Morale</span>
         <Meter value={e.morale / 100} tone={e.morale < 35 ? 'bad' : e.morale < 60 ? 'meh' : 'good'} label={`${e.name}'s morale`} />
         {e.trainingUntil >= s.day && <span className="small effect">In training until day {e.trainingUntil}</span>}
@@ -156,6 +165,11 @@ export function StaffPanel() {
                       {Array.from({ length: 5 - a.skill }).map((_, i) => (<span key={i} className="star-off"><Sprite name="star" scale={2} /></span>))} · asks {money2(a.wage)}/hour
                     </span>
                     <span className="small">{ROLES[a.role].blurb}</span>
+                    {a.trait && (
+                      <span className="small trait">
+                        <span className="special-tag trait-tag">{TRAITS[a.trait].name}</span> {TRAITS[a.trait].blurb}
+                      </span>
+                    )}
                     <span className="small marginal">
                       Costs about <b>{money(v.cost)}/day</b>. Adds {v.adds}
                       {business && v.addsValue > 0 && (

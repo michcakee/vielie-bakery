@@ -59,7 +59,7 @@ export const SPRITE_COLORS: Record<string, string> = {
 
 export const SKINS = ['#ffe0c4', '#f6cba4', '#e0a57c', '#b97852', '#7e4f35'];
 export const SKIN_SHADE = ['#f2c7a6', '#e3b18a', '#c98d66', '#9e6440', '#663e29'];
-export const HAIR_COLORS = ['#2b2220', '#4a3226', '#7a4b2e', '#9b4a2c', '#d77a9a', '#c9a15a', '#9e9a96'];
+export const HAIR_COLORS = ['#2b2220', '#4a3226', '#7a4b2e', '#9b4a2c', '#d77a9a', '#c9a15a', '#9e9a96', '#f4b6d2', '#c9b3ea', '#a9dcc9', '#f2c14e'];
 export const SHIRTS = ['#eab281', '#777f8f', '#ea7286', '#a9c484', '#eab281', '#a07ca7', '#a07ca7', '#f4a4bf'];
 export const APRONS = ['#5d937b', '#eeede3', '#ea7286', '#777f8f', '#eab281'];
-export const PANTS = ['#58525a', '#58525a', '#58525a', '#58525a'];
+export const PANTS = ['#6f7fa8', '#58525a', '#8a6f8f', '#5d7f8f'];

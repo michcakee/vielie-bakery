@@ -1,5 +1,5 @@
 import { DIFFICULTY, ECON } from '../data/config';
-import { FRIENDS, ROLES, ROLE_ORDER, STAFF_NAMES } from '../data/world';
+import { FRIENDS, ROLES, ROLE_ORDER, STAFF_NAMES, TRAIT_ORDER } from '../data/world';
 import { CONFIG } from '../data/catalog';
 import { has, productivity } from './economy';
 import { rngFor } from './rng';
@@ -34,7 +34,9 @@ export function weeklyApplicants(s: GameState): Applicant[] {
     const ask = marketWage(s, role, skill) * (0.95 + rand() * 0.15);
     out.push({ id: s.nextId + out.length, name: STAFF_NAMES[Math.floor(rand() * STAFF_NAMES.length)], role, wage: round2(ask), skill, look: { ...randomLook(rand), apron: Math.floor(rand() * 5) } });
   }
-  return out;
+  // Personalities come from their own random stream, so they never change who applies.
+  const traitRand = rngFor(s.seed, s.day, 504);
+  return out.map((a) => ({ ...a, trait: TRAIT_ORDER[Math.floor(traitRand() * TRAIT_ORDER.length)] }));
 }
 
 export function moraleTarget(s: GameState, e: Employee): number {
@@ -98,5 +100,5 @@ export function hireValue(s: GameState, role: RoleId, skill = 3): { cost: number
 }
 
 export function makeEmployee(a: Applicant, day: number, branch: number | null = null): Employee {
-  return { id: a.id, name: a.name, role: a.role, wage: a.wage, skill: a.skill, morale: 72, hiredDay: day, trainingUntil: 0, look: a.look, served: 0, branch };
+  return { id: a.id, name: a.name, role: a.role, wage: a.wage, skill: a.skill, morale: 72, hiredDay: day, trainingUntil: 0, look: a.look, served: 0, branch, trait: a.trait };
 }

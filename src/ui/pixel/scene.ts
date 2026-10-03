@@ -1,4 +1,4 @@
-import type { DecorId, UpgradeId, Weather } from '../../engine/types';
+import type { DecorId, ShopStyle, UpgradeId, Weather } from '../../engine/types';
 import { PAL } from './palette';
 import { paint } from './render';
 import { SPRITES } from './sprites';
@@ -39,7 +39,37 @@ export interface SceneOpts {
   upgrades: UpgradeId[];
   tet: boolean;
   competitor: boolean;
+  style?: ShopStyle;
+  /** The Lantern Festival prize on the wall. */
+  prize?: 'won' | 'second';
 }
+
+/** Paint and floor choices. Index 0 of each list is how the shop starts. */
+export const WALLS = [
+  { name: 'Cream', c: '#eeede3', accent: '#f5d1b6' },
+  { name: 'Mint', c: '#e0efe9', accent: '#bfded8' },
+  { name: 'Peach', c: '#f9e3d3', accent: '#f0c4a4' },
+  { name: 'Sky', c: '#e1e8f5', accent: '#c5d0ea' },
+  { name: 'Butter', c: '#f3f1cb', accent: '#e3e19f' },
+  { name: 'Rose', c: '#f8e1e8', accent: '#f4b9cb' },
+];
+export const PATTERNS = ['Stripes', 'Plain', 'Dots', 'Checks'];
+export const FLOORS = [
+  { name: 'Wood', a: '#eab281', b: '#eab281', line: '#bf796d', tiles: false },
+  { name: 'Mint tiles', a: '#eeede3', b: '#bfded8', line: '#a2a6a9', tiles: true },
+  { name: 'Terracotta', a: '#e0a57c', b: '#cf8d68', line: '#a8664a', tiles: true },
+  { name: 'Dark wood', a: '#b98363', b: '#b98363', line: '#7e5a48', tiles: false },
+];
+export const COUNTERS = [
+  { name: 'Cream and green', body: '#eeede3', top: '#a9c484' },
+  { name: 'Pink', body: '#f8e1e8', top: '#ea7286' },
+  { name: 'Blue', body: '#e1e8f5', top: '#a3b2d2' },
+  { name: 'Wood', body: '#eab281', top: '#bf796d' },
+];
+/** Where movable decorations can go (stage px, left edge). */
+export const FLOOR_SPOTS = [28, 58, 88];
+export const CAGE_SPOTS = [1, 176, 227];
+const at = <T,>(list: T[], i: number | undefined): T => list[(i ?? 0) % list.length] ?? list[0];
 
 const SKY: Record<Weather, string[]> = {
   sunny: ['#f5d1b6', '#bfded8', '#bfded8', '#eab281', '#58525a'],
@@ -176,8 +206,12 @@ export function drawRoom(ctx: CanvasRenderingContext2D, o: SceneOpts) {
   // ceiling: a pink cornice; walls: off-white with faint pink stripes above a light-green wainscot
   rect(ctx, 0, 0, STAGE_W, 6, ROOM.cornice);
   rect(ctx, 0, 6, STAGE_W, 1, PAL.ink);
-  rect(ctx, 0, 7, STAGE_W, 69, ROOM.wall);
-  for (let x = 1; x < STAGE_W; x += 6) rect(ctx, x, 7, 2, 69, ROOM.wallStripe);
+  const wall = at(WALLS, o.style?.wall);
+  const pattern = (o.style?.pattern ?? 0) % PATTERNS.length;
+  rect(ctx, 0, 7, STAGE_W, 69, wall.c);
+  if (pattern === 0) for (let x = 1; x < STAGE_W; x += 6) rect(ctx, x, 7, 2, 69, wall.accent);
+  if (pattern === 2) for (let y = 11, r = 0; y < 74; y += 7, r++) for (let x = 3 + (r % 2 ? 4 : 0); x < STAGE_W; x += 8) rect(ctx, x, y, 2, 2, wall.accent);
+  if (pattern === 3) for (let y = 7, r = 0; y < 76; y += 8, r++) for (let x = (r % 2) * 8; x < STAGE_W; x += 16) rect(ctx, x, y, 8, Math.min(8, 76 - y), wall.accent);
   rect(ctx, 0, 74, STAGE_W, 2, ROOM.trim);
   rect(ctx, 0, 76, STAGE_W, 20, ROOM.dado);
   for (let x = 4; x < STAGE_W; x += 24) {
@@ -195,13 +229,17 @@ export function drawRoom(ctx: CanvasRenderingContext2D, o: SceneOpts) {
     rect(ctx, lx + 3, 22, 3, 1, '#eeede3');
   }
   // wooden floor: planks with staggered joints
-  rect(ctx, 0, L.floorY, STAGE_W, STAGE_H - L.floorY, ROOM.plank);
-  for (let y = L.floorY; y < STAGE_H; y += 6) {
-    rect(ctx, 0, y, STAGE_W, 1, ROOM.plankLine);
-    rect(ctx, 0, y + 1, STAGE_W, 1, ROOM.plankHi);
-    const off = ((y - L.floorY) / 6) % 2 ? 12 : 0;
-    for (let x = off; x < STAGE_W; x += 24) rect(ctx, x, y + 1, 1, 5, ROOM.plankLine);
-  }
+  const floor = at(FLOORS, o.style?.floor);
+  rect(ctx, 0, L.floorY, STAGE_W, STAGE_H - L.floorY, floor.a);
+  if (floor.tiles) {
+    for (let y = L.floorY, r = 0; y < STAGE_H; y += 8, r++) for (let x = r % 2 ? 12 : 0; x < STAGE_W; x += 24) rect(ctx, x, y, 12, 8, floor.b);
+    for (let y = L.floorY; y < STAGE_H; y += 8) rect(ctx, 0, y, STAGE_W, 1, floor.line);
+  } else
+    for (let y = L.floorY; y < STAGE_H; y += 6) {
+      rect(ctx, 0, y, STAGE_W, 1, floor.line);
+      const off = ((y - L.floorY) / 6) % 2 ? 12 : 0;
+      for (let x = off; x < STAGE_W; x += 24) rect(ctx, x, y + 1, 1, 5, floor.line);
+    }
   rect(ctx, 0, L.floorY, STAGE_W, 1, PAL.ink);
   // guest tables by the window: round pink tops, mint chairs, something sweet on each
   for (const [tx, ty] of [[38, 108], [76, 108]] as const) cafeTable(ctx, tx, ty);
@@ -231,6 +269,22 @@ export function drawRoom(ctx: CanvasRenderingContext2D, o: SceneOpts) {
       box(ctx, W.x + 4 + i * 15, W.y + W.h - 5, 8, 5, PAL.orangeDark);
       rect(ctx, W.x + 5 + i * 15, W.y + W.h - 9, 6, 4, PAL.pandan);
     }
+
+  // the Lantern Festival prize, on the wall above the door
+  if (o.prize) {
+    box(ctx, 5, 30, 22, 16, '#eeede3');
+    if (o.prize === 'won') {
+      rect(ctx, 15, 33, 2, 5, '#e3b23c');
+      for (const wx of [12, 15, 18]) rect(ctx, wx, 37, 2, 6, '#e3b23c');
+      rect(ctx, 12, 42, 8, 1, '#e3b23c');
+      rect(ctx, 22, 32, 2, 2, '#ffffff');
+    } else {
+      rect(ctx, 12, 33, 8, 7, PAL.pink);
+      rect(ctx, 14, 35, 4, 3, '#ffffff');
+      rect(ctx, 12, 40, 3, 4, PAL.pink);
+      rect(ctx, 17, 40, 3, 4, PAL.pink);
+    }
+  }
 
   // door
   const D = L.door;
@@ -327,11 +381,12 @@ export function drawRoom(ctx: CanvasRenderingContext2D, o: SceneOpts) {
 /** The counter sits in front of the player but behind customers. */
 export function drawCounter(ctx: CanvasRenderingContext2D, o: SceneOpts) {
   const K = LAYOUT.counter;
-  box(ctx, K.x, K.y, K.w, K.h, ROOM.counter);
-  rect(ctx, K.x - 2, K.y - 2, K.w + 4, 3, ROOM.counterTop);
+  const counter = at(COUNTERS, o.style?.counter);
+  box(ctx, K.x, K.y, K.w, K.h, counter.body);
+  rect(ctx, K.x - 2, K.y - 2, K.w + 4, 3, counter.top);
   rect(ctx, K.x - 2, K.y - 2, K.w + 4, 1, PAL.ink);
   for (let x = K.x + 4; x < K.x + K.w - 4; x += 12) {
-    rect(ctx, x, K.y + 4, 9, 11, ROOM.counterPanel);
+    rect(ctx, x, K.y + 4, 9, 11, counter.body);
     rect(ctx, x, K.y + 4, 9, 1, ROOM.dadoLine);
     rect(ctx, x, K.y + 4, 1, 11, ROOM.dadoLine);
     rect(ctx, x + 3, K.y + 8, 3, 3, ROOM.trim);

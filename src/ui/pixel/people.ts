@@ -1,184 +1,111 @@
 /**
- * Character art: a 16×32 chibi with a big readable face.
- * Codes: o outline, s skin, S skin shade, b brow, e eye, W eye shine, c blush, m mouth,
- * t shirt, T shirt shade, a apron, A apron shade, p trousers, f shoes,
- * h hair, H hair shine, j hair shade, plus accessory colours (w white, E grey, r red, G helmet, n straw, y gold, k pink).
- * A '.' is see-through, so layers stack: back hair, body, front hair, accessory.
+ * Character art: a 16×26 chibi. The head fills the whole width and is as tall as the body,
+ * the eyes are three pixels tall with a shine, and outlines are tinted (hair, skin and clothes
+ * each get a darker shade of themselves) instead of one dark line.
+ *
+ * Codes: s skin, S skin shade, O skin outline, E lash, W eye shine, i iris, I light iris,
+ * c blush, m mouth, t shirt, T shirt shade, u clothes outline, a apron, A apron shade,
+ * p trousers, f shoes, o soft dark outline, h hair, H hair shine, j hair shade, J hair outline,
+ * plus accessory colours (w white, e grey, r red, G helmet, n straw, y gold, k pink, b blue).
+ * A '.' is see-through, so layers stack: body, hair, accessory.
  */
 
 const HEAD = [
-  '................',
-  '................',
-  '.....oooooo.....',
-  '...oossssssoo...',
-  '..osssssssssso..',
-  '.osssssssssssSo.',
-  '.osssssssssssSo.',
-  '.ossbbssssbbsSo.',
-  '.ossWessssWesSo.',
-  '.osseesssseesSo.',
-  '.osccssssssccSo.',
-  '..ossssmmsssSo..',
-  '...oossssssoo...',
-  '......oSSo......',
+  '',
+  '',
+  '',
+  '.....OOOOOO.....',
+  '...OOssssssOO...',
+  '..OssssssssssO..',
+  '.OssssssssssssO.',
+  '.OssssssssssssO.',
+  '.OssssssssssssO.',
+  '.OssEEssssEEssO.',
+  '.OssWissssWissO.',
+  '.OssiIssssiIssO.',
+  '.OsccssmmssccsO.',
+  '..OssssssssssO..',
+  '...OOssssssOO...',
+  '......OSSO......',
 ];
 
 const TORSO = [
-  '....ootwwtoo....',
-  '..ootttwwtttoo..',
-  '.otttattttattto.',
-  '.otTtaaaaaatTto.',
-  '.otTtaaaaaatTto.',
-  '.otTtaAAAAatTto.',
-  '.otTtaAaaAatTto.',
-  '.osTtaAAAAatTso.',
-  '.osoaaaaaaaaoso.',
-  '..ooaaaaaaaaoo..',
-  '....oAAAAAAo....',
-  '....oppppppo....',
+  '....uuwttwuu....',
+  '...uttaaaattu...',
+  '...utTaaaaTtu...',
+  '...usTaAAaTsu...',
+  '...uuuaaaauuu...',
+  '....uaaaaaau....',
+  '....uAAAAAAu....',
 ];
 
-const LEGS_STAND = [
-  '....oppooppo....',
-  '....oppooppo....',
-  '....offooffo....',
-  '...offo..offo...',
-  '...oooo..oooo...',
-];
+const LEGS_STAND = ['....oppooppo....', '...offo..offo...', '...oooo..oooo...'];
+const LEGS_STEP = ['....oppooppo....', '...offo..oooo...', '...oooo.........'];
 
-const LEGS_STEP = [
-  '....oppooppo....',
-  '....oppooffo....',
-  '....offooooo....',
-  '...offo.........',
-  '...oooo.........',
-];
-
-/** Arms swing a little on the step frame: one hand forward (lower), one back (higher). */
-const TORSO_STEP = TORSO.map((row, i) => {
-  if (i === 7) return '.otTtaAAAAatTso.';
-  if (i === 8) return '.osoaaaaaaaaoSo.';
-  if (i === 9) return '.osoaaaaaaaaoo..';
-  if (i === 10) return '..oooAAAAAAo....';
-  return row;
-});
+/** On the step frame one hand swings forward a pixel. */
+const TORSO_STEP = TORSO.map((row, i) => (i === 3 ? '...uuTaAAaTsu...' : i === 4 ? '...usuaaaauuu...' : row));
 
 export const BODY_STAND = [...HEAD, ...TORSO, ...LEGS_STAND];
 export const BODY_STEP = [...HEAD, ...TORSO_STEP, ...LEGS_STEP];
 
-/** Hair drawn over the face (index matches HAIR_STYLES). */
-export const HAIR_FRONT: string[][] = [
-  // Bob: soft fringe, sides to the chin
-  [
-    '................',
-    '....oooooooo....',
-    '...ohhHHhhhho...',
-    '..ohHHhhhhhhho..',
-    '.ohHhhhhhhhhhjo.',
-    '.ohhhhhhhhhhhjo.',
-    '.ohh.hh..hh.hjo.',
-    '.oh..........jo.',
-    '.oh..........jo.',
-    '.oh..........jo.',
-    '.ohh........jjo.',
-    '.ohhj......jjjo.',
-    '..ooo......ooo..',
-  ],
-  // Bun: hair pulled back into a top knot
-  [
-    '......oooo......',
-    '.....ohHhjo.....',
-    '...oooohjoooo...',
-    '..ohHHhhhhhhho..',
-    '.ohHhhhhhhhhhjo.',
-    '.ohhhhh..hhhhjo.',
-    '.oh..........jo.',
-  ],
-  // Short: side-swept fringe and sideburns
-  [
-    '................',
-    '.....oooooo.....',
-    '...oohHHhhhoo...',
-    '..ohHhhhhhhhho..',
-    '.ohhhhhhhhhhhjo.',
-    '.ohhhhhhhhhhhjo.',
-    '.ohhh.hhh.h..jo.',
-    '.oh..........jo.',
-  ],
-  // Long: like the bob, but it falls over the shoulders
-  [
-    '................',
-    '....oooooooo....',
-    '...ohhHHhhhho...',
-    '..ohHHhhhhhhho..',
-    '.ohHhhhhhhhhhjo.',
-    '.ohhhhhhhhhhhjo.',
-    '.ohh.hh..hh.hjo.',
-    '.oh..........jo.',
-    '.oh..........jo.',
-    '.oh..........jo.',
-    '.ohh........jjo.',
-    '.ohh........jjo.',
-    '.ohho......ojjo.',
-    '.ohho......ojjo.',
-    '.ohho......ojjo.',
-    '.ohho......ojjo.',
-    '.ohho......ojjo.',
-    '.ohho......ojjo.',
-    '..oo........oo..',
-  ],
-];
+const CAP = ['', '....JJJJJJJJ....', '..JJhhHHhhhhJJ..', '.JhhHHhhhhhhhhJ.', 'JhhHhhhhhhhhhhhJ', 'JhhhhhhhhhhhhhhJ', 'JhhhhhhhhhhhhhhJ', 'JhhhhhhhhhhhhhhJ', 'Jhhh.hhh.hhh.hhJ'];
+const SIDES = ['Jh............hJ', 'Jh............hJ', 'Jh............hJ', 'Jh............hJ'];
 
-/** Hair that sits behind the body: a little volume either side of the neck for long hair. */
-export const HAIR_BACK: (string[] | null)[] = [
-  null,
-  null,
-  null,
-  ['', '', '', '', '', '', '', '', '', '', '', '', '', '.ojjo......ojjo.', '.ojjjo....ojjjo.', '.ojjjo....ojjjo.'],
+/** Hair drawn over the head (index matches HAIR_STYLES). */
+export const HAIR_FRONT: string[][] = [
+  // Bob: jagged fringe, sides curl in at the chin
+  [...CAP, ...SIDES, 'Jhh..........hhJ', 'Jhhj........jhhJ', '.JJJ........JJJ.'],
+  // Bun: centre parting and a round top knot
+  [
+    '.....JJJJJJ.....',
+    '....JhhHHhhJ....',
+    '..JJJhhhhhhJJJ..',
+    '.JhhHHhhhhhhhhJ.',
+    'JhhHhhhhhhhhhhhJ',
+    'JhhhhhhhhhhhhhhJ',
+    'JhhhhhhhhhhhhhhJ',
+    'Jhhhhhh..hhhhhhJ',
+    'Jhhhh......hhhhJ',
+    'Jh............hJ',
+    '.J............J.',
+  ],
+  // Short: side-swept fringe
+  [
+    '',
+    '',
+    '...JJJJJJJJJJ...',
+    '.JJhhHHhhhhhhJJ.',
+    'JhhHHhhhhhhhhhhJ',
+    'JhhhhhhhhhhhhhhJ',
+    'JhhhhhhhhhhhhhhJ',
+    'JhhhhhhhhhhhhhhJ',
+    'Jhh.hhhhhhh...hJ',
+    'Jh............hJ',
+    '.J............J.',
+  ],
+  // Long: the bob, falling past the shoulders
+  [...CAP, ...SIDES, ...SIDES, ...SIDES, 'Jh............hJ', '.JJ..........JJ.'],
+  // Pigtails: tied with pink bands, swinging by the shoulders
+  [...CAP, ...SIDES, 'JkJ..........JkJ', 'Jhh..........hhJ', 'Jhh..........hhJ', 'Jhh..........hhJ', 'Jhj..........jhJ', '.Jh..........hJ.', '..J..........J..'],
 ];
 
 /** Accessories (index matches ACCESSORY_NAMES). */
 export const ACCESSORY_ART: string[][] = [
   [],
   // Glasses
-  ['', '', '', '', '', '', '', '...oooo..oooo...', '...o..oooo..o...', '...o..o..o..o...', '...oooo..oooo...'],
-  // Flower clip
-  ['', '', '...........kk...', '..........kyk...', '...........kk...'],
+  ['', '', '', '', '', '', '', '', '...oooo..oooo...', '...o..o..o..o...', '...o..oooo..o...', '...o..o..o..o...', '...oooo..oooo...'],
+  // Bow
+  ['', '.........kk..kk.', '.........kkkkkk.', '.........kkykkk.', '.........kk..kk.'],
   // Moto helmet
-  [
-    '....oooooooo....',
-    '...oGGGGGGGGo...',
-    '..oGGwGGGGGGGo..',
-    '.oGGwGGGGGGGGGo.',
-    '.oGGGGGGGGGGGGo.',
-    'oooooooooooooooo',
-    '.o............o.',
-    '.o............o.',
-  ],
+  ['', '....GGGGGGGG....', '..GGGGwwGGGGGG..', '.GGGwwGGGGGGGGG.', 'GGGGGGGGGGGGGGGG', 'GGGGGGGGGGGGGGGG', 'oooooooooooooooo'],
   // Baker's hat
-  ['....oooooooo....', '...owwwwwwwwo...', '..owwwwwwwwwwo..', '..owwwEwwwwwwo..', '...oEEEEEEEEo...'],
+  ['...oooooooooo...', '..owwwwwwwwwwo..', '..owwwwwwwwwwo..', '..owwwewwewwwo..', '...oeeeeeeeeo...'],
   // Headscarf
-  [
-    '................',
-    '.....oooooo.....',
-    '...oorrrrrroo...',
-    '..orrrrwrrrrro..',
-    '.orrrrrrrrrrrro.',
-    '.orrrrrrrrrrrro.',
-    '.or..........ro.',
-    '.or..........ro.',
-    '.or..........ro.',
-    '.or..........ro.',
-    '.oro........oro.',
-  ],
+  ['', '', '...rrrrrrrrrr...', '.rrrrrwrrrrrrrr.', 'rrrrrrrrrrrrrrrr', 'rrrrrrrrrrrrrrrr', 'rrrrrrrrrrrrrrrr', 'rrr..........rrr', 'rr............rr'],
   // Nón lá (conical straw hat)
-  [
-    '.......oo.......',
-    '......onno......',
-    '.....onnnno.....',
-    '....onnyynno....',
-    '...onnnnnnnno...',
-    '..onnnnnnnnnno..',
-    'oooooooooooooooo',
-  ],
+  ['.......nn.......', '.....nnnnnn.....', '...nnnnyynnnn...', '..nnnnnnnnnnnn..', 'nnnnnnnnnnnnnnnn', 'oooooooooooooooo'],
+  // Headphones
+  ['', '...bbbbbbbbbb...', '..bb........bb..', '.bb..........bb.', '', '', '', '', 'bb............bb', 'bbb..........bbb', 'bbb..........bbb', 'bb............bb'],
+  // Heart clips
+  ['', '', '.kk.kk..........', '.kkkkk..........', '..kkk...........', '...k............'],
 ];

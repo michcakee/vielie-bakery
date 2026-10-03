@@ -42,6 +42,8 @@ import {
   loyalChurnRate,
 } from './economy';
 import { EVENTS, eventFor, refreshKinds, visibleChoices } from './events';
+import { pickChallenge, settleChallenge } from './challenge';
+import { arcDayEnd } from './arc';
 import { bondCapacity, borrowingLimit, creditLimit, creditLineRate, investorTerms, makeLoan, quoteLoan, valuation } from './finance';
 import { suggestedTrays, forecast, ingredientsNeeded } from './forecast';
 import { bump, decide, learn, spend, toast } from './helpers';
@@ -61,6 +63,7 @@ import type {
   DayStats,
   DaySummary,
   DecorId,
+  ShopStyle,
   Equipment,
   GameState,
   IngredientId,
@@ -308,6 +311,8 @@ export type Action =
   | { type: 'buyUpgrade'; id: UpgradeId }
   | { type: 'sellEquipment'; uid: number }
   | { type: 'buyDecor'; id: DecorId }
+  | { type: 'setStyle'; key: 'wall' | 'pattern' | 'floor' | 'counter'; value: number }
+  | { type: 'moveDecor'; id: DecorId }
   | { type: 'setPackaging'; packaging: PackagingId }
   | { type: 'hire'; applicantId: number; branch?: number | null }
   | { type: 'fire'; id: number }
@@ -696,7 +701,7 @@ function finishDay(s: GameState): GameState {
   const cashBefore = s.cash;
   const levelBefore = levelOf(s.xp);
   const ecoBefore = ecoScore(s);
-  let next = closeBooks(s);
+  let next = closeBooks(settleChallenge(s));
   next = placeReorders(next);
   next = settleCash(next);
   let fund = next.safetyFund;
@@ -713,6 +718,7 @@ function finishDay(s: GameState): GameState {
   const sourcingEco = t.purchasedUnits > 0 ? t.purchasedEco / t.purchasedUnits : next.ecoHistory.length ? next.ecoHistory[next.ecoHistory.length - 1].sourcingEco : 50;
   const stars = starsFor(incomeStatement(t.books).revenue, t.goal);
   const starXp = STAR_XP[stars];
+  next = arcDayEnd(next, stars);
   const xpGain = t.xp + starXp + Math.max(0, Math.round(profit / ECON.progression.xpProfitDivisor));
   next = {
     ...next,
@@ -887,6 +893,7 @@ function startDay(s: GameState): GameState {
     next.special = pool.length ? pool[Math.floor(rngFor(next.seed, day, 931)() * pool.length)] : null;
   }
   next = refreshIntroBase(next);
+  next.challenge = pickChallenge(next);
   if (isMonthStart(day)) next = startOfMonth(next);
   // Repairs that were waiting.
   for (const e of next.effects.filter((x) => x.id === 'repairDue' && x.until < day)) {
@@ -1036,6 +1043,12 @@ export function actionFeature(a: Action): FeatureId | undefined {
   if (a.type === 'buy' && (a.supplier !== 'cho' || a.packs > 5)) return 'market.suppliers';
   return ACTION_FEATURE[a.type];
 }
+
+export const DEFAULT_STYLE: ShopStyle = { wall: 0, pattern: 0, floor: 0, counter: 0, spots: {} };
+/** Decorations the player can move between three spots. */
+export const MOVABLE: DecorId[] = ['plant', 'hoaMai', 'birdcage'];
+const DEFAULT_SPOT: Partial<Record<DecorId, number>> = { plant: 0, hoaMai: 2, birdcage: 0 };
+export const decorSpot = (style: ShopStyle | undefined, id: DecorId): number => style?.spots[id] ?? DEFAULT_SPOT[id] ?? 0;
 
 export function gameReducer(s: GameState, a: Action): GameState {
   // Locked systems: the reducer refuses them, so the UI, the team and the autopilot all play by the same rules.
@@ -1204,6 +1217,20 @@ function reduce(s: GameState, a: Action): GameState {
       return buyEquipment(s, a.id);
     case 'sellEquipment':
       return sellEquipment(s, a.uid);
+    case 'setStyle': {
+      const style = s.style ?? DEFAULT_STYLE;
+      return { ...s, style: { ...style, [a.key]: Math.max(0, Math.min(7, Math.round(a.value))) } };
+    }
+    case 'moveDecor': {
+      if (!MOVABLE.includes(a.id) || !s.decor.includes(a.id)) return s;
+      const style = s.style ?? DEFAULT_STYLE;
+      // Floor plants share three spots: skip one that is taken.
+      const other = a.id === 'plant' ? 'hoaMai' : a.id === 'hoaMai' ? 'plant' : null;
+      const taken = other && s.decor.includes(other) ? decorSpot(style, other) : -1;
+      let spot = (decorSpot(style, a.id) + 1) % 3;
+      if (spot === taken) spot = (spot + 1) % 3;
+      return { ...s, style: { ...style, spots: { ...style.spots, [a.id]: spot } } };
+    }
     case 'buyDecor': {
       const def = DECOR[a.id];
       if (!canShop(s) || s.decor.includes(a.id) || levelOf(s.xp) < def.level || s.cash < def.cost) return s;

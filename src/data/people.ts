@@ -1,3 +1,4 @@
+import { TWIST_LINES } from '../engine/twists';
 import type { Look, ProductId } from '../engine/types';
 
 export interface RegularDef {
@@ -238,6 +239,7 @@ export const TRANSLATIONS: Record<string, string> = {
 export function translate(line: string | undefined): string | undefined {
   if (!line) return undefined;
   if (TRANSLATIONS[line]) return TRANSLATIONS[line];
+  if (TWIST_LINES[line]) return TWIST_LINES[line];
   if (line.startsWith('Cho mình một ')) return `One ${line.slice(13, -1)}, please!`;
   if (line.startsWith('Cho mình ') && line.endsWith(' nhé.')) return `Then I'll have ${line.slice(9, -5)}.`;
   if (line.startsWith('Một ')) return `One ${line.slice(4, -5)}, please!`;

@@ -1,11 +1,12 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { CONFIG, PRODUCTS } from '../../data/catalog';
-import { translate } from '../../data/people';
 import { competitorOpen, isTet, onMenu } from '../../engine/economy';
 import { lightPhase } from '../../engine/time';
-import type { GameState, Look, Mood, ProductId, RoleId, Visit } from '../../engine/types';
+import type { GameState, Look, Mood, ProductId, RoleId, TraitId, Visit } from '../../engine/types';
+import { TRAITS } from '../../data/world';
 import { useGame } from '../GameContext';
-import { drawCounter, drawRoom, LAMPS_X, LAYOUT, STAGE_H, STAGE_W, type Light, type SceneOpts } from '../pixel/scene';
+import { decorSpot } from '../../engine/state';
+import { CAGE_SPOTS, drawCounter, drawRoom, FLOOR_SPOTS, LAMPS_X, LAYOUT, STAGE_H, STAGE_W, type Light, type SceneOpts } from '../pixel/scene';
 import { PERSON_H } from '../pixel/render';
 import { Person, Sprite } from '../pixel/Sprite';
 import { money2 } from '../../lib/format';
@@ -86,6 +87,7 @@ const STATIONS: Record<RoleId | 'ba', { x: number; feet: number }> = {
 interface Worker {
   id: string;
   role: RoleId | 'ba';
+  trait?: TraitId;
   look: Look;
   name: string;
   home: { x: number; feet: number };
@@ -108,7 +110,7 @@ function workersOnShift(s: GameState): Worker[] {
       const id = `staff:${e.id}`;
       // two workers with the same job stand side by side
       const twin = s.staff.filter((x) => x.branch === null && x.role === e.role).findIndex((x) => x.id === e.id);
-      return { id, role: e.role, look: e.look, name: e.name, home: { x: home.x - twin * 11 + (i % 2), feet: home.feet }, serving: visitOf(id), busyUntil: slot(id)?.busyUntil ?? 0 };
+      return { id, role: e.role, trait: e.trait, look: e.look, name: e.name, home: { x: home.x - twin * 11 + (i % 2), feet: home.feet }, serving: visitOf(id), busyUntil: slot(id)?.busyUntil ?? 0 };
     });
   // "Bà, help!" (the owner slot) and Bà handing out pastries are the same Bà on screen.
   const ba = slot('owner') ?? slot('ba');
@@ -117,6 +119,20 @@ function workersOnShift(s: GameState): Worker[] {
     out.push({ id: 'ba', role: 'ba', look: BA_LOOK, name: 'Bà', home: STATIONS.ba, serving: busy ? visitOf(busy.id) : null, busyUntil: busy?.busyUntil ?? ba.busyUntil });
   }
   return out;
+}
+
+/** Now and then an idle worker says something in character. One line at a time. */
+function staffChat(s: GameState): { slot: number; x: number; feet: number; line: { vi: string; en: string } } | null {
+  const clock = s.service?.clock ?? 0;
+  const slot = Math.floor(clock / 75);
+  if (clock < 30 || clock - slot * 75 > 16) return null;
+  const idle = workersOnShift(s).filter((w) => !w.serving && w.trait);
+  if (!idle.length) return null;
+  const w = idle[(slot + s.day) % idle.length];
+  const lines = TRAITS[w.trait!].lines;
+  // Early birds get sleepy after lunch.
+  const line = w.trait === 'earlyBird' ? (clock >= 300 ? lines[2] : lines[(slot + s.day) % 2]) : lines[(slot + s.day) % lines.length];
+  return { slot, x: w.home.x, feet: w.home.feet, line };
 }
 
 /**
@@ -196,8 +212,8 @@ export function BakeryScene({ onCustomer, baking = false, caption }: Props) {
   const light = sceneLight(s);
   const tet = isTet(s.day);
   const opts: SceneOpts = useMemo(
-    () => ({ weather: s.market.weather, light, decor: s.decor, upgrades: s.upgrades, tet, competitor: competitorOpen(s.day) }),
-    [s.market.weather, light, s.decor, s.upgrades, tet, s.day],
+    () => ({ weather: s.market.weather, light, decor: s.decor, upgrades: s.upgrades, tet, competitor: competitorOpen(s.day), style: s.style, prize: s.decor.includes('trophy') ? (s.story?.result ?? 'second') : undefined }),
+    [s.market.weather, light, s.decor, s.upgrades, tet, s.day, s.style, s.story?.result],
   );
 
   useEffect(() => {
@@ -223,6 +239,7 @@ export function BakeryScene({ onCustomer, baking = false, caption }: Props) {
   const clock = s.service?.clock ?? 0;
   const fx = s.service?.fx.filter((f) => clock - f.at < 8) ?? [];
   const rainy = s.market.weather === 'rainy';
+  const chat = open && !reduced ? staffChat(s) : null;
   const diverted = s.service?.visits.filter((v) => v.divertedTo && v.status === 'done' && clock - (v.doneAt ?? 0) < 25) ?? [];
 
   return (
@@ -283,7 +300,7 @@ export function BakeryScene({ onCustomer, baking = false, caption }: Props) {
           </div>
         )}
         {s.decor.includes('birdcage') && (
-          <div className="sway" style={{ left: 11, top: 18 }}>
+          <div className="sway" style={{ left: CAGE_SPOTS[decorSpot(s.style, 'birdcage')], top: 18 }}>
             <Sprite name="birdcage" scale={1} />
           </div>
         )}
@@ -326,12 +343,12 @@ export function BakeryScene({ onCustomer, baking = false, caption }: Props) {
 
         {/* decorations on the floor */}
         {s.decor.includes('plant') && (
-          <div className="sway slow" style={{ left: 28, top: 84 }}>
+          <div className="sway slow" style={{ left: FLOOR_SPOTS[decorSpot(s.style, 'plant')], top: 84 }}>
             <Sprite name="plant" scale={1} />
           </div>
         )}
         {(s.decor.includes('hoaMai') || tet) && (
-          <div className="sway slow" style={{ left: 88, top: 84 }}>
+          <div className="sway slow" style={{ left: FLOOR_SPOTS[s.decor.includes('hoaMai') ? decorSpot(s.style, 'hoaMai') : 2], top: 84 }}>
             <Sprite name="hoaMai" scale={1} />
           </div>
         )}
@@ -397,21 +414,27 @@ export function BakeryScene({ onCustomer, baking = false, caption }: Props) {
             </div>
           ))}
         </div>
+        {/* One customer bubble at a time, kept inside the scene so it never covers the whole room. */}
         {placed
           .filter(({ v, leaving }) => v.line && ((v.status === 'waiting' && clock - (v.waitStart ?? 0) < 14) || (leaving && clock - (v.doneAt ?? 0) < 7)))
-          .slice(-2)
+          .slice(-1)
           .map(({ v, x }) => (
-            <div key={v.id} className="say" style={{ left: (x + 6) * scale, top: (LAYOUT.queueY - 30) * scale }}>
+            <div key={v.id} className="say" style={{ left: Math.max(84, Math.min(STAGE_W * scale - 84, (x + 8) * scale)), top: (LAYOUT.queueY - PERSON_H + 2) * scale }}>
               {v.status !== 'done' && (
                 <span className="say-item">
-                  <Sprite name={v.wants} scale={2} />
+                  <Sprite name={v.wants} scale={1} />
                   {v.qty > 1 && <b>×{v.qty}</b>}
                 </span>
               )}
               {v.line}
-              {prefs.translations && translate(v.line) && <em>{translate(v.line)}</em>}
             </div>
           ))}
+        {chat && (
+          <div key={`chat${chat.slot}`} className="say staff-say" style={{ left: Math.max(84, Math.min(STAGE_W * scale - 84, (chat.x + 8) * scale)), top: (chat.feet - PERSON_H + 2) * scale }}>
+            {chat.line.vi}
+            {prefs.translations && <em>{chat.line.en}</em>}
+          </div>
+        )}
         {fx
           .filter((f) => f.kind === 'coin' && f.amount !== undefined)
           .map((f) => (

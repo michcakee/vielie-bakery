@@ -8,6 +8,7 @@ import { canShop } from '../../engine/state';
 import type { DecorId, LocationId, SegmentId, UpgradeId } from '../../engine/types';
 import { money, money2, pct } from '../../lib/format';
 import { useGame } from '../GameContext';
+import { Painter } from '../Painter';
 import { Btn, Card, ConfirmBtn, Tip } from '../kit';
 import { LookEditor } from '../LookEditor';
 import { Sprite } from '../pixel/Sprite';
@@ -48,6 +49,7 @@ const DECOR_ICON: Record<DecorId, string> = {
   flowers: 'fruit',
   bike: 'moto',
   hoaMai: 'hoaMai',
+  trophy: 'star',
 };
 
 export function BuildPanel() {
@@ -283,6 +285,10 @@ export function BuildPanel() {
         </ul>
       </Card>
       )}
+
+      <Card title="Paint and arrange" icon="spark" spot="paint">
+        <Painter />
+      </Card>
 
       <Card title="You & your bakery" icon="people">
         <form

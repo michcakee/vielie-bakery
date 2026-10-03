@@ -1,3 +1,5 @@
+import { ChallengeChip } from './Challenge';
+import { Collection, collectionCount } from './Collection';
 import { tryTomorrow } from '../engine/report';
 import { incomeStatement } from '../engine/accounting';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
@@ -226,6 +228,7 @@ export function DayReport() {
             </span>
           </div>
         )}
+        {s.challenge?.day === r.day && <ChallengeChip />}
       </div>
       {leveled && (
         <div className="level-up">
@@ -446,8 +449,22 @@ export function QuestBook({ onClose }: { onClose: () => void }) {
   const { state: s, dispatch } = useGame();
   const active = activeQuests(s, 5);
   const goal = s.weeklyGoal;
+  const [page, setPage] = useState<'quests' | 'collection'>('quests');
+  const count = collectionCount(s);
   return (
-    <Modal label="Quests and achievements" onClose={onClose} className="drawer">
+    <Modal label="Quests and collection" onClose={onClose} className="drawer">
+      <div className="seg book-tabs" role="tablist" aria-label="Book pages">
+        <button type="button" role="tab" aria-selected={page === 'quests'} className={page === 'quests' ? 'on' : ''} onClick={() => setPage('quests')}>
+          Quests
+        </button>
+        <button type="button" role="tab" aria-selected={page === 'collection'} className={page === 'collection' ? 'on' : ''} onClick={() => setPage('collection')} data-spot="collection">
+          Collection {count.have}/{count.all}
+        </button>
+      </div>
+      {page === 'collection' ? (
+        <Collection />
+      ) : (
+        <>
       <h2>Quests</h2>
       <ul className="quests">
         {active.map((q) => {
@@ -508,6 +525,8 @@ export function QuestBook({ onClose }: { onClose: () => void }) {
           );
         })}
       </ul>
+        </>
+      )}
     </Modal>
   );
 }

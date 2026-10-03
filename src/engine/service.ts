@@ -1,8 +1,9 @@
 import { dailyGoal } from './goals';
+import { rollTwist, twistBonus, twistLine, twistsOn } from './twists';
 import { CONFIG, PRODUCTS, type ProductKind } from '../data/catalog';
 import { ECON } from '../data/config';
 import { LINES, REGULARS, WALKIN_NAMES } from '../data/people';
-import { SEGMENTS, SEGMENT_ORDER } from '../data/world';
+import { SEGMENTS, SEGMENT_ORDER, TRAITS } from '../data/world';
 import { accrue, move } from './accounting';
 import {
   activeRivals,
@@ -186,13 +187,18 @@ export function buildSchedule(s: GameState): Visit[] {
     for (let i = 0; i < hunters; i++) make({ part: 3, arrive: 600 + rand() * 100, lastCallOnly: true, segment: 'budget' });
   }
 
-  return visits.sort((a, b) => a.arrive - b.arrive).map((v, i) => ({ ...v, id: i + 1 }));
+  // Twists use their own random stream, so adding them never changes who comes or what they want.
+  const twistRand = rngFor(s.seed, s.day, 12);
+  const twisty = twistsOn(s);
+  return visits
+    .sort((a, b) => a.arrive - b.arrive)
+    .map((v, i) => ({ ...v, id: i + 1, twist: twisty && v.who !== 'linh' && !v.specialOrder ? rollTwist(v.wants, twistRand) : undefined }));
 }
 
 export function makeServers(s: GameState, auto: boolean): ServerSlot[] {
   const out: ServerSlot[] = [];
   if (auto) out.push({ id: 'owner', busyUntil: 0, visitId: null, quality: ECON.service.ownerAutoQuality, served: 0 });
-  for (const e of flagshipStaff(s)) if (e.role === 'helper' || e.role === 'cashier' || e.role === 'barista' || e.role === 'cook') out.push({ id: `staff:${e.id}`, busyUntil: 0, visitId: null, quality: 60 + 8 * e.skill, served: 0 });
+  for (const e of flagshipStaff(s)) if (e.role === 'helper' || e.role === 'cashier' || e.role === 'barista' || e.role === 'cook') out.push({ id: `staff:${e.id}`, busyUntil: 0, visitId: null, quality: 60 + 8 * e.skill + (e.trait ? TRAITS[e.trait].quality : 0), served: 0 });
   // Guided games: Bà hands out pastries while you learn, until you hire a cashier of your own.
   if (!auto && s.allUnlocked === false && !s.staff.some((e) => e.role === 'cashier' && e.branch === null)) out.push({ id: 'ba', busyUntil: 0, visitId: null, quality: 74, served: 0 });
   return out;
@@ -265,8 +271,11 @@ function arriveAtCounter(s: GameState, v: Visit, rand: () => number): GameState 
   const quality = PRODUCTS[wants].kind === 'tray' ? s.display[wants].quality : madeToOrderQuality(s, wants, 80);
   if (price > willingToPay(s, wants, v.budget, quality, v.ecoMinded, v.segment, v.loyal) + 1e-9) return leave(s, { ...v, wants }, 'pricey', pick(rand, LINES.pricey));
   if (!line && v.specialOrder) line = pick(rand, LINES.specialOrder);
+  // A twist only makes sense for the dish it was asked about.
+  const twist = wants === v.wants ? v.twist : undefined;
+  if (twist) line = twistLine(twist).vi;
   if (!line) line = isTet(s.day) && rand() < 0.3 ? pick(rand, LINES.tet) : orderLine(rand, wants);
-  return { ...s, service: setVisit(s.service!, v.id, { status: 'waiting', waitStart: s.service!.clock, wants, qty, line, mood: undefined }) };
+  return { ...s, service: setVisit(s.service!, v.id, { status: 'waiting', waitStart: s.service!.clock, wants, qty, line, mood: undefined, twist }) };
 }
 
 // ---------------------------------------------------------------- serving
@@ -364,7 +373,10 @@ export function serve(s: GameState, visitId: number, process?: number, by: strin
   const rand = rngFor(s.seed, s.day, 900 + visitId);
   const named = v.who !== 'walkin';
   const grade = gradeOrder(process, c.quality, waited, v.patience, paid, named || v.loyal, !!v.critic);
-  const tip = round2(grade.tip + (v.specialOrder ? paid * ECON.service.specialOrder.tipShare : 0));
+  const twistTip = by === 'player' ? twistBonus(v, process, waited) : 0;
+  const server = by.startsWith('staff:') ? s.staff.find((e) => `staff:${e.id}` === by) : undefined;
+  const smileTip = server?.trait ? TRAITS[server.trait].tip : 0;
+  const tip = round2(grade.tip + (v.specialOrder ? paid * ECON.service.specialOrder.tipShare : 0) + twistTip + smileTip);
   const reg = named ? REGULARS.find((r) => r.id === v.who) : undefined;
   const reaction = reg?.reactions ? (grade.stars >= 4 ? reg.reactions.great : grade.stars === 3 ? reg.reactions.ok : reg.reactions.bad) : null;
   const line = reaction ? pick(rand, reaction) : pick(rand, mood === 'love' ? LINES.love : mood === 'happy' ? LINES.happy : LINES.ok);
@@ -387,6 +399,8 @@ export function serve(s: GameState, visitId: number, process?: number, by: strin
   t.surplus = (t.surplus ?? 0) + Math.max(0, wtp - price) * qty;
   if (named) t.regularsServed++;
   if (svc.clock < 300) t.servedBeforeNoon++;
+  if (by === 'player' && grade.stars === 5) t.fiveStar = (t.fiveStar ?? 0) + 1;
+  if (twistTip > 0) t.twistsRight = (t.twistsRight ?? 0) + 1;
   if (by === 'player' || by === 'owner') t.ownerServed++;
   else t.staffServed++;
   t.xp += ECON.progression.xpPerServe + (mood === 'love' ? ECON.progression.xpPerLove : 0);
@@ -420,7 +434,7 @@ export function serve(s: GameState, visitId: number, process?: number, by: strin
     tetSold: next.lifetime.tetSold + (p === 'mutDua' ? qty : 0),
   };
 
-  let nsvc = setVisit(svc, visitId, { status: 'done', mood, line, paid, tip, qty, doneAt: svc.clock, servedBy: by, grade });
+  let nsvc = setVisit(svc, visitId, { status: 'done', mood, line, paid, tip, qty, doneAt: svc.clock, servedBy: by, grade, twistTip: twistTip || undefined });
   nsvc = freeServerOf(nsvc, visitId);
   nsvc = addFx(nsvc, 'coin', paid + tip, visitId);
   if (mood === 'love') nsvc = addFx(nsvc, 'heart', undefined, visitId);
@@ -457,6 +471,7 @@ function minutesFor(s: GameState, serverId: string, kind: ProductKind): number {
   const e = s.staff.find((x) => `staff:${x.id}` === serverId);
   if (!e) return 3;
   let m = (ECON.service.staffMinutes[kind] * (e.role === 'helper' ? 1.5 : 1)) / productivity(e, s.day);
+  if (e.trait && (e.trait !== 'earlyBird' || (s.service?.clock ?? 0) < 300)) m *= TRAITS[e.trait].speed;
   if (has(s, 'pos')) m *= 0.87;
   if (kind === 'drink' && has(s, 'coffeeBar')) m *= 0.75;
   return m;

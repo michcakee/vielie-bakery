@@ -25,6 +25,7 @@ import { ServicePanel } from './panels/ServicePanel';
 import { StaffPanel } from './panels/StaffPanel';
 import { Sprite } from './pixel/Sprite';
 import { BakeryScene } from './scene/BakeryScene';
+import { Painter } from './Painter';
 import { IntroLines, Loading, NewGame, Setup, Title } from './screens/Screens';
 import { GuideProvider, TabHelp, WhatNow } from './Guide';
 import { FEATURE } from '../data/unlocks';
@@ -177,7 +178,7 @@ function Game({ onQuit }: { onQuit: () => void }) {
   const [paused, setPaused] = useState(false);
   const [speed, setSpeed] = useState(1);
   const [activeId, setActiveId] = useState<number | null>(null);
-  const [drawer, setDrawer] = useState<'quests' | 'settings' | 'more' | 'help' | null>(null);
+  const [drawer, setDrawer] = useState<'quests' | 'settings' | 'more' | 'help' | 'paint' | null>(null);
   const [hidden, setHidden] = useState(false);
   const intro = s.phase === 'morning' && s.day === 1 && s.history.length === 0 && !s.hints.includes('intro') && s.scenario === 'family';
 
@@ -277,6 +278,7 @@ function Game({ onQuit }: { onQuit: () => void }) {
       <Hud onQuests={() => setDrawer('quests')} onSettings={() => setDrawer('settings')} onHelp={() => setDrawer('help')} questCount={activeQuests(s).length} />
       <div className="layout">
         <section className="scene-col" aria-label="Your bakery">
+          <div className="scene-box">
           <BakeryScene
             onCustomer={(v) => {
               if (v.servedBy) return;
@@ -286,6 +288,12 @@ function Game({ onQuit }: { onQuit: () => void }) {
               } else setActiveId(v.id);
             }}
           />
+          {s.phase === 'morning' && !intro && s.events.length === 0 && (
+            <button type="button" className="paint-btn" onClick={() => setDrawer('paint')} aria-label="Paint and arrange your shop" data-spot="paint-btn">
+              <Sprite name="spark" scale={2} /> Paint
+            </button>
+          )}
+          </div>
           {intro && (
             <IntroLines
               guided={s.allUnlocked === false}
@@ -427,6 +435,15 @@ function Game({ onQuit }: { onQuit: () => void }) {
       {s.ending && <Ending onQuit={onQuit} />}
       {drawer === 'quests' && <QuestBook onClose={() => setDrawer(null)} />}
       {drawer === 'help' && <WhatNow onClose={() => setDrawer(null)} goTo={goTo} todo={s.phase === 'morning' ? readiness(s) : []} />}
+      {drawer === 'paint' && (
+        <Modal label="Paint and arrange your shop" onClose={() => setDrawer(null)} className="drawer sheet paint-sheet">
+          <h2>Paint and arrange</h2>
+          <div className="paint-preview">
+            <BakeryScene />
+          </div>
+          <Painter />
+        </Modal>
+      )}
       {drawer === 'settings' && <Settings onClose={() => setDrawer(null)} onQuit={onQuit} />}
       {drawer === 'more' && (
         <Modal label="More sections" onClose={() => setDrawer(null)} className="drawer sheet">

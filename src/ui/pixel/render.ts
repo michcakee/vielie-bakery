@@ -1,7 +1,7 @@
 import type { Look } from '../../engine/types';
 import { APRONS, HAIR_COLORS, PAL, PANTS, SHIRTS, SKINS, SKIN_SHADE, SPRITE_COLORS } from './palette';
 import { SPRITES } from './sprites';
-import { ACCESSORY_ART, BODY_STAND, BODY_STEP, HAIR_BACK, HAIR_FRONT } from './people';
+import { ACCESSORY_ART, BODY_STAND, BODY_STEP, HAIR_FRONT } from './people';
 
 const cache = new Map<string, { url: string; w: number; h: number }>();
 
@@ -79,49 +79,56 @@ export function spriteURL(name: string): { url: string; w: number; h: number } {
 
 // ------------------------------------------------------------------ people
 
-export const HAIR_STYLES = ['Bob', 'Bun', 'Short', 'Long'];
-export const ACCESSORY_NAMES = ['None', 'Glasses', 'Flower clip', 'Helmet', 'Baker\'s hat', 'Headscarf', 'Nón lá'];
+export const HAIR_STYLES = ['Bob', 'Bun', 'Short', 'Long', 'Pigtails'];
+export const ACCESSORY_NAMES = ['None', 'Glasses', 'Bow', 'Helmet', 'Baker\'s hat', 'Headscarf', 'Nón lá', 'Headphones', 'Heart clips'];
 
 function personColors(look: Look): Record<string, string> {
   const skin = SKINS[look.skin % SKINS.length];
+  const skinShade = SKIN_SHADE[look.skin % SKIN_SHADE.length];
   const shirt = SHIRTS[look.shirt % SHIRTS.length];
   const apron = look.apron >= 0 ? APRONS[look.apron % APRONS.length] : shirt;
   const hair = HAIR_COLORS[look.hairColor % HAIR_COLORS.length];
   return {
-    o: PAL.ink,
-    e: '#3b3340',
-    W: '#ffffff',
-    b: shade(hair, -0.2),
+    // Tinted outlines: each part is edged with a darker shade of itself.
+    o: '#6e5a6e',
+    O: shade(skinShade, -0.22),
+    J: shade(hair, -0.38),
+    u: shade(shirt, -0.36),
     s: skin,
-    S: SKIN_SHADE[look.skin % SKIN_SHADE.length],
-    c: '#f4a3a0',
-    m: '#a8584a',
+    S: skinShade,
+    E: '#3d2f45',
+    W: '#ffffff',
+    i: '#5a3a2e',
+    I: '#a8694a',
+    c: '#f7a8a8',
+    m: '#b5564d',
     t: shirt,
-    T: shade(shirt, -0.18),
+    T: shade(shirt, -0.16),
     a: apron,
-    A: shade(apron, -0.15),
+    A: shade(apron, -0.14),
     p: PANTS[(look.shirt + look.skin) % PANTS.length],
-    f: '#3b3340',
+    f: '#4a3b52',
     h: hair,
-    H: shade(hair, 0.3),
-    j: shade(hair, -0.25),
+    H: shade(hair, 0.35),
+    j: shade(hair, -0.2),
     G: PAL.pandan,
     w: '#ffffff',
-    E: '#d6cec2',
+    e: '#d6cec2',
     r: PAL.red,
-    y: PAL.mango,
+    y: '#f2c14e',
     k: PAL.pink,
+    b: '#9fd3e6',
     n: '#e8d39a',
   };
 }
 
 const lookKey = (l: Look) => `${l.skin}.${l.hair}.${l.hairColor}.${l.shirt}.${l.apron}.${l.accessory}`;
 
-/** Person cell: 16×32, feet on the bottom row. */
+/** Person cell: 16×26, feet on the bottom row. */
 export const PERSON_W = 16;
-export const PERSON_H = 32;
+export const PERSON_H = 26;
 
-/** Two-frame sprite sheet (stand/step) for a character, two 16×32 cells side by side. */
+/** Two-frame sprite sheet (stand/step) for a character, two cells side by side. */
 export function personSheet(look: Look): { url: string; w: number; h: number } {
   const key = `person:${lookKey(look)}`;
   const hit = cache.get(key);
@@ -129,13 +136,9 @@ export function personSheet(look: Look): { url: string; w: number; h: number } {
   const made = makeCanvas(PERSON_W * 2, PERSON_H);
   if (!made) return { url: '', w: PERSON_W * 2, h: PERSON_H };
   const colors = personColors(look);
-  const style = look.hair % HAIR_FRONT.length;
-  const back = HAIR_BACK[style];
+  const hair = HAIR_FRONT[look.hair % HAIR_FRONT.length];
   const acc = ACCESSORY_ART[look.accessory % ACCESSORY_ART.length];
-  for (const [i, body] of [BODY_STAND, BODY_STEP].entries()) {
-    const layers = [...(back ? [back] : []), body, HAIR_FRONT[style], acc];
-    paint(made[1], layers, colors, i * PERSON_W, PERSON_H - body.length);
-  }
+  for (const [i, body] of [BODY_STAND, BODY_STEP].entries()) paint(made[1], [body, hair, acc], colors, i * PERSON_W, PERSON_H - body.length);
   const out = { url: made[0].toDataURL(), w: PERSON_W * 2, h: PERSON_H };
   cache.set(key, out);
   return out;

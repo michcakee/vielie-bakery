@@ -1,3 +1,4 @@
+import { checkChallenge } from './challenge';
 import { DECOR, LEVELS, PRODUCTS, PRODUCT_ORDER, UNLOCK_SCHEDULE, UPGRADES } from '../data/catalog';
 import { ECON } from '../data/config';
 import { REGULARS } from '../data/people';
@@ -71,6 +72,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: 'neighborhood', title: 'Community favourite', text: 'Community 80.', icon: 'heart', check: (s) => s.community >= 80 },
   { id: 'tet', title: 'Tết favourite', text: 'Sell 60 mứt dừa gift boxes.', icon: 'mutDua', check: (s) => s.lifetime.tetSold >= 60 },
   { id: 'goldRegular', title: 'Golden regular', text: 'Earn a gold loyalty badge from a regular.', icon: 'crown', check: (s) => (s.questProgress.goldRegulars ?? 0) >= 1 },
+  { id: 'lantern', title: 'Lantern Festival', text: 'Finish the Lantern Festival story.', icon: 'party', check: (s) => !!s.story?.result },
+  { id: 'challenger', title: 'Challenge champion', text: 'Finish 10 daily challenges.', icon: 'gift', check: (s) => (s.lifetime.challenges ?? 0) >= 10 },
   { id: 'perfect', title: 'Perfect bake', text: 'Bake a tray with 95+ quality.', icon: 'star', check: (s) => (s.questProgress.bestBake ?? 0) >= 95 },
   { id: 'debtFree', title: 'Debt free', text: 'Pay off a bank loan.', icon: 'coin', check: (s) => (s.questProgress.loanRepaid ?? 0) > 0 },
   { id: 'recession', title: 'Survived a recession', text: 'Stay open through six months of recession.', icon: 'house', check: (s) => (s.questProgress.recessionMonths ?? 0) >= 6 },
@@ -224,7 +227,7 @@ export function masteryTier(s: Pick<GameState, 'lifetime'>, p: ProductId): numbe
 }
 
 export function checkProgress(s: GameState): GameState {
-  let next = s;
+  let next = checkChallenge(s);
   // Recipe mastery: a medal when a recipe crosses a tier, once.
   for (const p of PRODUCT_ORDER) {
     const tier = masteryTier(next, p);

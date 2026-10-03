@@ -2,6 +2,7 @@ import type { FeatureId } from '../data/unlocks';
 import { featureOn } from './unlocks';
 import { INGREDIENTS, PRODUCTS, UPGRADES } from '../data/catalog';
 import { STORY_BEATS } from '../data/story';
+import { ARC_EVENTS, arcEventFor } from './arc';
 import { DIFFICULTY, ECON } from '../data/config';
 import { move } from './accounting';
 import { dateOf, festivalsOn } from './calendar';
@@ -646,6 +647,8 @@ for (const b of STORY_BEATS) {
   };
 }
 
+Object.assign(EVENTS, ARC_EVENTS);
+
 export function eventFor(s: GameState, day: number): { id: string; data?: Record<string, number | string> } | null {
   const level = levelOf(s.xp);
   const beat = STORY_BEATS.find((b) => b.day === day);
@@ -689,6 +692,10 @@ export function eventFor(s: GameState, day: number): { id: string; data?: Record
   if (d.month === 7 && d.dom === 25) return { id: 'trungThuComing' };
   if (d.yearDay === ECON.calendar.startYearDay && day > 1 && !s.effects.some((e) => e.id === 'longLease' && e.until >= day)) return { id: 'rentRenewal' };
   if (s.offer && s.offer.day === day) return { id: 'buyout', data: { amount: s.offer.amount, buyer: s.offer.buyer } };
+
+  // The Lantern Festival story takes the morning when nothing fixed is booked.
+  const arc = arcEventFor(s, day);
+  if (arc) return arc;
 
   const rand = rngFor(s.seed, day, 41);
   if (rand() > ECON.rng.eventChance * DIFFICULTY[s.difficulty].eventChance) return null;

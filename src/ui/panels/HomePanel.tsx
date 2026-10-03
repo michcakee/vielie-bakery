@@ -13,6 +13,8 @@ import { Spark } from '../charts';
 import { useGame } from '../GameContext';
 import { Btn, Card, Meter, Tip } from '../kit';
 import { Person, Sprite } from '../pixel/Sprite';
+import { ChallengeChip } from '../Challenge';
+import { ARC, ARC_TITLES } from '../../engine/arc';
 import { IntroCard, useGuide } from '../Guide';
 import { dailyGoal } from '../../engine/goals';
 import { nextFeature, tabOn } from '../../engine/unlocks';
@@ -236,6 +238,7 @@ export function HomePanel({ goTo, onOpen, onRunDay }: { goTo: (t: Tab) => void; 
       {morning && (
         <Card title="Open for business" icon="shop">
           <TodayGoal />
+          <ChallengeChip />
           {catering && <p className="chip">Catering at noon: {String(catering.data?.qty)} bánh mì</p>}
           {effectActive(s, 'closedDay') && <p className="warn">The shop has to stay closed today.</p>}
           <div className="open-choices">
@@ -255,6 +258,8 @@ export function HomePanel({ goTo, onOpen, onRunDay }: { goTo: (t: Tab) => void; 
           </p>}
         </Card>
       )}
+
+      {s.story && !lesson && <StoryCard />}
 
       {rivals.length > 0 && feature('customers.rivals') && (
         <Card title="On your street" icon="shop">
@@ -309,6 +314,33 @@ export function HomePanel({ goTo, onOpen, onRunDay }: { goTo: (t: Tab) => void; 
         {s.deliveries.length ? ` · ${s.deliveries.length} deliveries on the way (${s.deliveries.map((d) => INGREDIENTS[d.ingredient].name.toLowerCase()).join(', ')})` : ''}. Rent: about {money(rent(s) * 30)} a month, paid on the 1st.
       </p>
     </div>
+  );
+}
+
+/** The Lantern Festival story: lane hearts so far and when the next chapter comes. */
+function StoryCard() {
+  const { state: s } = useGame();
+  const st = s.story!;
+  const days = st.nextDay - s.day;
+  return (
+    <Card className="story-card" title="The Lantern Festival" icon="party" aside={<span className="small muted">{st.result ? 'The end' : `Chapter ${Math.min(st.chapter, ARC.chapters)} of ${ARC.chapters}`}</span>}>
+      <p className="small">
+        <Sprite name="heart" scale={2} /> <b>{st.hearts} lane heart{st.hearts === 1 ? '' : 's'}.</b>{' '}
+        {st.result
+          ? st.result === 'won'
+            ? 'You won the Golden Whisk! It hangs above the door.'
+            : 'The lane gave you its own ribbon. It hangs above the door.'
+          : `${ARC.win} wins the festival. Every 2-star day wins a heart.`}
+      </p>
+      {!st.result && (
+        <>
+          <Meter value={Math.min(1, st.hearts / ARC.win)} tone="xp" label={`${st.hearts} of ${ARC.win} lane hearts`} />
+          <p className="small muted">
+            Last time: {ARC_TITLES[Math.max(0, st.chapter - 1)]}. {st.chapter >= ARC.chapters ? '' : days <= 0 ? 'More news today.' : days === 1 ? 'More news tomorrow.' : `More news in ${days} days.`}
+          </p>
+        </>
+      )}
+    </Card>
   );
 }
 

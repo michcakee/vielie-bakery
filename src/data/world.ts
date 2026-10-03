@@ -509,3 +509,65 @@ export const GOALS: Record<string, { name: string; blurb: string }> = {
   debtFree: { name: 'Debt-free and steady', blurb: 'Three profitable years in a row with no debt.' },
   twentyYears: { name: 'Twenty years', blurb: 'Keep the bakery open for 20 years.' },
 };
+
+/** Staff personalities: one small, honest effect each, and a few things they say at work. */
+export interface TraitDef {
+  name: string;
+  blurb: string;
+  /** Minutes per order are multiplied by this (before noon only, for early birds). */
+  speed: number;
+  quality: number;
+  tip: number;
+  lines: { vi: string; en: string }[];
+}
+export const TRAITS: Record<import('../engine/types').TraitId, TraitDef> = {
+  speedy: {
+    name: 'Lightning hands',
+    blurb: 'Serves 15% faster, but a little messier.',
+    speed: 0.85,
+    quality: -6,
+    tip: 0,
+    lines: [
+      { vi: 'Xong rồi! Ai tiếp theo?', en: 'Done! Who’s next?' },
+      { vi: 'Nhanh như chớp!', en: 'Quick as lightning!' },
+      { vi: 'Đếm tới ba là xong nha!', en: 'Count to three and it’s ready!' },
+    ],
+  },
+  careful: {
+    name: 'Careful',
+    blurb: 'A bit slower, but every order looks perfect.',
+    speed: 1.12,
+    quality: 10,
+    tip: 0,
+    lines: [
+      { vi: 'Từ từ mà chắc.', en: 'Slow and steady.' },
+      { vi: 'Phải đẹp mới được.', en: 'It has to look just right.' },
+      { vi: 'Để em kiểm tra lại nhé.', en: 'Let me double-check that.' },
+    ],
+  },
+  cheerful: {
+    name: 'Sunshine',
+    blurb: 'Makes everyone smile: customers tip a little more.',
+    speed: 1,
+    quality: 0,
+    tip: 0.3,
+    lines: [
+      { vi: 'Chào cô chú! Hôm nay vui không ạ?', en: 'Hello! Having a good day?' },
+      { vi: 'Áo đẹp quá ạ!', en: 'I love your shirt!' },
+      { vi: 'Hẹn gặp lại nha!', en: 'See you again soon!' },
+    ],
+  },
+  earlyBird: {
+    name: 'Early bird',
+    blurb: 'Extra fast in the morning rush, normal after lunch.',
+    speed: 0.75,
+    quality: 0,
+    tip: 0,
+    lines: [
+      { vi: 'Buổi sáng là tuyệt nhất!', en: 'Mornings are the best!' },
+      { vi: 'Em dậy từ năm giờ đó!', en: 'I’ve been up since five!' },
+      { vi: 'Trưa rồi hả? Buồn ngủ ghê…', en: 'Lunchtime already? So sleepy…' },
+    ],
+  },
+};
+export const TRAIT_ORDER = Object.keys(TRAITS) as import('../engine/types').TraitId[];

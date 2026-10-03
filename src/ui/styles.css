@@ -5376,3 +5376,238 @@ html[data-motion='reduced'] .title-logo span {
 .lesson-path.folded[open] summary {
   margin-bottom: 10px;
 }
+
+/* ---------- order twists ---------- */
+.twist-note {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  align-items: center;
+  margin: 0 0 8px;
+  padding: 6px 8px;
+  background: var(--butter);
+  border: 2px solid var(--ink);
+  border-radius: var(--r);
+}
+.special-tag.twist {
+  background: var(--butter);
+}
+.special-tag.twist-rush {
+  background: var(--pink, #f4a4bf);
+}
+/* The ingredient this customer doesn't want: still on the counter, but crossed out. */
+.step-btn.left-out {
+  position: relative;
+  opacity: 0.55;
+}
+.step-btn.left-out::after {
+  content: '';
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  top: 50%;
+  height: 4px;
+  background: var(--rose);
+  transform: rotate(-20deg);
+  border-radius: 2px;
+}
+
+/* ---------- staff personalities ---------- */
+.trait {
+  display: block;
+}
+.special-tag.trait-tag {
+  margin-left: 0;
+  margin-right: 4px;
+  background: var(--aqua);
+}
+.trait-says {
+  display: block;
+  font-style: normal;
+}
+
+/* ---------- smaller speech bubbles: the room stays visible ---------- */
+.stage-text .say {
+  font-size: 13px;
+  line-height: 1.15;
+  padding: 2px 6px 3px;
+  border-width: 2px;
+  width: max-content;
+  max-width: 168px;
+  white-space: normal;
+  text-align: center;
+  box-shadow: none;
+}
+.stage-text .say em {
+  font-size: 10px;
+}
+.stage-text .say-item {
+  margin-right: 3px;
+}
+.stage-text .staff-say {
+  background: var(--butter);
+}
+@media (min-width: 700px) {
+  .stage-text .say {
+    font-size: 15px;
+    max-width: 220px;
+  }
+}
+
+/* ---------- daily challenge ---------- */
+.challenge-chip {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 0 0 10px;
+  padding: 6px 10px;
+  background: var(--aqua);
+  border: 2px solid var(--ink);
+  border-radius: var(--r);
+  font-size: 14px;
+}
+.challenge-chip.compact {
+  margin: 4px 0 8px;
+  padding: 3px 8px;
+  font-size: 13px;
+}
+.challenge-chip.done {
+  background: var(--matcha);
+}
+
+/* ---------- collection book ---------- */
+.book-tabs {
+  margin-bottom: 12px;
+}
+.collection h3 {
+  margin: 16px 0 8px;
+}
+.coll-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 8px;
+}
+.coll-grid li {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 8px 4px;
+  text-align: center;
+  background: var(--cream);
+  border: 2px solid var(--ink);
+  border-radius: var(--r);
+  font-size: 13px;
+}
+.coll-grid li.missing,
+.coll-list li.missing {
+  opacity: 0.55;
+}
+.coll-grid .silhouette img,
+.coll-grid .silhouette .person-sprite {
+  filter: brightness(0) opacity(0.35);
+}
+.coll-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 4px 12px;
+  font-size: 14px;
+}
+.coll-list li {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+/* ---------- paint and arrange ---------- */
+.scene-box {
+  position: relative;
+}
+.paint-btn {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  z-index: 4;
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  min-height: 36px;
+  padding: 2px 10px;
+  font: 600 13px var(--font);
+  color: var(--ink);
+  background: var(--butter);
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.painter {
+  display: grid;
+  gap: 12px;
+}
+.painter fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.painter legend {
+  padding: 0;
+  margin-bottom: 6px;
+  font-weight: 700;
+}
+.paint-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.paint-swatch {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-width: 68px;
+  min-height: 44px;
+  padding: 6px;
+  font: 600 12px var(--font);
+  color: var(--ink);
+  background: var(--paper, #fff);
+  border: 2px solid var(--ink);
+  border-radius: var(--r);
+  cursor: pointer;
+}
+.paint-swatch i {
+  display: block;
+  width: 48px;
+  height: 28px;
+  border: 2px solid var(--ink);
+  border-radius: 4px;
+}
+.paint-swatch.on {
+  background: var(--butter);
+  box-shadow: 0 0 0 3px var(--ink);
+}
+.move-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.move-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+/* The shop stays in view while you pick colours. */
+.paint-preview {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  margin-bottom: 10px;
+  background: var(--cream);
+}

@@ -735,6 +735,8 @@ export const DECOR: Record<DecorId, DecorDef> = {
   flowers: { id: 'flowers', name: 'Fresh flowers', vi: 'Bình hoa', cost: 110, level: 3, bonus: '+1 eco, +1 reputation', eco: 1, rep: 1 },
   bike: { id: 'bike', name: 'Vintage bicycle', vi: 'Xe đạp cũ', cost: 260, level: 4, bonus: '+2 community', community: 2, eco: 1 },
   hoaMai: { id: 'hoaMai', name: 'Hoa mai tree', vi: 'Cây hoa mai', cost: 240, level: 1, bonus: 'Tết luck: +5% customers during Tết', rep: 1 },
+  // Won in the Lantern Festival story, never sold (so it is not in DECOR_ORDER).
+  trophy: { id: 'trophy', name: 'Lantern Festival prize', vi: 'Giải lễ hội', cost: 0, level: 99, bonus: 'The lane’s favourite' },
 };
 
 export const DECOR_ORDER: DecorId[] = ['plant', 'stools', 'stringLights', 'sign', 'lanterns', 'birdcage', 'radio', 'art', 'rug', 'flowers', 'bike', 'hoaMai'];

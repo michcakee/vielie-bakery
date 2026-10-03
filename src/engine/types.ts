@@ -83,7 +83,7 @@ export type UpgradeId =
   | 'renovation'
   | 'loft';
 
-export type DecorId = 'plant' | 'lanterns' | 'stringLights' | 'stools' | 'art' | 'rug' | 'birdcage' | 'radio' | 'bike' | 'flowers' | 'hoaMai' | 'sign';
+export type DecorId = 'plant' | 'lanterns' | 'stringLights' | 'stools' | 'art' | 'rug' | 'birdcage' | 'radio' | 'bike' | 'flowers' | 'hoaMai' | 'sign' | 'trophy';
 
 export type ByProduct<T> = Record<ProductId, T>;
 export type ByIngredient<T> = Record<IngredientId, T>;
@@ -144,6 +144,46 @@ export interface Visit {
   critic?: boolean;
   /** A big order with a generous tip on top of the grade's. */
   specialOrder?: boolean;
+  /** "No chili", "extra herbs", "I'm in a hurry": a bonus tip for getting it right. */
+  twist?: Twist;
+  /** The bonus tip a twist paid, for the grade card. */
+  twistTip?: number;
+}
+
+/** How the player has painted and arranged the shop. Every field is an index into the scene option lists. */
+export interface ShopStyle {
+  wall: number;
+  pattern: number;
+  floor: number;
+  counter: number;
+  /** Which spot each movable decoration sits in. */
+  spots: Partial<Record<DecorId, number>>;
+}
+
+export interface StoryState {
+  start: number;
+  /** The next chapter to show (0-based). */
+  chapter: number;
+  nextDay: number;
+  /** Lane hearts: support from the neighbours. */
+  hearts: number;
+  dish?: string;
+  festivalDay?: number;
+  result?: 'won' | 'second';
+}
+
+export interface Challenge {
+  id: 'sellItem' | 'beforeNoon' | 'love' | 'perfect' | 'noLeave' | 'twists' | 'regulars';
+  target: number;
+  product?: ProductId;
+  done: boolean;
+  day: number;
+}
+
+export interface Twist {
+  kind: 'skip' | 'double' | 'rush';
+  /** The recipe step to leave out or do twice. */
+  step?: string;
 }
 
 /** The visible score for one served order. */
@@ -264,6 +304,9 @@ export interface DayStats {
   donatedUnits: number;
   keptUnits: number;
   servedBeforeNoon: number;
+  /** Five-star orders the player made by hand, and special requests done just right (daily challenges). */
+  fiveStar?: number;
+  twistsRight?: number;
   community: number;
   reputation: number;
   xp: number;
@@ -403,7 +446,11 @@ export interface Employee {
   look: Look;
   served: number;
   branch: number | null;
+  /** Personality: changes how they serve. Optional so older saves load. */
+  trait?: TraitId;
 }
+
+export type TraitId = 'speedy' | 'careful' | 'cheerful' | 'earlyBird';
 
 export interface Applicant {
   id: number;
@@ -412,6 +459,7 @@ export interface Applicant {
   wage: number;
   skill: number;
   look: Look;
+  trait?: TraitId;
 }
 
 export interface Competitor {
@@ -621,6 +669,12 @@ export interface GameState {
   intro?: IntroState;
   /** Morning event ids the player has met, for unlock triggers. */
   eventsSeen?: string[];
+  /** Paint and furniture placement chosen by the player. */
+  style?: ShopStyle;
+  /** The Lantern Festival story. Missing until it starts. */
+  story?: StoryState;
+  /** Today's small task. */
+  challenge?: Challenge | null;
   visitsByRegular: Record<string, number>;
   quests: string[];
   questProgress: Record<string, number>;
@@ -635,6 +689,7 @@ export interface GameState {
     returning: number;
     tetSold: number;
     marketingSpent: number;
+    challenges?: number;
   };
   equity: { contributed: number; retained: number; distributions: number };
   prepaidRent: number;

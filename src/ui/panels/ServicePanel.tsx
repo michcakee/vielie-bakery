@@ -4,6 +4,7 @@ import { CONFIG, PRODUCTS } from '../../data/catalog';
 import { translate } from '../../data/people';
 import { effectivePrice, has, makeable, onMenu } from '../../engine/economy';
 import { rngFor } from '../../engine/rng';
+import { TWIST, twistLabel, twistSteps } from '../../engine/twists';
 import { clockLabel } from '../../engine/time';
 import type { ProductId, Visit } from '../../engine/types';
 import { money, money2 } from '../../lib/format';
@@ -11,6 +12,7 @@ import { play } from '../audio';
 import { useGame } from '../GameContext';
 import { Btn } from '../kit';
 import { Person, Sprite } from '../pixel/Sprite';
+import { ChallengeChip } from '../Challenge';
 
 const STEP_ICON: Record<string, string> = {
   slice: 'knife',
@@ -40,14 +42,17 @@ export function stepsFor(p: ProductId, coffeeBar: boolean) {
 function Assembly({ visit, onDone, onCancel }: { visit: Visit; onDone: (process: number) => void; onCancel: () => void }) {
   const { state: s, reduced } = useGame();
   const p = visit.wants;
-  const steps = useMemo(() => stepsFor(p, has(s, 'coffeeBar')), [p, s.upgrades]);
+  const base = useMemo(() => stepsFor(p, has(s, 'coffeeBar')), [p, s.upgrades]);
+  const twist = visit.twist;
+  // What to tap for this customer: a "no chili" order leaves a step out, an "extra" order does one twice.
+  const steps = useMemo(() => twistSteps(base, twist), [base, twist]);
   // Ingredients sit in the same spot every time, like bins on a real counter, so hands learn where to go.
   const order = useMemo(() => {
     let seed = 0;
     for (const ch of p) seed = (seed * 31 + ch.charCodeAt(0)) % 100000;
     const r = rngFor(seed, 0, 3);
-    return [...steps].sort(() => r() - 0.5);
-  }, [steps, p]);
+    return [...base].sort(() => r() - 0.5);
+  }, [base, p]);
   const [done, setDone] = useState(0);
   const [mistakes, setMistakes] = useState(0);
   const [shake, setShake] = useState<string | null>(null);
@@ -71,9 +76,16 @@ function Assembly({ visit, onDone, onCancel }: { visit: Visit; onDone: (process:
       play('oops');
       setMistakes(mistakes + 1);
       setShake(id);
-      setOops(`Not yet! Next: ${steps[done].vi} (${steps[done].label.toLowerCase()})`);
+      const left = twist?.kind === 'skip' && twist.step === id;
+      setOops(left ? `${visit.name} said: ${twistLabel(twist!).toLowerCase()}! Next: ${steps[done].vi}` : `Not yet! Next: ${steps[done].vi} (${steps[done].label.toLowerCase()})`);
       window.setTimeout(() => setShake(null), 300);
     }
+  };
+
+  /** A button is used up once every tap it's needed for is done (never, for a left-out step). */
+  const used = (id: string) => {
+    const lastAt = steps.map((x) => x.id).lastIndexOf(id);
+    return lastAt !== -1 && lastAt < done;
   };
 
   useEffect(() => {
@@ -96,9 +108,14 @@ function Assembly({ visit, onDone, onCancel }: { visit: Visit; onDone: (process:
             <span>for {visit.name}</span>
           </div>
         </div>
+        {twist && (
+          <p className={`twist-note twist-${twist.kind}`}>
+            <Sprite name={twist.kind === 'rush' ? 'clock' : 'bell'} scale={2} /> <b>{twistLabel(twist)}!</b> <span className="small">+{money2(twist.kind === 'rush' ? TWIST.rushTip : TWIST.tip)} tip if you {twist.kind === 'rush' ? 'are quick' : 'get it right'}</span>
+          </p>
+        )}
         <ol>
           {steps.map((st, i) => (
-            <li key={st.id} className={i < done ? 'done' : i === done ? 'now' : ''}>
+            <li key={`${st.id}${i}`} className={i < done ? 'done' : i === done ? 'now' : ''}>
               {i < done ? <Sprite name="check" scale={2} /> : <span className="num">{i + 1}</span>}
               <Sprite name={STEP_ICON[st.id] ?? 'box'} scale={2} />
               <span lang="vi">{st.vi}</span>
@@ -116,7 +133,7 @@ function Assembly({ visit, onDone, onCancel }: { visit: Visit; onDone: (process:
             </span>
           ) : (
             steps.slice(0, done).map((st, i) => (
-              <span key={st.id} className="build-layer" style={{ ['--i' as string]: i }}>
+              <span key={`${st.id}${i}`} className="build-layer" style={{ ['--i' as string]: i }}>
                 <Sprite name={STEP_ICON[st.id] ?? 'box'} scale={3} />
               </span>
             ))
@@ -127,9 +144,9 @@ function Assembly({ visit, onDone, onCancel }: { visit: Visit; onDone: (process:
             <button
               key={st.id}
               type="button"
-              className={`step-btn ${hints && !finished && steps[done]?.id === st.id ? 'glow' : ''} ${shake === st.id ? 'shake' : ''} ${steps.findIndex((x) => x.id === st.id) < done ? 'used' : ''}`}
+              className={`step-btn ${hints && !finished && steps[done]?.id === st.id ? 'glow' : ''} ${shake === st.id ? 'shake' : ''} ${used(st.id) ? 'used' : ''} ${twist?.kind === 'skip' && twist.step === st.id ? 'left-out' : ''}`}
               onClick={() => tap(st.id)}
-              disabled={finished || steps.findIndex((x) => x.id === st.id) < done}
+              disabled={finished || used(st.id)}
             >
               <kbd>{i + 1}</kbd>
               <Sprite name={STEP_ICON[st.id] ?? 'box'} scale={3} />
@@ -183,7 +200,8 @@ function GradeCard({ visit }: { visit: Visit }) {
           </li>
         ))}
       </ul>
-      {g.tip > 0 && <em className="grade-tip">+{money2(g.tip)} tip</em>}
+      {(g.tip > 0 || visit.twistTip) && <em className="grade-tip">+{money2(visit.tip ?? g.tip)} tip</em>}
+      {visit.twistTip ? <span className="grade-who">Just how they asked!</span> : null}
     </div>
   );
 }
@@ -277,6 +295,7 @@ export function ServicePanel({ paused, setPaused, speed, setSpeed, activeId, set
         <span style={{ left: '84%' }}>Last call</span>
       </div>
       <GoalMeter />
+      <ChallengeChip compact />
       <div className="service-controls">
         <Btn kind="ghost" onClick={() => setPaused(!paused)} aria-label={paused ? 'Resume' : 'Pause'} aria-pressed={paused}>
           <Sprite name={paused ? 'playIcon' : 'pause'} scale={2} /> <span className="btn-text">{paused ? 'Resume' : 'Pause'}</span>
@@ -367,6 +386,7 @@ export function ServicePanel({ paused, setPaused, speed, setSpeed, activeId, set
                           {v.name}
                           {v.specialOrder && <span className="special-tag">big order · big tip</span>}
                           {v.critic && <span className="special-tag critic">critic</span>}
+                          {v.twist && <span className={`special-tag twist twist-${v.twist.kind}`}>{twistLabel(v.twist)}</span>}
                         </b>
                         <span lang="vi">{v.line}</span>
                         {prefs.translations && translate(v.line) && <em>{translate(v.line)}</em>}

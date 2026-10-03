@@ -160,13 +160,13 @@ function loaf(ctx: CanvasRenderingContext2D, x: number, y: number, kind: number)
   }
 }
 
-/** A plant in a terracotta pot, standing on `y`. */
-function pottedPlant(ctx: CanvasRenderingContext2D, x: number, y: number, size = 1) {
-  rect(ctx, x, y - 4, 5, 4, C.pot);
-  rect(ctx, x - 1, y - 5, 7, 1, C.woodDeep);
-  const leaves = size === 1 ? [[1, -7], [0, -8], [3, -8], [4, -7], [2, -9]] : [[1, -7], [0, -9], [3, -9], [4, -7], [2, -11], [-1, -7], [5, -9], [1, -11], [3, -12], [-2, -10], [6, -11]];
-  for (const [lx, ly] of leaves) rect(ctx, x + lx, y + ly, 2, 2, (lx + ly) % 2 ? C.leaf : C.leafDark);
-}
+// /** A plant in a terracotta pot, standing on `y`. */
+// function pottedPlant(ctx: CanvasRenderingContext2D, x: number, y: number, size = 1) {
+//   rect(ctx, x, y - 4, 5, 4, C.pot);
+//   rect(ctx, x - 1, y - 5, 7, 1, C.woodDeep);
+//   const leaves = size === 1 ? [[1, -7], [0, -8], [3, -8], [4, -7], [2, -9]] : [[1, -7], [0, -9], [3, -9], [4, -7], [2, -11], [-1, -7], [5, -9], [1, -11], [3, -12], [-2, -10], [6, -11]];
+//   for (const [lx, ly] of leaves) rect(ctx, x + lx, y + ly, 2, 2, (lx + ly) % 2 ? C.leaf : C.leafDark);
+// }
 
 /** The shop cat, asleep on a green cushion. (x, y) is the cushion's top-left. */
 function shopCat(ctx: CanvasRenderingContext2D, x: number, y: number) {
@@ -415,9 +415,9 @@ export function drawRoom(ctx: CanvasRenderingContext2D, o: SceneOpts) {
     rect(ctx, 149, 25, 23, 1, C.woodDeep);
     rect(ctx, 151, 26, 1, 2, C.woodDeep);
     rect(ctx, 169, 26, 1, 2, C.woodDeep);
-    pottedPlant(ctx, 151, 23);
-    pottedPlant(ctx, 159, 23, 2);
-    pottedPlant(ctx, 166, 23);
+    // pottedPlant(ctx, 151, 23);
+    // pottedPlant(ctx, 159, 23, 2);
+    // pottedPlant(ctx, 166, 23);
   }
 
   // the back counter: jars, the radio, the festival prize, and the coffee corner
@@ -495,7 +495,7 @@ export function drawRoom(ctx: CanvasRenderingContext2D, o: SceneOpts) {
     rect(ctx, F.x + 1, 48, 13, 1, C.woodDeep);
     rect(ctx, F.x + 2, 49, 1, 8, C.woodDeep);
     rect(ctx, F.x + 12, 49, 1, 8, C.woodDeep);
-    pottedPlant(ctx, F.x + 5, 46, 2);
+    // pottedPlant(ctx, F.x + 5, 46, 2);
   }
 
   // the oven: brick at first, then tile, then steel
@@ -583,7 +583,7 @@ export function drawWindowFront(ctx: CanvasRenderingContext2D, o: SceneOpts) {
       rect(ctx, W.x + 3 + i * 11, W.y + W.h - 7, 7, 3, C.leaf);
       rect(ctx, W.x + 4 + i * 11 + (i % 2) * 3, W.y + W.h - 8, 2, 2, ['#efb6a0', '#f4dc8c', '#d97a62', '#ffffff'][i]);
     }
-  else for (const px of [5, 20, 36]) pottedPlant(ctx, W.x + px, W.y + W.h);
+  // else for (const px of [5, 20, 36]) pottedPlant(ctx, W.x + px, W.y + W.h);
 }
 
 /** The service counter and glass case: in front of the staff, behind the customers. */

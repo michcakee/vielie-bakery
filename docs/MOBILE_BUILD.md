@@ -34,7 +34,7 @@ npm run mobile:ios
 
 ## Icons and splash screens
 
-All icons and splashes are drawn from the game's own pixel bánh mì sprite by a dependency-free script:
+All icons and splashes are drawn from the logo, a smiling pixel bánh flan on light green (the grid is in the script), by a dependency-free script:
 
 ```bash
 npm run icons

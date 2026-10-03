@@ -4,7 +4,7 @@ const config: CapacitorConfig = {
   appId: 'com.michcakee.vietbakeshop',
   appName: 'Viet Bake Shop',
   webDir: 'dist',
-  backgroundColor: '#f7e6c6',
+  backgroundColor: '#d7ecca',
   android: {
     allowMixedContent: false,
   },
@@ -14,7 +14,7 @@ const config: CapacitorConfig = {
   plugins: {
     SplashScreen: {
       launchShowDuration: 1200,
-      backgroundColor: '#f7e6c6',
+      backgroundColor: '#d7ecca',
       showSpinner: false,
       androidScaleType: 'CENTER_INSIDE',
     },

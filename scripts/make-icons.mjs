@@ -1,5 +1,5 @@
 /**
- * Generates every app icon and splash screen from the game's own pixel bánh mì sprite.
+ * Generates every app icon and splash screen from the logo: a smiling pixel bánh flan.
  * No dependencies: a tiny PNG encoder on top of node:zlib.
  *
  *   node scripts/make-icons.mjs
@@ -14,21 +14,47 @@ import { dirname, join } from 'node:path';
 const root = join(dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, '$1')), '..');
 const src = (p) => readFileSync(join(root, p), 'utf8');
 
-// ---------------------------------------------------------------- read the sprite + palette from source
+// ---------------------------------------------------------------- the logo: a smiling bánh flan on a plate
 const palSrc = src('src/ui/pixel/palette.ts');
 const PAL = Object.fromEntries([...palSrc.matchAll(/^\s+(\w+): '(#[0-9a-f]{6})',/gim)].map((m) => [m[1], m[2]]));
-const codeBlock = palSrc.slice(palSrc.indexOf('SPRITE_COLORS'));
-const CODES = Object.fromEntries([...codeBlock.slice(0, codeBlock.indexOf('};')).matchAll(/^\s+(\w): PAL\.(\w+),/gm)].map((m) => [m[1], PAL[m[2]]]));
-const spriteSrc = src('src/ui/pixel/sprites.ts');
-const body = spriteSrc.slice(spriteSrc.indexOf('banhMi: ['));
-const SPRITE = [...body.slice(0, body.indexOf(']')).matchAll(/'([^']+)'/g)].map((m) => m[1]);
-// trim fully transparent rows so the loaf is centred
-while (SPRITE[0] && /^\.+$/.test(SPRITE[0])) SPRITE.shift();
+const LOGO = [
+  '.....oooooo.....',
+  '....occllcco....',
+  '...occcccccco...',
+  '...oycyyycyyo...',
+  '..oyhyyyyyyyyo..',
+  '..oyyoyyyyoyyo..',
+  '..oypyyooyypyo..',
+  '.odyyyyyyyyyydo.',
+  '.oddyyyyyyyyddo.',
+  '.oooooooooooooo.',
+  'owwwwwwwwwwwwwwo',
+  '.oggggggggggggo.',
+  '..oooooooooooo..',
+];
+const CODES = {
+  o: '#3b2a25', // outline
+  c: '#b5612a', // caramel
+  l: '#d98a3e', // caramel shine
+  y: '#f5d57a', // custard
+  h: '#fff0c0', // custard highlight
+  d: '#e8b955', // custard shadow
+  p: '#f2a0b8', // blush
+  w: '#ffffff', // plate
+  g: '#c5d5c7', // plate shadow
+};
+/** Twinkles beside the flan, in logo cells: centre (x, y) and the size of one twinkle pixel. */
+const SPARKLES = [
+  { x: -2.65, y: 1.7, cell: 0.45 },
+  { x: 18.85, y: 6.5, cell: 0.72 },
+];
+const SPARKLE = ['..y..', '..y..', 'yywyy', '..y..', '..y..'];
+const SPARKLE_COLORS = { y: '#f2c94c', w: '#ffffff' };
+const GREEN = '#d7ecca';
 
 const hex = (h) => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
-const BG = hex(PAL.forest);
-const CREAM = hex(PAL.paper);
-const SPLASH_BG = hex('#f7e6c6');
+const BG = hex(GREEN);
+const SPLASH_BG = hex(GREEN);
 
 // ---------------------------------------------------------------- PNG encoder
 const CRC = new Uint32Array(256).map((_, n) => {
@@ -83,35 +109,45 @@ function blob(c, cx, cy, r, rgb, radius) {
       if (dx * dx + dy * dy <= radius * radius) set(c, x, y, rgb);
     }
 }
-function sprite(c, cx, cy, width) {
-  const cols = Math.max(...SPRITE.map((r) => r.length));
+/** The flan and its twinkles, centred on (cx, cy), the flan `width` pixels wide (whole pixels per cell). */
+function logo(c, cx, cy, width, { sparkles = true } = {}) {
+  const cols = LOGO[0].length;
   const s = Math.max(1, Math.floor(width / cols));
   const x0 = Math.round(cx - (cols * s) / 2);
-  const y0 = Math.round(cy - (SPRITE.length * s) / 2);
-  SPRITE.forEach((row, j) =>
+  const y0 = Math.round(cy - (LOGO.length * s) / 2);
+  LOGO.forEach((row, j) =>
     [...row].forEach((ch, i) => {
       const col = CODES[ch];
       if (!col) return;
       for (let yy = 0; yy < s; yy++) for (let xx = 0; xx < s; xx++) set(c, x0 + i * s + xx, y0 + j * s + yy, hex(col));
     }),
   );
+  if (!sparkles) return;
+  for (const sp of SPARKLES) {
+    const k = Math.max(1, Math.round(s * sp.cell));
+    const sx = Math.round(x0 + sp.x * s - (5 * k) / 2);
+    const sy = Math.round(y0 + sp.y * s - (5 * k) / 2);
+    SPARKLE.forEach((row, j) =>
+      [...row].forEach((ch, i) => {
+        const col = SPARKLE_COLORS[ch];
+        if (!col) return;
+        for (let yy = 0; yy < k; yy++) for (let xx = 0; xx < k; xx++) set(c, sx + i * k + xx, sy + j * k + yy, hex(col));
+      }),
+    );
+  }
 }
 
-/** The app icon: cream disc on forest green with the loaf. `inset` shrinks art for maskable/adaptive safe zones. */
-function icon(size, { inset = 1, transparent = false, background = true } = {}) {
+/** The app icon: the flan on light green. `inset` shrinks the art for maskable/adaptive safe zones. */
+function icon(size, { inset = 1, transparent = false, background = true, rounded = false } = {}) {
   const c = canvas(size, size, transparent ? null : [...BG, 255]);
-  const r = (size / 2) * inset;
-  if (background && transparent) blob(c, size / 2, size / 2, size / 2, BG, size * 0.22);
-  blob(c, size / 2, size / 2, r * 0.78, CREAM, r * 0.78);
-  sprite(c, size / 2, size / 2 + size * 0.01, r * 1.1);
+  if (background && transparent) blob(c, size / 2, size / 2, size / 2, BG, rounded ? size / 2 : size * 0.22);
+  // The flan plus its twinkles span about 24 cells; keep them inside the safe area.
+  logo(c, size / 2, size / 2, size * 0.54 * inset);
   return c;
 }
 function splash(w, h) {
   const c = canvas(w, h, [...SPLASH_BG, 255]);
-  const d = Math.min(w, h) * 0.34;
-  blob(c, w / 2, h / 2, d / 2, BG, d * 0.22);
-  blob(c, w / 2, h / 2, (d / 2) * 0.78, CREAM, (d / 2) * 0.78);
-  sprite(c, w / 2, h / 2, (d / 2) * 1.1);
+  logo(c, w / 2, h / 2, Math.min(w, h) * 0.3);
   return c;
 }
 
@@ -146,17 +182,11 @@ if (existsSync(join(root, res))) {
       const [w, h] = sizeOf(p);
       if (f === 'splash.png') write(p, splash(w, h));
       else if (f === 'ic_launcher_foreground.png') write(p, icon(w, { inset: 0.62, transparent: true, background: false }), true);
-      else if (f === 'ic_launcher_round.png') {
-        const c = canvas(w, w);
-        blob(c, w / 2, w / 2, w / 2, BG, w / 2);
-        blob(c, w / 2, w / 2, (w / 2) * 0.78, CREAM, (w / 2) * 0.78);
-        sprite(c, w / 2, w / 2, (w / 2) * 1.1);
-        write(p, c, true);
-      } else if (f === 'ic_launcher.png') write(p, icon(w, { transparent: true }), true);
+      else if (f === 'ic_launcher_round.png') write(p, icon(w, { transparent: true, rounded: true, inset: 0.9 }), true); else if (f === 'ic_launcher.png') write(p, icon(w, { transparent: true }), true);
     }
   }
   const bg = `${res}/values/ic_launcher_background.xml`;
-  writeFileSync(join(root, bg), readFileSync(join(root, bg), 'utf8').replace(/#[0-9A-Fa-f]{6}/, PAL.forest.toUpperCase()));
+  writeFileSync(join(root, bg), readFileSync(join(root, bg), 'utf8').replace(/#[0-9A-Fa-f]{6}/, GREEN.toUpperCase()));
 }
 
 // ---------------------------------------------------------------- iOS
@@ -164,4 +194,14 @@ const ios = 'ios/App/App/Assets.xcassets';
 if (existsSync(join(root, ios))) {
   write(`${ios}/AppIcon.appiconset/AppIcon-512@2x.png`, icon(1024));
   for (const f of ['splash-2732x2732.png', 'splash-2732x2732-1.png', 'splash-2732x2732-2.png']) write(`${ios}/Splash.imageset/${f}`, splash(2732, 2732));
+}
+
+// ---------------------------------------------------------------- favicon.svg (crisp at any size)
+{
+  const cells = [];
+  LOGO.forEach((row, j) => [...row].forEach((ch, i) => CODES[ch] && cells.push(`<rect x="${i + 2}" y="${j + 3.5}" width="1" height="1" fill="${CODES[ch]}"/>`)));
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" shape-rendering="crispEdges"><rect width="20" height="20" rx="4" fill="${GREEN}"/>${cells.join('')}</svg>
+`;
+  writeFileSync(join(root, 'public/favicon.svg'), svg);
+  console.log('wrote public/favicon.svg');
 }

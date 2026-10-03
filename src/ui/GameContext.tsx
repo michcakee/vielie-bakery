@@ -20,6 +20,8 @@ interface Ctx {
   fresh: (id: FeatureId) => boolean;
   slot: number;
   switchSlot: (slot: number) => boolean;
+  /** The last save attempt failed (storage full or blocked). */
+  saveFailed: boolean;
 }
 
 const GameCtx = createContext<Ctx | null>(null);
@@ -48,6 +50,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(safeReducer, saved, (s) => s ?? createNewGame());
   const [osReduced, setOsReduced] = useState(() => typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches);
   const lastSave = useRef(0);
+  const [saveFailed, setSaveFailed] = useState(false);
+  const save = useCallback((s: GameState, n: number) => setSaveFailed(!saveGame(s, n)), []);
   const pending = useRef<number>(0);
   const slot = prefs.slot;
 
@@ -57,15 +61,15 @@ export function GameProvider({ children }: { children: ReactNode }) {
     const now = performance.now();
     window.clearTimeout(pending.current);
     if (state.phase !== 'service' || now - lastSave.current > 2000) {
-      saveGame(state, slot);
+      save(state, slot);
       lastSave.current = now;
     } else {
       pending.current = window.setTimeout(() => {
-        saveGame(state, slot);
+        save(state, slot);
         lastSave.current = performance.now();
       }, 600);
     }
-  }, [state, slot, saved]);
+  }, [state, slot, saved, save]);
 
   useEffect(() => {
     if (typeof matchMedia === 'undefined') return;
@@ -124,8 +128,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
       fresh: (id: FeatureId) => (state.newFeatures ?? []).includes(id),
       slot,
       switchSlot,
+      saveFailed,
     }),
-    [state, saved, prefs, setPrefs, reduced, slot, switchSlot],
+    [state, saved, prefs, setPrefs, reduced, slot, switchSlot, saveFailed],
   );
   return <GameCtx.Provider value={value}>{children}</GameCtx.Provider>;
 }

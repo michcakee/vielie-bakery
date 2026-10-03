@@ -28,11 +28,19 @@ export function weeklyApplicants(s: GameState): Applicant[] {
     const skill = 2 + Math.floor(rand() * 2);
     out.push({ id: s.nextId + out.length, name: 'Sprout', role: 'helper', wage: round2(marketWage(s, 'helper', skill)), skill, look: { ...randomLook(rand), apron: 2 } });
   }
+  // Nicknames are never shared: skip any already on the team or in this week's pile.
+  const taken = new Set([...s.staff.map((e) => e.name), ...out.map((a) => a.name)]);
+  const nickname = () => {
+    const free = STAFF_NAMES.filter((x) => !taken.has(x));
+    const name = free.length ? free[Math.floor(rand() * free.length)] : `${STAFF_NAMES[Math.floor(rand() * STAFF_NAMES.length)]} ${taken.size + 1}`;
+    taken.add(name);
+    return name;
+  };
   for (let i = 0; i < n; i++) {
     const role = ROLE_ORDER[Math.floor(rand() * ROLE_ORDER.length)];
     const skill = 1 + Math.floor(rand() * rand() * 5);
     const ask = marketWage(s, role, skill) * (0.95 + rand() * 0.15);
-    out.push({ id: s.nextId + out.length, name: STAFF_NAMES[Math.floor(rand() * STAFF_NAMES.length)], role, wage: round2(ask), skill, look: { ...randomLook(rand), apron: Math.floor(rand() * 5) } });
+    out.push({ id: s.nextId + out.length, name: nickname(), role, wage: round2(ask), skill, look: { ...randomLook(rand), apron: Math.floor(rand() * 5) } });
   }
   // Personalities come from their own random stream, so they never change who applies.
   const traitRand = rngFor(s.seed, s.day, 504);

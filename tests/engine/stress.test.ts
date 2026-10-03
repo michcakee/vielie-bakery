@@ -358,6 +358,39 @@ describe('daily special and special orders', () => {
   });
 });
 
+describe('playtest round 5 fixes', () => {
+  it('a long game keeps its save small: old days keep totals, recent days keep detail', async () => {
+    const { forStorage, DETAILED_DAYS, saveGame, loadGame } = await import('../../src/engine/save');
+    let s = createNewGame(31);
+    for (let d = 0; d < DETAILED_DAYS + 40; d++) s = autoDay(s);
+    const stored = forStorage(s);
+    const old = stored.history[0];
+    const recent = stored.history[stored.history.length - 1];
+    expect(Object.keys(old.sold)).toHaveLength(0);
+    expect(old.revenue).toBe(s.history[0].revenue);
+    expect(Object.keys(recent.sold).length).toBeGreaterThan(0);
+    const size = (x: unknown) => JSON.stringify(x).length;
+    expect(size(old)).toBeLessThan(size(s.history[0]) * 0.6);
+    const m = new Map<string, string>();
+    const store = { getItem: (k: string) => m.get(k) ?? null, setItem: (k: string, v: string) => void m.set(k, v), removeItem: (k: string) => void m.delete(k) };
+    expect(saveGame(s, 1, store)).toBe(true);
+    let back = loadGame(1, store)!;
+    for (let d = 0; d < 10; d++) back = autoDay(back);
+    check(back);
+  });
+
+  it('no two people on the team or in the applicant pile share a nickname', () => {
+    let s = createNewGame({ seed: 8, scenario: 'startup' });
+    for (let d = 0; d < 60; d++) {
+      s = autoDay(s);
+      const a = s.applicants[0];
+      if (a && s.staff.length < 8 && s.phase === 'morning') s = gameReducer({ ...s, cash: s.cash + 5000 }, { type: 'hire', applicantId: a.id });
+      const names = [...s.staff.map((e) => e.name), ...s.applicants.map((x) => x.name)];
+      expect(new Set(names).size).toBe(names.length);
+    }
+  });
+});
+
 describe('the rename from vielie-bakery to vietbakeshop', () => {
   it('saves and settings written under the old name are moved to the new keys, without overwriting newer ones', async () => {
     const { adoptOldKeys, saveGame, loadGame, SLOT_PREFIX, PREFS_KEY } = await import('../../src/engine/save');

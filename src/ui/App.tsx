@@ -155,7 +155,7 @@ function Ending({ onQuit }: { onQuit: () => void }) {
 }
 
 function Game({ onQuit }: { onQuit: () => void }) {
-  const { state: s, dispatch, prefs, reduced } = useGame();
+  const { state: s, dispatch, prefs, reduced, saveFailed } = useGame();
   // Optional break reminder: one gentle toast after 30 minutes, only if the player turned it on.
   const [breakNote, setBreakNote] = useState(false);
   useEffect(() => {
@@ -430,6 +430,17 @@ function Game({ onQuit }: { onQuit: () => void }) {
         </div>
       )}
 
+      {saveFailed && (
+        <div className="save-failed" role="alert">
+          <Sprite name="lock" scale={2} />
+          <span>
+            <b>Your bakery isn’t saving.</b> This device’s storage is full or blocked. Copy a save code in Settings so you don’t lose today, and delete a bakery you no longer play.
+          </span>
+          <Btn kind="primary" onClick={() => setDrawer('settings')}>
+            Settings
+          </Btn>
+        </div>
+      )}
       {breakNote && (
         <div className="break-note" role="status">
           <Sprite name="tea" scale={3} />

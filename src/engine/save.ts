@@ -2,7 +2,7 @@ import { START_PRODUCTS, INGREDIENTS, INGREDIENT_ORDER, PRODUCTS, PRODUCT_ORDER,
 import { balanceSheet } from './accounting';
 import { refreshKinds } from './events';
 import { createNewGame, SAVE_VERSION } from './state';
-import type { Employee, Equipment, GameState, UpgradeId } from './types';
+import type { DaySummary, Employee, Equipment, GameState, UpgradeId } from './types';
 import { migrateFeatures } from './unlocks';
 
 /** Old single-slot key from v2 (kept untouched as a backup after migration). It keeps the game's first name. */
@@ -144,8 +144,21 @@ export function validSave(data: unknown): data is GameState {
   return true;
 }
 
+/** Days older than this keep only their totals in the save; nothing on screen looks further back in detail. */
+export const DETAILED_DAYS = 120;
+
+/**
+ * Drop the per-recipe breakdowns from old days. A long game otherwise grows by about 2 KB a day,
+ * and two slots of year-old bakeries plus their backups can fill a phone browser's storage.
+ */
+function compactDay(h: DaySummary): DaySummary {
+  if (!h.sold || Object.keys(h.sold).length === 0) return h;
+  return { ...h, sold: {} as DaySummary['sold'], revenueBy: {} as DaySummary['revenueBy'], cogsBy: {} as DaySummary['cogsBy'], prices: {} as DaySummary['prices'], wished: {}, segments: {} };
+}
+
 export function forStorage(s: GameState): GameState {
-  return { ...s, toasts: [] };
+  const cut = s.history.length - DETAILED_DAYS;
+  return { ...s, toasts: [], history: cut > 0 ? s.history.map((h, i) => (i < cut ? compactDay(h) : h)) : s.history };
 }
 
 // ---------------------------------------------------------------- v2 → v3 migration

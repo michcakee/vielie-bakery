@@ -40,14 +40,18 @@ function Assembly({ visit, onDone, onCancel }: { visit: Visit; onDone: (process:
   const { state: s, reduced } = useGame();
   const p = visit.wants;
   const steps = useMemo(() => stepsFor(p, has(s, 'coffeeBar')), [p, s.upgrades]);
+  // Ingredients sit in the same spot every time, like bins on a real counter, so hands learn where to go.
   const order = useMemo(() => {
-    const r = rngFor(visit.id, s.day, 3);
+    let seed = 0;
+    for (const ch of p) seed = (seed * 31 + ch.charCodeAt(0)) % 100000;
+    const r = rngFor(seed, 0, 3);
     return [...steps].sort(() => r() - 0.5);
-  }, [steps, visit.id, s.day]);
+  }, [steps, p]);
   const [done, setDone] = useState(0);
   const [mistakes, setMistakes] = useState(0);
   const [shake, setShake] = useState<string | null>(null);
-  const hints = s.day <= 3 || mistakes > 0;
+  const [oops, setOops] = useState<string | null>(null);
+  const hints = s.day <= 7 || mistakes > 0;
   const finished = done >= steps.length;
 
   useEffect(() => {
@@ -66,6 +70,7 @@ function Assembly({ visit, onDone, onCancel }: { visit: Visit; onDone: (process:
       play('oops');
       setMistakes(mistakes + 1);
       setShake(id);
+      setOops(`Not yet! Next: ${steps[done].vi} (${steps[done].label.toLowerCase()})`);
       window.setTimeout(() => setShake(null), 300);
     }
   };
@@ -94,6 +99,7 @@ function Assembly({ visit, onDone, onCancel }: { visit: Visit; onDone: (process:
           {steps.map((st, i) => (
             <li key={st.id} className={i < done ? 'done' : i === done ? 'now' : ''}>
               {i < done ? <Sprite name="check" scale={2} /> : <span className="num">{i + 1}</span>}
+              <Sprite name={STEP_ICON[st.id] ?? 'box'} scale={2} />
               <span lang="vi">{st.vi}</span>
               <span className="muted">{st.label}</span>
             </li>
@@ -130,8 +136,13 @@ function Assembly({ visit, onDone, onCancel }: { visit: Visit; onDone: (process:
             </button>
           ))}
         </div>
-        <button type="button" className="link-btn" onClick={onCancel}>
-          Put it down (Esc)
+        {oops && !finished && (
+          <p className="assembly-oops" role="status">
+            {oops}
+          </p>
+        )}
+        <button type="button" className="link-btn put-down" onClick={onCancel}>
+          Put it down
         </button>
       </div>
     </div>
@@ -235,19 +246,29 @@ export function ServicePanel({ paused, setPaused, speed, setSpeed, activeId, set
           <Sprite name="fast" scale={2} /> {speed === 2 ? 'Fast' : 'Normal'}
         </Btn>
         <Btn kind={svc.lastCall ? 'primary' : 'plain'} disabled={!canLastCall} onClick={() => dispatch({ type: 'lastCall', on: !svc.lastCall })} aria-pressed={svc.lastCall} title="Pastries 40% off for the last hour">
-          {svc.lastCall ? 'LAST CALL! −40%' : canLastCall ? 'Start last call' : 'Last call from 5pm'}
+          {svc.lastCall ? 'LAST CALL! −40%' : canLastCall ? 'Last call' : 'Last call 5pm'}
         </Btn>
-        {!svc.auto && (
-          <Btn kind="ghost" onClick={() => dispatch({ type: 'handOver' })} title="The autopilot and your team serve everyone; you can still jump in">
-            Hand over the counter
-          </Btn>
+        {s.today.lostSlow > 0 && (
+          <span className="lost-chip" role="status" aria-label={`${s.today.lostSlow} customers gave up waiting`}>
+            <Sprite name="faceWorried" scale={2} /> {s.today.lostSlow} left
+          </span>
         )}
-        <Btn kind="ghost" onClick={() => dispatch({ type: 'skipToClose' })} title="Let the team finish the day instantly">
-          Skip to closing
-        </Btn>
-        <Btn kind="ghost" onClick={() => dispatch({ type: 'closeEarly' })} sfx="bell">
-          Close up
-        </Btn>
+        <details className="svc-more">
+          <summary>More</summary>
+          <div className="svc-more-items">
+            {!svc.auto && (
+              <Btn kind="ghost" onClick={() => dispatch({ type: 'handOver' })} title="Bà and your team serve everyone; you can still jump in">
+                Let Bà help at the counter
+              </Btn>
+            )}
+            <Btn kind="ghost" onClick={() => dispatch({ type: 'skipToClose' })} title="Finish the day instantly">
+              Skip to closing
+            </Btn>
+            <Btn kind="ghost" onClick={() => dispatch({ type: 'closeEarly' })} sfx="bell">
+              Close up now
+            </Btn>
+          </div>
+        </details>
       </div>
 
       {active ? (

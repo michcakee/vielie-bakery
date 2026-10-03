@@ -167,7 +167,8 @@ export function createNewGame(seedOrOpts: number | NewGameOptions = {}): GameSta
   }
   const display = {} as ByProduct<StockItem>;
   for (const p of PRODUCT_ORDER) display[p] = { qty: 0, quality: 70, unitCost: 0 };
-  if (sc.inherited) display.flan = { qty: 8, quality: 76, unitCost: 0.71, madeDay: 1 };
+  // A guided first day starts with an empty pastry case, so Bà's first lesson (bake a tray) isn't waste.
+  if (sc.inherited && !opts.guided) display.flan = { qty: 8, quality: 76, unitCost: 0.71, madeDay: 1 };
   const prices = {} as ByProduct<number>;
   for (const p of PRODUCT_ORDER) prices[p] = PRODUCTS[p].ref;
   const equipment: Equipment[] = sc.inherited ? [{ uid: 1, kind: 'ovenBasic', cost: 1200, boughtDay: 0, depreciated: 600, broken: false }] : [];

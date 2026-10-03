@@ -49,12 +49,14 @@ export function processScore(x: number, window: number): number {
   return Math.round(80 - ((x - CENTER - half) / (0.97 - CENTER - half)) * 40);
 }
 
-function OvenGame({ item, onDone, onCancel }: { item: Bakeable; onDone: (q: number) => void; onCancel: () => void }) {
+function OvenGame({ item, onDone, onCancel, learning }: { item: Bakeable; onDone: (q: number) => void; onCancel: () => void; learning: boolean }) {
+  // New bakers get a slower needle and a wider golden zone for their first few days.
+  const ms = learning ? 5200 : BAKE_MS;
   const [x, setX] = useState(0);
   const [result, setResult] = useState<number | null>(null);
   const raf = useRef(0);
   const xRef = useRef(0);
-  const win = info(item).window;
+  const win = info(item).window * (learning ? 1.7 : 1);
   const half = win / 200;
 
   const stop = (val = xRef.current) => {
@@ -69,7 +71,7 @@ function OvenGame({ item, onDone, onCancel }: { item: Bakeable; onDone: (q: numb
   useEffect(() => {
     const t0 = performance.now();
     const step = (t: number) => {
-      const k = Math.min(1, (t - t0) / BAKE_MS);
+      const k = Math.min(1, (t - t0) / ms);
       xRef.current = k;
       setX(k);
       if (k < 1) raf.current = requestAnimationFrame(step);
@@ -108,7 +110,7 @@ function OvenGame({ item, onDone, onCancel }: { item: Bakeable; onDone: (q: numb
       <Btn kind="go" onClick={() => stop()} disabled={result !== null} sfx={null} className="big">
         Lấy ra! Take it out
       </Btn>
-      <span className="muted small">Space or Enter works too.</span>
+      <span className="muted small kbd-hint">Space or Enter works too.</span>
     </div>
   );
 }
@@ -174,7 +176,7 @@ function OvenCard() {
         </div>
       )}
       {baking ? (
-        <OvenGame item={baking} onDone={(q) => bake(baking, q)} onCancel={() => setBaking(null)} />
+        <OvenGame item={baking} onDone={(q) => bake(baking, q)} onCancel={() => setBaking(null)} learning={s.allUnlocked === false && s.day <= 5} />
       ) : (
         <>
           <p className="muted">
@@ -208,9 +210,9 @@ function OvenCard() {
                     <Btn kind="primary" disabled={!morning || !ok || left <= 0} onClick={() => setBaking(item)} sfx="pop" data-spot={`bake-${item}`}>
                       Bake
                     </Btn>
-                    <button type="button" className="link-btn" disabled={!morning || !ok || left <= 0} onClick={() => bake(item, 72)} title="Skip the mini-game: fair quality">
+                    <Btn kind="ghost" disabled={!morning || !ok || left <= 0} onClick={() => bake(item, 72)} title="Skip the mini-game: fair quality">
                       Quick bake
-                    </button>
+                    </Btn>
                   </div>
                 </li>
               );

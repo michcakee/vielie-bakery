@@ -4994,3 +4994,100 @@ html[data-motion='reduced'] .title-logo span {
 .intro-card .coach-steps li.now { font-weight: 600; }
 .price-plain { font-family: var(--pixel); font-size: 1.1rem; }
 .scenario.locked { opacity: 0.5; }
+
+/* ---------- service on phones: bottom-sheet assembly, compact controls ---------- */
+.assembly-oops {
+  margin: 4px 0 0;
+  padding: 6px 10px;
+  background: var(--peach);
+  border: 2px solid var(--ink);
+  border-radius: 6px;
+  font-weight: 600;
+}
+.ticket li { display: flex; align-items: center; gap: 6px; }
+.lost-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border: 2px solid var(--ink);
+  border-radius: 6px;
+  background: var(--peach);
+  font-family: var(--pixel);
+  font-size: 17px;
+}
+.svc-more { position: relative; }
+.svc-more > summary {
+  list-style: none;
+  cursor: pointer;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  border: 3px solid var(--ink);
+  border-radius: var(--r);
+  background: var(--paper);
+  font-family: var(--pixel);
+  font-size: 18px;
+}
+.svc-more > summary::-webkit-details-marker { display: none; }
+.svc-more-items {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 30;
+  display: grid;
+  gap: 6px;
+  padding: 8px;
+  min-width: 220px;
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+}
+@media (hover: none) {
+  .step-btn kbd, .order kbd { display: none; }
+}
+@media (max-width: 760px) {
+  .service-controls { flex-wrap: nowrap; overflow: visible; }
+  .service-controls .btn { padding: 4px 8px; font-size: 16px; }
+  .day-track { height: 26px; }
+  .day-track span { font-size: 13px; top: 3px; }
+  .day-track span:nth-of-type(3) { display: none; }
+  .assembly {
+    position: fixed;
+    left: 6px;
+    right: 6px;
+    bottom: 6px;
+    z-index: 70;
+    max-height: 78vh;
+    overflow-y: auto;
+    padding: 8px;
+    gap: 8px;
+    box-shadow: 0 -6px 0 rgba(59, 42, 37, 0.25), var(--shadow);
+  }
+  .assembly .ticket { padding: 6px 8px; }
+  .assembly .ticket ol { display: flex; flex-wrap: wrap; gap: 4px 10px; margin: 0; padding: 0; list-style: none; }
+  .assembly .ticket ol .muted { display: none; }
+  .assembly .build-stack { min-height: 48px; }
+  .step-buttons { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .step-btn { min-height: 64px; }
+  .put-down { min-height: 44px; }
+  .grade-card .grade-parts { display: none; }
+}
+.step-btn.glow {
+  background: var(--butter);
+  outline: 4px solid var(--mango);
+  outline-offset: 2px;
+  animation: glow-pulse 0.7s steps(2) infinite;
+}
+@keyframes glow-pulse {
+  50% { outline-color: var(--ink); transform: translateY(-2px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .step-btn.glow { animation: none; }
+}
+.ticket li.now { background: var(--butter); border-radius: 4px; outline: 2px solid var(--mango); }
+@media (hover: none) {
+  .kbd-hint { display: none; }
+}

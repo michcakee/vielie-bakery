@@ -6,7 +6,7 @@ import type { GameState, Look, Mood, ProductId, RoleId, TraitId, Visit } from '.
 import { TRAITS } from '../../data/world';
 import { useGame } from '../GameContext';
 import { decorSpot } from '../../engine/state';
-import { CAGE_SPOTS, drawCounter, drawFront, drawRoom, FLOOR_SPOTS, LAMP_GLOW_Y, LAMPS_X, LAYOUT, seats, STAGE_H, STAGE_W, type Light, type SceneOpts } from '../pixel/scene';
+import { CAGE_SPOTS, drawCounter, drawFront, drawRoom, drawWindowFront, FLOOR_SPOTS, LAMP_GLOW_Y, LAMPS_X, LAYOUT, seats, STAGE_H, STAGE_W, type Light, type SceneOpts } from '../pixel/scene';
 import { PERSON_H } from '../pixel/render';
 import { Person, Sprite } from '../pixel/Sprite';
 import { money2 } from '../../lib/format';
@@ -293,6 +293,7 @@ export function BakeryScene({ onCustomer, baking = false, caption }: Props) {
   const roomRef = useRef<HTMLCanvasElement>(null);
   const counterRef = useRef<HTMLCanvasElement>(null);
   const frontRef = useRef<HTMLCanvasElement>(null);
+  const windowRef = useRef<HTMLCanvasElement>(null);
   const scale = useStageScale(wrap);
   const light = sceneLight(s);
   const tet = isTet(s.day);
@@ -304,6 +305,7 @@ export function BakeryScene({ onCustomer, baking = false, caption }: Props) {
   useEffect(() => {
     const layers: [React.RefObject<HTMLCanvasElement>, (ctx: CanvasRenderingContext2D, o: SceneOpts) => void][] = [
       [roomRef, drawRoom],
+      [windowRef, drawWindowFront],
       [counterRef, drawCounter],
       [frontRef, drawFront],
     ];
@@ -390,6 +392,8 @@ export function BakeryScene({ onCustomer, baking = false, caption }: Props) {
           )}
           {rainy && <div className="rain" />}
         </div>
+        {/* the frame, middle bar, sill and pots sit in front of everything outside */}
+        <canvas ref={windowRef} width={STAGE_W} height={STAGE_H} className="layer" />
 
         {/* hanging things: lamp glow, string lights, lanterns, the fan, the songbird */}
         {LAMPS_X.map((lx) => (

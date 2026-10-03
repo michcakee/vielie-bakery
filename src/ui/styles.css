@@ -676,17 +676,15 @@ kbd {
 .street {
   overflow: hidden;
 }
-/* The window's centre bar sits over the street so passers-by walk behind the glass, not in front of it. */
-.street::after {
-  content: '';
-  position: absolute;
-  left: calc(50% - 1px);
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: var(--pine);
-  z-index: 5;
-  pointer-events: none;
+/* Out on the street: people on the far pavement, then the cat, then traffic nearest the window. */
+.mover.walker {
+  z-index: 1;
+}
+.mover.cat {
+  z-index: 2;
+}
+.mover.moto {
+  z-index: 3;
 }
 .mover {
   position: absolute;

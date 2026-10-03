@@ -373,26 +373,10 @@ export function drawRoom(ctx: CanvasRenderingContext2D, o: SceneOpts) {
     for (let x = 8; x < STAGE_W - 8; x += 5) rect(ctx, x, 1, 1, 3, C.woodDeep);
   }
 
-  // window, with the street outside
+  // window: the frame's backing and the street outside (the frame, sill and plants go on the front layer)
   const W = L.window;
   box(ctx, W.x, W.y, W.w, W.h, C.frame, C.wallEdge);
   drawStreet(ctx, o);
-  ctx.fillStyle = 'rgba(255,255,255,0.45)';
-  for (const px of [W.x + 4, W.x + W.w / 2 + 3])
-    for (let i = 0; i < 5; i++) {
-      ctx.fillRect(px + i, W.y + 8 - i, 1, 1);
-      ctx.fillRect(px + 3 + i, W.y + 10 - i, 1, 1);
-    }
-  rect(ctx, W.x + W.w / 2 - 1, W.y + 1, 2, W.h - 2, C.frame);
-  rect(ctx, W.x - 1, W.y + W.h, W.w + 2, 3, C.woodLight);
-  rect(ctx, W.x - 1, W.y + W.h + 2, W.w + 2, 1, C.woodDark);
-  if (has('garden'))
-    for (let i = 0; i < 4; i++) {
-      box(ctx, W.x + 2 + i * 11, W.y + W.h - 4, 9, 5, C.pot, C.woodDeep);
-      rect(ctx, W.x + 3 + i * 11, W.y + W.h - 7, 7, 3, C.leaf);
-      rect(ctx, W.x + 4 + i * 11 + (i % 2) * 3, W.y + W.h - 8, 2, 2, ['#efb6a0', '#f4dc8c', '#d97a62', '#ffffff'][i]);
-    }
-  else for (const px of [5, 20, 36]) pottedPlant(ctx, W.x + px, W.y + W.h);
 
   // the bread bookcase
   const B = L.bookcase;
@@ -564,6 +548,39 @@ export function drawRoom(ctx: CanvasRenderingContext2D, o: SceneOpts) {
   }
   if (has('corner')) shopCat(ctx, 9, 106);
   else shopCat(ctx, 208, 148);
+}
+
+/**
+ * The inside of the window: frame, middle bar, glass shine, sill and the plants on it.
+ * Drawn over the street life, so passers-by and traffic stay behind the glass and the pots.
+ */
+export function drawWindowFront(ctx: CanvasRenderingContext2D, o: SceneOpts) {
+  const W = LAYOUT.window;
+  // the frame as a ring, so the street shows through the middle
+  rect(ctx, W.x, W.y, W.w, 2, C.frame);
+  rect(ctx, W.x, W.y + W.h - 2, W.w, 2, C.frame);
+  rect(ctx, W.x, W.y, 2, W.h, C.frame);
+  rect(ctx, W.x + W.w - 2, W.y, 2, W.h, C.frame);
+  rect(ctx, W.x, W.y, W.w, 1, C.wallEdge);
+  rect(ctx, W.x, W.y + W.h - 1, W.w, 1, C.wallEdge);
+  rect(ctx, W.x, W.y, 1, W.h, C.wallEdge);
+  rect(ctx, W.x + W.w - 1, W.y, 1, W.h, C.wallEdge);
+  rect(ctx, W.x + W.w / 2 - 1, W.y + 1, 2, W.h - 2, C.frame);
+  ctx.fillStyle = 'rgba(255,255,255,0.45)';
+  for (const px of [W.x + 4, W.x + W.w / 2 + 3])
+    for (let i = 0; i < 5; i++) {
+      ctx.fillRect(px + i, W.y + 8 - i, 1, 1);
+      ctx.fillRect(px + 3 + i, W.y + 10 - i, 1, 1);
+    }
+  rect(ctx, W.x - 1, W.y + W.h, W.w + 2, 3, C.woodLight);
+  rect(ctx, W.x - 1, W.y + W.h + 2, W.w + 2, 1, C.woodDark);
+  if (o.upgrades.includes('garden'))
+    for (let i = 0; i < 4; i++) {
+      box(ctx, W.x + 2 + i * 11, W.y + W.h - 4, 9, 5, C.pot, C.woodDeep);
+      rect(ctx, W.x + 3 + i * 11, W.y + W.h - 7, 7, 3, C.leaf);
+      rect(ctx, W.x + 4 + i * 11 + (i % 2) * 3, W.y + W.h - 8, 2, 2, ['#efb6a0', '#f4dc8c', '#d97a62', '#ffffff'][i]);
+    }
+  else for (const px of [5, 20, 36]) pottedPlant(ctx, W.x + px, W.y + W.h);
 }
 
 /** The service counter and glass case: in front of the staff, behind the customers. */

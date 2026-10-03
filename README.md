@@ -2,7 +2,7 @@
 
 **Bake something good. Build something yours. Learn how business works.**
 
-Viet Bake Shop is a cozy pixel-art business sandbox about a Vietnamese bakery. Bà (grandma) is retiring and her little shop on Gress Island Lane is yours. Bake baguettes and flan at dawn, build bánh mì and pour cà phê sữa đá to order, and set your prices. Then grow: hire a team, sign supplier contracts, borrow or bring in investors, outlast rival bakeries through booms and recessions, open shops across town, and find out what your bakery is worth.
+Viet Bake Shop is a cozy pixel-art business sandbox about a Vietnamese bakery. Bà (grandma) is retiring and her little shop on Saigon Street is yours. Bake baguettes and flan at dawn, build bánh mì and pour cà phê sữa đá to order, and set your prices. Then grow: hire a team, sign supplier contracts, borrow or bring in investors, outlast rival bakeries through booms and recessions, open shops across town, and find out what your bakery is worth.
 
 The economics are never a lecture. You learn elasticity when customers say "Đắt quá…", fixed costs on a rainy Monday, cash flow when a profitable month still leaves you short for rent, leverage when a loan payment lands in a recession, and market entry when a copycat opens across the street because your margins were too good.
 

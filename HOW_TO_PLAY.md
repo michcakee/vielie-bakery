@@ -236,7 +236,7 @@ On Android, the back button closes windows and sheets, then returns to Today.
 - **Kevin wants a job.** When hiring opens (around day 7), Kevin is the first to apply, as a helper who can serve anything.
 - **Everyone else goes by what they do.** Customers are the Office Worker, the Coffee Fan, the Jogger and so on; staff have nicknames like Mochi and Peanut.
 - **English everywhere.** Only Bà speaks Vietnamese (with English underneath). Food keeps its Vietnamese name.
-- **The michcake is the last recipe.** It unlocks at the top level, Bakery Legend. The Gress recipes are gone; an older save simply loads without them.
+- **The michcake is the last recipe.** It unlocks at the top level, Bakery Legend. The old Gress recipes are gone; an older save simply loads without them. Bà's lane is now called Saigon Street.
 - **On a computer:** the main menu works with the arrow keys and Enter, **Esc** opens a pause menu, and **F** (or the Fullscreen button) fills the screen. Browsers that support it show **Install game** to play it like a desktop app.
 
 ## Round 6 changes

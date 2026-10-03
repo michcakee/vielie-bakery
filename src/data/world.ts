@@ -29,8 +29,8 @@ const WEEK_FLAT = [1, 1, 1, 1, 1.06, 1.18, 1.15];
 export const LOCATIONS: Record<LocationId, LocationDef> = {
   oldLane: {
     id: 'oldLane',
-    name: 'Gress Island Lane',
-    vi: 'Ngõ Đảo Gress',
+    name: 'Saigon Street',
+    vi: 'Phố Sài Gòn',
     blurb: 'Bà\'s lane. Cheap rent, loyal elders, steady foot traffic, room to grow.',
     rent: 80,
     traffic: 1,
@@ -403,7 +403,7 @@ export const SCENARIOS: Record<ScenarioId, ScenarioDef> = {
     id: 'family',
     name: 'Family Business',
     vi: 'Tiệm của Bà',
-    blurb: 'Take over Bà\'s little bakery on Gress Island Lane. A gentle start with her oven, her recipes and her regulars.',
+    blurb: 'Take over Bà\'s little bakery on Saigon Street. A gentle start with her oven, her recipes and her regulars.',
     cash: 2500,
     location: 'oldLane',
     inherited: true,

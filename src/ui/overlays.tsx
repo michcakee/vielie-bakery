@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { LEVELS, PRODUCTS, WEATHER } from '../data/catalog';
 import { EVENTS } from '../engine/events';
+import { FEATURE } from '../data/unlocks';
 import { ACHIEVEMENTS, activeQuests, goalMet, nextUnlock, QUESTS, WEEKLY_GOALS } from '../engine/progression';
 import { keepsOvernight } from '../engine/service';
 import type { LeftoverChoice, ProductId } from '../engine/types';
@@ -395,7 +396,7 @@ export function Toasts() {
 // ---------------------------------------------------------------- quest book
 
 export function QuestBook({ onClose }: { onClose: () => void }) {
-  const { state: s } = useGame();
+  const { state: s, dispatch } = useGame();
   const active = activeQuests(s, 5);
   const goal = s.weeklyGoal;
   return (
@@ -426,6 +427,27 @@ export function QuestBook({ onClose }: { onClose: () => void }) {
       <p className="small muted">
         {s.quests.length} of {QUESTS.length} quests complete.
       </p>
+      {s.allUnlocked === false && (s.intro?.done.length || s.intro?.later.length) ? (
+        <>
+          <h2>Getting to know your bakery</h2>
+          <ul className="quests">
+            {[...(s.intro?.later ?? []), ...(s.intro?.done ?? [])].filter((id) => FEATURE[id]).map((id) => {
+              const later = s.intro?.later.includes(id);
+              return (
+                <li key={id}>
+                  <div>
+                    <b>{FEATURE[id].name}</b>
+                    <span className="small">{later ? 'Waiting for you, whenever you like.' : 'Done.'}</span>
+                  </div>
+                  <button type="button" className="link-btn" onClick={() => (dispatch({ type: 'introStart', id }), onClose())}>
+                    {later ? 'Start' : 'Show me again'}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </>
+      ) : null}
       <h2>Achievements</h2>
       <ul className="badges">
         {ACHIEVEMENTS.map((a) => {

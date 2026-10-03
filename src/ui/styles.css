@@ -3959,7 +3959,7 @@ html {
     display: grid !important;
   }
   .tabs {
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
   }
   .dash-tiles {
     grid-template-columns: repeat(2, 1fr);

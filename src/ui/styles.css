@@ -5239,3 +5239,6 @@ html[data-motion='reduced'] .title-logo span {
   .stepper button { min-width: 44px; }
   .icon-btn { min-width: 44px; }
 }
+@media (max-width: 760px) {
+  .day-track span:last-of-type { left: auto !important; right: 4px; padding-left: 0; }
+}

@@ -275,11 +275,18 @@ const INTRO = [
   { vi: 'Mở cửa nào!', en: "Let's open the doors." },
 ];
 
-export function IntroLines({ onDone }: { onDone: () => void }) {
+const INTRO_GUIDED = [
+  { vi: 'Chào buổi sáng!', en: 'Good morning!' },
+  { vi: 'Tiệm bánh là của con rồi.', en: 'The bakery is yours now.' },
+  { vi: 'Bà sẽ chỉ con từng bước.', en: 'I’ll show you, one step at a time.' },
+];
+
+export function IntroLines({ onDone, guided = false }: { onDone: () => void; guided?: boolean }) {
+  const lines = guided ? INTRO_GUIDED : INTRO;
   const [i, setI] = useState(0);
   const next = () => {
     play('pop');
-    if (i + 1 >= INTRO.length) onDone();
+    if (i + 1 >= lines.length) onDone();
     else setI(i + 1);
   };
   useEffect(() => {
@@ -295,11 +302,11 @@ export function IntroLines({ onDone }: { onDone: () => void }) {
   return (
     <div className="intro-box" role="dialog" aria-label="Opening">
       <p className="intro-vi" lang="vi" key={i}>
-        {INTRO[i].vi}
+        {lines[i].vi}
       </p>
-      <p className="intro-en">{INTRO[i].en}</p>
+      <p className="intro-en">{lines[i].en}</p>
       <Btn kind="go" onClick={next} sfx={null} className="big">
-        {i + 1 >= INTRO.length ? 'Open the doors' : 'Next'}
+        {i + 1 >= lines.length ? (guided ? 'Let’s start!' : 'Open the doors') : 'Next'}
       </Btn>
     </div>
   );

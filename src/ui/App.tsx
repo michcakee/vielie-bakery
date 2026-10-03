@@ -276,9 +276,11 @@ function Game({ onQuit }: { onQuit: () => void }) {
           />
           {intro && (
             <IntroLines
+              guided={s.allUnlocked === false}
               onDone={() => {
                 dispatch({ type: 'hint', id: 'intro' });
-                open();
+                // Guided games go to Bà's first lesson (bake first); others open straight away.
+                if (s.allUnlocked !== false) open();
               }}
             />
           )}

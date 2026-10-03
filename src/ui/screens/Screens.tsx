@@ -17,6 +17,9 @@ import { Modal } from '../overlays';
 import { Settings } from '../Settings';
 import { APP_VERSION, hasKeyboard, isNativeApp, typing, useFullscreen, useInstall } from '../web';
 
+/** One picture per story, from the game's own sprites. */
+const SCENARIO_ICON: Record<ScenarioId, string> = { family: 'house', startup: 'coin', recession: 'rain', expansion: 'shop', community: 'heart', competitive: 'crown' };
+
 const BAKER: Look = { ...DEFAULT_LOOK, apron: 0, accessory: 4 };
 
 export function Loading({ onDone }: { onDone: () => void }) {
@@ -272,6 +275,39 @@ export function NewGame({ onBack, onStart }: { onBack: () => void; onStart: () =
     <main className="setup-screen">
       <div className="setup-card wide">
         <h1>New bakery</h1>
+        <h2 className="h3">Choose your story</h2>
+        <p className="small muted">Six ways to run a bakery. Same game, different money, place and goal.</p>
+        <div className="scenario-grid stories" role="radiogroup" aria-label="Story">
+          {SCENARIO_ORDER.map((id) => {
+            const sc = SCENARIOS[id];
+            const locked = id !== 'family' && !graduated;
+            return (
+              <button key={id} type="button" role="radio" aria-checked={scenario === id} disabled={locked} className={`scenario ${scenario === id ? 'on' : ''} ${locked ? 'locked' : ''}`} onClick={() => (setScenario(id), setDifficulty(sc.difficulty))}>
+                <span className="scenario-head">
+                  <Sprite name={locked ? 'lock' : SCENARIO_ICON[id]} scale={3} />
+                  <b>{sc.name}</b>
+                  {id === 'family' && <span className="start-here">Start here</span>}
+                </span>
+                <span className="small">{sc.blurb}</span>
+                <span className="scenario-facts">
+                  <span>Start with {money(sc.cash)}{sc.loan ? `, owe ${money(sc.loan)}` : ''}</span>
+                  <span>{sc.location ? LOCATIONS[sc.location].name : 'You choose the neighbourhood'}</span>
+                  <span>Difficulty: {DIFFICULTY[sc.difficulty].name}</span>
+                </span>
+                <span className="small effect">{locked ? 'Locked: finish Bà’s first week to open it' : `Goal: ${GOALS[sc.goal].name}. ${GOALS[sc.goal].blurb}`}</span>
+              </button>
+            );
+          })}
+        </div>
+        {!graduated && (
+          <p className="small">
+            The other five stories open after Bà’s first week (day 8). Played before?{' '}
+            <button type="button" className="link-btn" onClick={() => setPrefs({ graduated: true })}>
+              Unlock them now
+            </button>
+          </p>
+        )}
+
         <h2 className="h3">Save slot</h2>
         <div className="slot-row" role="radiogroup" aria-label="Save slot">
           {SLOTS.map((n) => {
@@ -305,9 +341,6 @@ export function NewGame({ onBack, onStart }: { onBack: () => void; onStart: () =
           })}
         </div>
 
-        <p className="small">
-          <b>Bà’s bakery</b> (Bà means grandma) on Gress Island Lane: she leaves you the shop, a little stock and a lot of faith. Everything else unlocks as you go.
-        </p>
         <button type="button" className="link-btn" aria-expanded={moreOpts} onClick={() => setMoreOpts(!moreOpts)}>
           {moreOpts ? 'Fewer options' : 'More options'}
         </button>
@@ -321,21 +354,6 @@ export function NewGame({ onBack, onStart }: { onBack: () => void; onStart: () =
             <span className="small muted">Everything unlocked from day 1, no intro quests. For players who know the game.</span>
           </span>
         </label>
-        <h2 className="h3">Scenario</h2>
-        <div className="scenario-grid" role="radiogroup" aria-label="Scenario">
-          {SCENARIO_ORDER.map((id) => {
-            const sc = SCENARIOS[id];
-            const locked = id !== 'family' && !graduated;
-            return (
-              <button key={id} type="button" role="radio" aria-checked={scenario === id} disabled={locked} className={`scenario ${scenario === id ? 'on' : ''} ${locked ? 'locked' : ''}`} onClick={() => (setScenario(id), setDifficulty(sc.difficulty))}>
-                <b>{sc.name}</b>
-                <span className="small">{sc.blurb}</span>
-                <span className="small effect">{locked ? 'Finish Bà’s first week to unlock' : `Goal: ${GOALS[sc.goal].name}`}</span>
-              </button>
-            );
-          })}
-        </div>
-
         <h2 className="h3">Difficulty</h2>
         <div className="seg big-seg" role="radiogroup" aria-label="Difficulty">
           {(Object.keys(DIFFICULTY) as Difficulty[]).map((d) => (

@@ -6869,3 +6869,43 @@ html[data-motion='reduced'] .menu-cursor {
   display: grid;
   flex: 1;
 }
+
+/* New game: the six stories are always on show. */
+.scenario-grid.stories {
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  margin-bottom: 8px;
+}
+.scenario-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.scenario-head b {
+  font-family: var(--pixel);
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1.05;
+}
+.start-here {
+  padding: 0 6px;
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  background: var(--pandan);
+  color: #fff;
+  font-size: 14px;
+}
+.scenario-facts {
+  display: grid;
+  gap: 1px;
+  margin: 4px 0;
+  padding: 4px 8px;
+  border-left: 3px solid var(--matcha);
+  font-size: 15px;
+  color: var(--slate);
+}
+.scenario.locked {
+  opacity: 0.7;
+  border-style: dashed;
+  cursor: default;
+}

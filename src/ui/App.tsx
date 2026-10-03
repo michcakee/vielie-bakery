@@ -148,6 +148,13 @@ function Ending({ onQuit }: { onQuit: () => void }) {
 
 function Game({ onQuit }: { onQuit: () => void }) {
   const { state: s, dispatch, prefs, reduced } = useGame();
+  // Optional break reminder: one gentle toast after 30 minutes, only if the player turned it on.
+  const [breakNote, setBreakNote] = useState(false);
+  useEffect(() => {
+    if (!prefs.breakReminder) return;
+    const h = window.setTimeout(() => setBreakNote(true), 30 * 60 * 1000);
+    return () => window.clearTimeout(h);
+  }, [prefs.breakReminder]);
   // One screen shake per level-up. Nothing else shakes.
   const [shake, setShake] = useState(false);
   const shakenFor = useRef(0);
@@ -317,6 +324,15 @@ function Game({ onQuit }: { onQuit: () => void }) {
         </div>
       )}
 
+      {breakNote && (
+        <div className="break-note" role="status">
+          <Sprite name="tea" scale={3} />
+          <span>You’ve been baking for 30 minutes. Good time for a break? Your bakery is saved.</span>
+          <Btn kind="ghost" onClick={() => setBreakNote(false)}>
+            Okay
+          </Btn>
+        </div>
+      )}
       <EventCard />
       <DayReport />
       <WeeklyReview />

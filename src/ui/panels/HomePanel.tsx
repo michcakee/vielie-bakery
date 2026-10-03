@@ -266,10 +266,21 @@ function NextUp() {
 function Neighbours() {
   const { state: s } = useGame();
   const met = REGULARS.filter((r) => (s.visitsByRegular[r.id] ?? 0) > 0);
+  const unmet = REGULARS.filter((r) => (s.visitsByRegular[r.id] ?? 0) === 0);
   if (!met.length) return null;
   return (
-    <Card title="Neighbours" icon="heart" aside={<span className="small muted">{met.length} regulars</span>}>
+    <Card title="Neighbours" icon="heart" aside={<span className="small muted">{met.length} of {REGULARS.length} met</span>}>
       <ul className="neighbours">
+        {unmet.length > 0 && (
+          <li className="unmet" aria-label={`${unmet.length} neighbours you haven't met yet`}>
+            {unmet.map((r) => (
+              <span key={r.id} className="silhouette" title="Someone you haven't met yet">
+                <Person look={r.look} scale={2} />
+              </span>
+            ))}
+            <span className="small muted">{unmet.length} more to meet</span>
+          </li>
+        )}
         {met.map((r) => {
           const hearts = s.hearts[r.id] ?? 0;
           const badge = s.badges?.[r.id] ?? 0;

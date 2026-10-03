@@ -4821,3 +4821,38 @@ html[data-motion='reduced'] .mover.cat,
 html[data-motion='reduced'] .title-logo span {
   animation: none;
 }
+
+/* ---------- Phase 7: engagement ---------- */
+.best-day {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  background: var(--butter);
+  border: 2px solid var(--ink);
+  font-weight: 600;
+}
+.neighbours .unmet {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.silhouette .person-sprite {
+  filter: brightness(0);
+  opacity: 0.3;
+}
+.break-note {
+  position: fixed;
+  left: 50%;
+  top: 16px;
+  transform: translateX(-50%);
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: min(520px, calc(100vw - 24px));
+  padding: 10px 12px;
+  background: var(--aqua);
+  border: 3px solid var(--ink);
+}

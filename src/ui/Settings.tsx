@@ -75,6 +75,7 @@ export function Settings({ onClose, onQuit }: { onClose: () => void; onQuit: () 
         <Toggle label="Relaxed pace" hint="Slower days and more patient customers" on={prefs.relaxed} set={(v) => setPrefs({ relaxed: v })} />
         <Toggle label="English under Vietnamese" hint="Show translations in speech bubbles" on={prefs.translations} set={(v) => setPrefs({ translations: v })} />
         <Toggle label="Reduce motion" hint="Fewer moving decorations" on={prefs.reducedMotion} set={(v) => setPrefs({ reducedMotion: v })} />
+        <Toggle label="Break reminder" hint="A gentle note after 30 minutes of play. Off unless you want it." on={!!prefs.breakReminder} set={(v) => setPrefs({ breakReminder: v })} />
         <Toggle label="Business view" hint="Full financial statements, ratios and elasticities instead of plain words" on={prefs.view === 'business'} set={(v) => setPrefs({ view: v ? 'business' : 'casual' })} />
         <div className="seg" role="radiogroup" aria-label="Text size">
           <span className="small">Text size:</span>

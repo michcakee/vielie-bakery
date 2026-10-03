@@ -328,3 +328,13 @@ Hooks added to game logic: crowding factor in laborTrays (visible as slightly fe
 Known issues: NPV is not shown to the player yet (concept 13 UI comes with Phase 9); 'Sprinkle' and 'Pro' are labels over the existing easy/hard presets, whose parameters are in DIFFICULTY
 Next step proposed: Phase 7 (recipe mastery, best-day records, end-of-day structure checks)
 ```
+
+```
+Phase 7 – done (engagement structure)
+Changed: src/engine/progression.ts (masteryTier; bronze/silver/gold medal toast at 40/120/300 lifetime sales of a recipe), src/data/config.ts (masteryTiers), src/ui/panels/KitchenPanel.tsx (medals and 'N to the next medal' in the recipe book), src/ui/overlays.tsx ('Best day ever!' in the report when today beats every earlier day), src/ui/panels/HomePanel.tsx (neighbours you haven't met yet shown as silhouettes: a customer album), src/ui/Settings.tsx + App.tsx (optional 30-minute break reminder, off by default)
+Hooks added to game logic: mastery tier tracked in questProgress for the one-time toast
+Checked against the banned list (§12.4): no purchases, loot, timers, streaks, FOMO, guilt messages, autoplay, leaderboards or data collection exist. Regulars drifting away and hearts dropping are economy mechanics, not punishments for leaving: nothing changes while the game is closed.
+Session shape: a hand-played day is 3–5 minutes; the day ends on the report and 'Next day' is a button.
+Known issues: none
+Next step proposed: Phase 8 (Predict → Notice → Name → Transfer loop for concepts 1–8, Notebook pages with Professor Notes and player-data graphs)
+```

@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { BAGUETTE, CONFIG, INGREDIENTS, PRODUCTS, PRODUCT_ORDER, UPGRADES, WEATHER } from '../../data/catalog';
+import { ECON } from '../../data/config';
 import { suggestedTrays } from '../../engine/forecast';
+import { masteryTier } from '../../engine/progression';
 import {
   acceptance,
   canBakeTray,
@@ -299,7 +301,14 @@ function RecipeBook() {
                 )}
               </span>
               <span className="recipe-text">
-                <b>{locked ? (d.season ? 'Seasonal recipe' : `Level ${d.level} recipe`) : d.name}</b>
+                <b>
+                  {locked ? (d.season ? 'Seasonal recipe' : `Level ${d.level} recipe`) : d.name}
+                  {!locked && masteryTier(s, p) > 0 && (
+                    <span className="badge-medal" title={`${['', 'Bronze', 'Silver', 'Gold'][masteryTier(s, p)]} mastery: ${s.lifetime.sold[p] ?? 0} sold`}>
+                      <Sprite name={['', 'medalBronze', 'medalSilver', 'medalGold'][masteryTier(s, p)]} scale={2} />
+                    </span>
+                  )}
+                </b>
                 <span className="recipe-steps" aria-hidden="true">
                   {(Object.keys(d.recipe) as IngredientId[]).slice(0, 4).map((id) => (
                     <Sprite key={id} name={id in SPRITE_NAMES ? id : 'box'} scale={2} />
@@ -309,7 +318,12 @@ function RecipeBook() {
                   <Sprite name="arrow" scale={2} />
                   <Sprite name={p} scale={2} />
                 </span>
-                {!locked && <span className="small muted">{d.kind === 'tray' ? `Tray of ${d.yield}` : 'Made to order'}</span>}
+                {!locked && (
+                  <span className="small muted">
+                    {d.kind === 'tray' ? `Tray of ${d.yield}` : 'Made to order'} · {s.lifetime.sold[p] ?? 0} sold
+                    {masteryTier(s, p) < 3 && ` · ${ECON.progression.masteryTiers[masteryTier(s, p)] - (s.lifetime.sold[p] ?? 0)} to the next medal`}
+                  </span>
+                )}
               </span>
             </li>
           );

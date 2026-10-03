@@ -300,6 +300,8 @@ export interface Prefs {
   music: boolean;
   /** Bumped when the audio defaults change, so existing players get the new default once. */
   audioDefault?: number;
+  /** Optional, off by default: a gentle 'good time for a break?' note after 30 minutes of play. */
+  breakReminder?: boolean;
   relaxed: boolean;
   translations: boolean;
   view: 'casual' | 'business';

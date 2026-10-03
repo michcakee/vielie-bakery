@@ -241,6 +241,17 @@ export function DayReport() {
         <span>
           <Sprite name="heart" scale={2} /> {t.love} loved it
         </span>
+        {(() => {
+          const before = s.history.filter((h) => h.day < r.day);
+          const record = before.length >= 3 ? Math.max(...before.map((h) => h.revenue)) : Infinity;
+          return (
+            r.stats.revenue > record && (
+              <span className="best-day">
+                <Sprite name="crown" scale={2} /> Best day ever! (was {money(record)})
+              </span>
+            )
+          );
+        })()}
           {t.bestOrder && (
             <span>
               <Sprite name="star" scale={2} /> best order {t.bestOrder.score}/100: {PRODUCTS[t.bestOrder.product].name} for {t.bestOrder.name}

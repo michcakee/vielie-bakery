@@ -154,6 +154,8 @@ export const ECON = {
   },
 
   progression: {
+    /** Lifetime sales of one recipe for its bronze, silver and gold mastery medal (matches the quality bonus steps). */
+    masteryTiers: [40, 120, 300],
     xpPerServe: 1,
     xpPerLove: 0,
     xpProfitDivisor: 12,

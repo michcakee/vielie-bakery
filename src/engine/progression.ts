@@ -1,4 +1,5 @@
 import { DECOR, LEVELS, PRODUCTS, PRODUCT_ORDER, UNLOCK_SCHEDULE, UPGRADES } from '../data/catalog';
+import { ECON } from '../data/config';
 import { REGULARS } from '../data/people';
 import { move } from './accounting';
 import { GOALS } from '../data/world';
@@ -207,8 +208,22 @@ export function nextUnlock(s: GameState): { text: string; pct: number; when: str
   return { text: `Level ${nextLevel.level}${what ? `: ${what}` : ''}`, pct: lp.into / lp.span, when: `${Math.max(0, Math.round(lp.span - lp.into))} XP to go`, tomorrow: false };
 }
 
+/** 0–3: no medal, bronze, silver, gold, by lifetime sales of that recipe. */
+export function masteryTier(s: Pick<GameState, 'lifetime'>, p: ProductId): number {
+  const sold = s.lifetime.sold[p] ?? 0;
+  return ECON.progression.masteryTiers.filter((t) => sold >= t).length;
+}
+
 export function checkProgress(s: GameState): GameState {
   let next = s;
+  // Recipe mastery: a medal when a recipe crosses a tier, once.
+  for (const p of PRODUCT_ORDER) {
+    const tier = masteryTier(next, p);
+    const seen = next.questProgress[`mastery_${p}`] ?? 0;
+    if (tier > seen) {
+      next = toast({ ...next, questProgress: { ...next.questProgress, [`mastery_${p}`]: tier } }, 'achievement', `${['', 'Bronze', 'Silver', 'Gold'][tier]} ${PRODUCTS[p].name}!`, `${ECON.progression.masteryTiers[tier - 1]} sold. ${tier === 3 ? 'You could make it in your sleep.' : 'Your hands are getting faster and surer.'}`);
+    }
+  }
   if (next.phase !== 'service' && next.goalReached === undefined && GOALS[next.goal] && goalProgress(next).pct >= 1) {
     next = toast({ ...next, goalReached: next.day }, 'achievement', `Goal reached: ${GOALS[next.goal].name}!`, 'Keep playing in sandbox mode, or sell the bakery from the Growth tab.');
   }

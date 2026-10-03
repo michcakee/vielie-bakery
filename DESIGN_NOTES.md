@@ -319,3 +319,12 @@ Hooks added to game logic: none
 Known issues: none
 Next step proposed: Phase 6 (simulation core: diminishing returns for extra bakers, the brief's lesson tests, Sprinkle/Pro labels)
 ```
+
+```
+Phase 6 – done (simulation core)
+Design note: the model already lived in one pure, seeded, config-driven module (src/engine), so this phase added what the brief's §13.4 lacked rather than extracting anything.
+Changed: src/engine/economy.ts (crowdingFactor: the k-th baker or pastry chef works at 1 − 0.15·(k−1), floor 0.4, halved by a renovation, so a third helper adds less than the second), src/data/config.ts (crowding, crowdingFloor; difficulty labels Sprinkle / Normal / Pro / Expert), tests/engine/lessons.test.ts (new: elastic treat past the revenue peak loses revenue while coffee keeps it; an identical-goods rival undercutting 30% takes most walk-ins; a third baker adds less than the second; a second oven raises 45-day profit when ovens are the bottleneck; random walk-in noise stays within ±10%)
+Hooks added to game logic: crowding factor in laborTrays (visible as slightly fewer trays for teams of three or more bakers)
+Known issues: NPV is not shown to the player yet (concept 13 UI comes with Phase 9); 'Sprinkle' and 'Pro' are labels over the existing easy/hard presets, whose parameters are in DIFFICULTY
+Next step proposed: Phase 7 (recipe mastery, best-day records, end-of-day structure checks)
+```

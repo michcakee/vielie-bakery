@@ -8,7 +8,7 @@ Welcome to the lane! Bà (grandma) is retiring, and her little Vietnamese bakery
 
 ## Quick start (your first five minutes)
 
-1. **New game.** Pick a save slot, a scenario (start with **Family Business**) and a difficulty (**Normal** is realistic; **Easy** is forgiving). Then pick your look and name your bakery.
+1. **New game.** Pick a save slot, a scenario (start with **Family Business**) and a difficulty (**Normal** is realistic; **Sprinkle** is forgiving, for younger bakers; **Pro** and **Expert** bite). Then pick your look and name your bakery.
 2. **Open the doors.** Bà left you baguettes, a tray of flan and enough for coffee. Tap **Mở cửa! Open**.
 3. **Serve Linh.** She asks *"Cho mình một bánh mì!"* (One bánh mì, please!). Tap her order, then the steps in order: **Cắt bánh → Chả lụa → Đồ chua → Rau thơm → Tương ớt.** On your first days the next step glows.
 4. **Keep serving.** Pastries are one tap (**Hand over**); bánh mì and drinks are **Make it**.
@@ -133,7 +133,7 @@ Equipment (ovens, mixer, steamer, fridges, display case, coffee station, POS, bi
 | **Community Bakery** | Bà's lane, a mission | Community 90, eco 80, 10,000 served |
 | **Competitive Market** | Little Saigon Plaza beside three bakeries | Hold 40% of the street's shoppers for a month |
 
-Reaching your goal is celebrated, and you can keep playing. The game ends if you **sell** to a buyer, **retire** (Growth → Sell up, from day 60), or **go bankrupt** (three days without cash or credit; Bà may rescue you once on Normal, twice on Easy, never on Hard or Expert).
+Reaching your goal is celebrated, and you can keep playing. The game ends if you **sell** to a buyer, **retire** (Growth → Sell up, from day 60), or **go bankrupt** (three days without cash or credit; Bà may rescue you once on Normal, twice on Sprinkle, never on Pro or Expert).
 
 ---
 

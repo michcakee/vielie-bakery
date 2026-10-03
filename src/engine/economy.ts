@@ -60,12 +60,22 @@ export function productivity(e: { skill: number; morale: number; trainingUntil: 
 }
 
 /** Trays the team can physically prepare each morning. */
+/** Diminishing returns: the k-th pair of hands in the same kitchen adds less than the one before. */
+export function crowdingFactor(s: Pick<GameState, 'upgrades'>, k: number): number {
+  const c = ECON.production.crowding * (s.upgrades.includes('renovation') ? 0.5 : 1);
+  return Math.max(ECON.production.crowdingFloor, 1 - c * (k - 1));
+}
+
 export function laborTrays(s: GameState): number {
   let t = ECON.production.ownerTrays;
   const mixer = has(s, 'mixer') ? ECON.production.mixerBoost : 1;
+  let hands = 0;
   for (const e of flagshipStaff(s)) {
-    if (e.role === 'baker') t += (ECON.production.bakerTraysBase + ECON.production.bakerTraysPerSkill * e.skill) * productivity(e, s.day) * mixer;
-    if (e.role === 'pastryChef') t += (1 + 0.4 * e.skill) * productivity(e, s.day) * mixer;
+    if (e.role !== 'baker' && e.role !== 'pastryChef') continue;
+    hands++;
+    const crowd = crowdingFactor(s, hands);
+    if (e.role === 'baker') t += (ECON.production.bakerTraysBase + ECON.production.bakerTraysPerSkill * e.skill) * productivity(e, s.day) * mixer * crowd;
+    if (e.role === 'pastryChef') t += (1 + 0.4 * e.skill) * productivity(e, s.day) * mixer * crowd;
   }
   return Math.floor(t);
 }

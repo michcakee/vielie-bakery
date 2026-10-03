@@ -16,7 +16,7 @@ The passive bot is the **floor**: what a bakery earns if you make no decisions. 
 | --- | --- | --- |
 | Passive solo shop, Normal | Profitable, but modest | Cozy and forgiving, yet leaves room for decisions to matter |
 | Owner's net margin | 20–45% (solo owner, no wage paid to themselves) | Realistic for an owner-operated café or bakery |
-| Difficulty spread, Easy → Expert | 25–40% less profit | Difficulty should be felt in results, not just in events |
+| Difficulty spread, Sprinkle → Expert | 25–40% less profit | Difficulty should be felt in results, not just in events |
 | Recession scenario | Clearly below Family Business | The economy has to matter |
 | Capacity | Busy days sell out; normal days don't | Otherwise prices and demand shocks don't matter (see below) |
 | "Build value" goal ($1M) | Not reachable passively in the first year | A goal you can't miss isn't a goal |

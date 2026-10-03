@@ -70,6 +70,9 @@ export const ECON = {
     bakerTraysPerSkill: 0.6,
     mixerBoost: 1.3,
     pastryChefQuality: 8,
+    /** Each extra pair of hands in the kitchen gets in the others' way: the k-th helper works at (1 − crowding·(k−1)). A renovation halves it. */
+    crowding: 0.15,
+    crowdingFloor: 0.4,
     displayBase: 48,
   },
 
@@ -183,7 +186,7 @@ export const DIFFICULTY: Record<
   }
 > = {
   easy: {
-    name: 'Easy',
+    name: 'Sprinkle',
     blurb: 'Gentle markets, patient customers, forgiving banks. Bà will bail you out twice.',
     priceVolatility: 0.6,
     eventChance: 0.7,
@@ -213,7 +216,7 @@ export const DIFFICULTY: Record<
     churnMult: 1,
   },
   hard: {
-    name: 'Hard',
+    name: 'Pro',
     blurb: 'Volatile prices, sharper rivals, stricter lenders. No rescue.',
     priceVolatility: 1.5,
     eventChance: 1.25,

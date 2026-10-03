@@ -26,7 +26,6 @@ You should hear back within 7 days. Once the problem is fixed, we'll credit you 
 
 - Save codes or restore links that can run script or break out of the game.
 - Anything that sends player data off the device without the player choosing to.
-- Getting past the grown-ups gate in a way that a child could easily stumble into.
 - Vulnerable dependencies that are actually used by the shipped game.
 
 ## Out of scope

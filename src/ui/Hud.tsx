@@ -11,7 +11,7 @@ import { Sprite } from './pixel/Sprite';
 
 const WEATHER_ICON = { sunny: 'sun', cloudy: 'cloud', rainy: 'rain', hot: 'hot', cool: 'cool' } as const;
 
-export function Hud({ onQuests, onSettings, onHelp, questCount }: { onQuests: () => void; onSettings: () => void; onHelp: () => void; questCount: number }) {
+export function Hud({ onQuests, onSettings, onHelp, questCount, onConcepts }: { onQuests: () => void; onSettings: () => void; onHelp: () => void; questCount: number; onConcepts: () => void }) {
   const { state: s, reduced } = useGame();
   const cash = useTween(s.cash, 500, reduced);
   // Money earned while the shop is open floats up from the cash figure.
@@ -90,6 +90,10 @@ export function Hud({ onQuests, onSettings, onHelp, questCount }: { onQuests: ()
           <Sprite name="book" scale={3} />
           <span className="quest-btn-label">Quests</span>
           {questCount > 0 && <span className="quest-badge">{questCount}</span>}
+        </button>
+        <button type="button" className="icon-btn quest-btn concepts-btn" onClick={onConcepts} aria-label="Economic concepts reviewed so far" title="Economic concepts reviewed so far">
+          <Sprite name="chart" scale={3} />
+          <span className="quest-btn-label">Concepts</span>
         </button>
         <button type="button" className="icon-btn" onClick={onSettings} aria-label="Settings and saving">
           <Sprite name="gear" scale={3} />

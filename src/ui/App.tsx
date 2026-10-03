@@ -33,6 +33,7 @@ import { GuideProvider, TabHelp, WhatNow } from './Guide';
 import { FEATURE, TAB_FEATURES } from '../data/unlocks';
 import { introStep, nextFeature, tabOn } from '../engine/unlocks';
 import { Settings } from './Settings';
+import { Concepts } from './Concepts';
 
 const TABS: { id: Tab; label: string; icon: string; mobile: boolean }[] = [
   { id: 'today', label: 'Today', icon: 'house', mobile: true },
@@ -144,7 +145,7 @@ function Ending({ onQuit }: { onQuit: () => void }) {
         </div>
       </div>
       <p className="small">
-        {s.achievements.length} achievements · {s.learned.length} ideas in your notebook · reputation {Math.round(s.reputation)} · community {Math.round(s.community)}.
+        {s.achievements.length} achievements · {s.learned.length} economic concepts · reputation {Math.round(s.reputation)} · community {Math.round(s.community)}.
       </p>
       <Btn kind="go" className="big" onClick={onQuit}>
         Back to the title screen
@@ -180,7 +181,7 @@ function Game({ onQuit }: { onQuit: () => void }) {
   const [paused, setPaused] = useState(false);
   const [speed, setSpeed] = useState(1);
   const [activeId, setActiveId] = useState<number | null>(null);
-  const [drawer, setDrawer] = useState<'quests' | 'settings' | 'more' | 'help' | 'paint' | 'pause' | 'how' | null>(null);
+  const [drawer, setDrawer] = useState<'quests' | 'settings' | 'more' | 'help' | 'paint' | 'pause' | 'how' | 'concepts' | null>(null);
   const fs = useFullscreen();
   const [hidden, setHidden] = useState(false);
   const intro = s.phase === 'morning' && s.day === 1 && s.history.length === 0 && !s.hints.includes('intro') && s.scenario === 'family';
@@ -294,7 +295,7 @@ function Game({ onQuit }: { onQuit: () => void }) {
       <a className="skip-link" href="#panel">
         Skip to controls
       </a>
-      <Hud onQuests={() => setDrawer('quests')} onSettings={() => setDrawer('settings')} onHelp={() => setDrawer('help')} questCount={activeQuests(s).length} />
+      <Hud onConcepts={() => setDrawer('concepts')} onQuests={() => setDrawer('quests')} onSettings={() => setDrawer('settings')} onHelp={() => setDrawer('help')} questCount={activeQuests(s).length} />
       <div className="layout">
         <section className="scene-col" aria-label="Your bakery">
           <div className="scene-box">
@@ -362,13 +363,12 @@ function Game({ onQuit }: { onQuit: () => void }) {
                   <span className="tab-label">{t.label}</span>
                 </span>
               ))}
-              {(moreTabs.length > 0 || lockedTabs.length > 0) && (
+              {/* Always there on phones: Quests, Concepts and Settings live in it too. */}
               <button type="button" className={`tab mobile-only ${!current.mobile ? 'on' : ''}`} aria-haspopup="dialog" onClick={() => (play('click'), setDrawer('more'))}>
                 <Sprite name="gear" scale={2} />
                 <span className="tab-label">More</span>
                 {moreTabs.some((m) => isNew(m.id)) && <span className="new-dot" aria-label="new" />}
               </button>
-              )}
             </nav>
           )}
           <TutorialBar />
@@ -457,6 +457,7 @@ function Game({ onQuit }: { onQuit: () => void }) {
       )}
       {drawer === 'settings' && <Settings onClose={() => setDrawer(null)} onQuit={onQuit} />}
       {drawer === 'how' && <HowToPlay onClose={() => setDrawer(null)} />}
+      {drawer === 'concepts' && <Concepts onClose={() => setDrawer(null)} />}
       {drawer === 'pause' && (
         <Modal label="Paused" onClose={() => setDrawer(null)} className="pause-menu">
           <h2>Paused</h2>
@@ -500,6 +501,10 @@ function Game({ onQuit }: { onQuit: () => void }) {
             <button type="button" className="more-item" onClick={() => setDrawer('quests')}>
               <Sprite name="book" scale={3} />
               <b>Quests</b>
+            </button>
+            <button type="button" className="more-item" onClick={() => setDrawer('concepts')}>
+              <Sprite name="chart" scale={3} />
+              <b>Concepts</b>
             </button>
             <button type="button" className="more-item" onClick={() => setDrawer('settings')}>
               <Sprite name="gear" scale={3} />

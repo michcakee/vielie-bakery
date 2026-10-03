@@ -1,9 +1,8 @@
-import { useState, type ReactNode } from 'react';
+import { useState } from 'react';
 import { clearAllData, clearSave, exportCode, importCode, restoreLink } from '../engine/save';
 import { useGame } from './GameContext';
 import { featureOn } from '../engine/unlocks';
 import { Btn } from './kit';
-import { NOTEBOOK, NOTEBOOK_ORDER } from '../data/notebook';
 import { CreditsPage, LegalPage } from './Legal';
 import { Modal } from './overlays';
 
@@ -21,63 +20,6 @@ function Toggle({ label, hint, on, set }: { label: string; hint?: string; on: bo
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-const TENS = ['twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
-const ONES = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
-
-/** A parent gate: type a number written in words as digits. Easy for adults, a speed bump for kids. */
-function GrownUpGate({ what, children }: { what: string; children: ReactNode }) {
-  const [n] = useState(() => 21 + Math.floor(Math.random() * 78));
-  const [answer, setAnswer] = useState('');
-  const [open, setOpen] = useState(false);
-  if (open) return <>{children}</>;
-  const words = n % 10 ? `${TENS[Math.floor(n / 10) - 2]}-${ONES[(n % 10) - 1]}` : TENS[n / 10 - 2];
-  return (
-    <div className="settings-group grownup-gate">
-      <p className="small">
-        {what} Grown-ups only: type <b>{words}</b> as a number.
-      </p>
-      <div className="btn-row">
-        <input value={answer} onChange={(e) => setAnswer(e.target.value)} inputMode="numeric" aria-label={`Type ${words} as a number`} className="num-in" />
-        <Btn disabled={answer.trim() !== String(n)} onClick={() => setOpen(true)}>
-          Open
-        </Btn>
-      </div>
-    </div>
-  );
-}
-
-/** What the player has learned, for a parent or teacher. Nothing leaves the device. */
-function GrownUpSummary() {
-  const { state } = useGame();
-  const learned = NOTEBOOK_ORDER.filter((k) => state.learned.includes(k) && NOTEBOOK[k].professor);
-  const total = NOTEBOOK_ORDER.filter((k) => NOTEBOOK[k].professor).length;
-  const guesses = state.questProgress.predictions ?? 0;
-  const right = state.questProgress.predictionsRight ?? 0;
-  return (
-    <div className="settings-group grownup">
-      <p className="small">
-        <b>Concepts unlocked:</b> {learned.length} of {total}. <b>Predictions:</b> {guesses} made, {right} right{guesses ? ` (${Math.round((right / guesses) * 100)}%)` : ''}. <b>Days played:</b> {state.day}. Nothing here is sent anywhere; it is read from the save on this device.
-      </p>
-      {learned.length > 0 && (
-        <>
-          <p className="small">
-            <b>Unlocked so far:</b> {learned.map((k) => NOTEBOOK[k].term).join(' · ')}
-          </p>
-          <p className="small">
-            <b>Conversation starters:</b>
-          </p>
-          <ul className="small">
-            {learned.slice(-5).map((k) => (
-              <li key={k}>{NOTEBOOK[k].askGrownUp}</li>
-            ))}
-          </ul>
-        </>
-      )}
-      <p className="small muted">Every concept has a Professor's note in the bakery notebook (Finances tab) with the formal version.</p>
-    </div>
-  );
-}
 
 export function Settings({ onClose, onQuit }: { onClose: () => void; onQuit: () => void }) {
   const { state, dispatch, prefs, setPrefs, slot } = useGame();
@@ -160,7 +102,6 @@ export function Settings({ onClose, onQuit }: { onClose: () => void; onQuit: () 
       <h3>Saving</h3>
       <p className="small">Your bakery saves automatically in this browser after every change. To move it to another device, or keep a backup, use a save code or email yourself a restore link.</p>
       <div className="settings-group">
-        <GrownUpGate what="Email a restore link.">
         <form
           className="email-form"
           onSubmit={(e) => {
@@ -175,7 +116,6 @@ export function Settings({ onClose, onQuit }: { onClose: () => void; onQuit: () 
           </Btn>
         </form>
         <p className="small muted">This opens your own email app with the link filled in. The game has no server and doesn't keep the address: it's used once to open that email, and that's it.</p>
-        </GrownUpGate>
         <div className="btn-row">
           <Btn onClick={() => void copy()}>Copy save code</Btn>
         </div>
@@ -198,11 +138,6 @@ export function Settings({ onClose, onQuit }: { onClose: () => void; onQuit: () 
           Back to the title screen
         </Btn>
       </div>
-
-      <h3>For grown-ups</h3>
-      <GrownUpGate what="A summary of what the player has learned, for a parent or teacher.">
-        <GrownUpSummary />
-      </GrownUpGate>
 
       <h3>About</h3>
       <div className="btn-row">

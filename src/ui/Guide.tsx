@@ -11,9 +11,11 @@ import { Sprite } from './pixel/Sprite';
  */
 interface Guide {
   showMe: (tab?: TabId, spot?: string) => void;
+  /** The control being pointed at right now, so a panel can open the section it lives in. */
+  spot: string | null;
 }
 
-const GuideCtx = createContext<Guide>({ showMe: () => undefined });
+const GuideCtx = createContext<Guide>({ showMe: () => undefined, spot: null });
 export const useGuide = () => useContext(GuideCtx);
 
 export function GuideProvider({ goTo, children }: { goTo: (t: TabId) => void; children: ReactNode }) {
@@ -28,7 +30,7 @@ export function GuideProvider({ goTo, children }: { goTo: (t: TabId) => void; ch
     if (s.phase === 'service' || s.phase === 'closing') setSpot(null);
   }, [s.phase]);
   return (
-    <GuideCtx.Provider value={{ showMe }}>
+    <GuideCtx.Provider value={{ showMe, spot }}>
       {children}
       {spot && <Spotlight anchor={spot} onDone={endSpot} />}
     </GuideCtx.Provider>

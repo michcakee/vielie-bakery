@@ -27,6 +27,7 @@ import type { IngredientId, ProductId } from '../../engine/types';
 import { money2, pct } from '../../lib/format';
 import { play } from '../audio';
 import { useGame } from '../GameContext';
+import { useGuide } from '../Guide';
 import { Btn, Card, Meter, Stepper, Tip } from '../kit';
 import { Sprite } from '../pixel/Sprite';
 import { SPRITES } from '../pixel/sprites';
@@ -470,17 +471,45 @@ function MenuCard() {
   );
 }
 
+const SECTION_OF: Record<string, 'bake' | 'prices' | 'menu' | 'plan'> = { price: 'prices', predict: 'prices', menu: 'menu', deals: 'menu', plan: 'plan' };
+
 export function KitchenPanel() {
   const { state: s, business, feature } = useGame();
+  const { spot } = useGuide();
   const walkIns = Math.round(expectedWalkIns(s));
+  const sections = [
+    { id: 'bake' as const, label: 'Bake', icon: 'hot' },
+    ...(feature('kitchen.prices') ? [{ id: 'prices' as const, label: 'Prices', icon: 'coin' }] : []),
+    ...(feature('kitchen.menu') ? [{ id: 'menu' as const, label: 'Menu', icon: 'book' }] : []),
+    ...(feature('kitchen.plan') ? [{ id: 'plan' as const, label: 'Plan', icon: 'note' }] : []),
+  ];
+  const [sec, setSec] = useState<'bake' | 'prices' | 'menu' | 'plan'>('bake');
+  useEffect(() => {
+    const want = spot ? SECTION_OF[spot] ?? (spot.startsWith('bake-') ? 'bake' : null) : null;
+    if (want && sections.some((x) => x.id === want)) setSec(want);
+  }, [spot]); // eslint-disable-line react-hooks/exhaustive-deps
+  // With one section there's nothing to switch: show everything that's unlocked on one page.
+  const show = (id: typeof sec) => sections.length === 1 || sec === id;
   return (
     <div className="panel-stack">
+      {sections.length > 1 && (
+        <div className="sub-tabs" role="tablist" aria-label="Kitchen sections">
+          {sections.map((x) => (
+            <button key={x.id} type="button" role="tab" aria-selected={sec === x.id} className={sec === x.id ? 'on' : ''} onClick={() => setSec(x.id)}>
+              <Sprite name={x.icon} scale={2} /> {x.label}
+            </button>
+          ))}
+        </div>
+      )}
+      {show('bake') && (
       <Card className="forecast" title="Today's forecast" icon={s.market.weather === 'rainy' ? 'rain' : 'sun'}>
         <p>
           About <b>{walkIns}</b> walk-ins expected, plus regulars. <span className="muted">{WEATHER[s.market.weather].tip}</span>
         </p>
       </Card>
-      <OvenCard />
+      )}
+      {show('bake') && <OvenCard />}
+      {(show('prices') || (!feature('kitchen.prices') && show('bake'))) && (
       <Card title={feature('kitchen.prices') ? 'Menu & prices' : 'Today’s prices'} icon="coin" spot="price">
         {feature('kitchen.prices') && <p className="muted small">
           The meter shows how many shoppers think the price is fair. Higher prices mean more per sale but fewer sales: <Tip concept="elasticity">find the sweet spot</Tip>.
@@ -492,10 +521,11 @@ export function KitchenPanel() {
         </ul>
         {s.phase !== 'morning' && <p className="muted small">Prices are set for today once the doors open.</p>}
       </Card>
-      {feature('kitchen.menu') && <MenuCard />}
-      {feature('kitchen.prices') && <PredictCard />}
-      {feature('kitchen.plan') && <PlanCard />}
-      {feature('kitchen.menu') && <RecipeBook />}
+      )}
+      {feature('kitchen.prices') && show('prices') && <PredictCard />}
+      {feature('kitchen.menu') && show('menu') && <MenuCard />}
+      {feature('kitchen.plan') && show('plan') && <PlanCard />}
+      {feature('kitchen.menu') && show('menu') && <RecipeBook />}
     </div>
   );
 }

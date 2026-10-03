@@ -366,6 +366,7 @@ export function serve(s: GameState, visitId: number, process?: number, by: strin
   t.satisfaction += sat;
   if (mood === 'love') t.love++;
   if (!t.bestOrder || grade.score > t.bestOrder.score) t.bestOrder = { score: grade.score, stars: grade.stars, product: p, name: v.name };
+  t.surplus = (t.surplus ?? 0) + Math.max(0, wtp - price) * qty;
   if (named) t.regularsServed++;
   if (svc.clock < 300) t.servedBeforeNoon++;
   if (by === 'player' || by === 'owner') t.ownerServed++;

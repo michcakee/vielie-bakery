@@ -236,6 +236,8 @@ export interface DayStats {
   served: number;
   love: number;
   bestOrder?: { score: number; stars: number; product: ProductId; name: string };
+  /** Consumer surplus: what customers would have paid minus what they did, summed over the day. */
+  surplus?: number;
   lostSoldOut: number;
   lostPrice: number;
   lostSlow: number;
@@ -301,6 +303,21 @@ export interface DaySummary {
   prices: ByProduct<number>;
   priceIndex: number;
   confidence: number;
+  surplus?: number;
+}
+
+export type Guess = 'more' | 'same' | 'fewer';
+
+/** The Predict step: before a price change plays out, the player guesses; afterwards the game shows what happened. */
+export interface Prediction {
+  day: number;
+  product: ProductId;
+  from: number;
+  to: number;
+  unitsBefore: number;
+  unitsAfter: number;
+  guess?: Guess;
+  result: Guess;
 }
 
 export interface PendingEvent {
@@ -572,6 +589,10 @@ export interface GameState {
   unlockedRegulars?: string[];
   /** Today's special: this item sells for more today. */
   special?: ProductId | null;
+  /** A price change waiting for its day to play out (and, maybe, a guess). */
+  pendingPrediction?: { product: ProductId; from: number; to: number; unitsBefore: number; guess?: Guess } | null;
+  /** Settled predictions, newest last. */
+  predictions?: Prediction[];
   visitsByRegular: Record<string, number>;
   quests: string[];
   questProgress: Record<string, number>;

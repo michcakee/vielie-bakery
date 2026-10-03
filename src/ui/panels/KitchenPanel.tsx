@@ -335,6 +335,42 @@ function RecipeBook() {
 
 const SPRITE_NAMES: Record<string, true> = Object.fromEntries(Object.keys(SPRITES).map((k) => [k, true]));
 
+/** Predict: after a price change, one guess before the day plays out. */
+function PredictCard() {
+  const { state: s, dispatch } = useGame();
+  const p = s.pendingPrediction;
+  if (!p || s.phase !== 'morning') return null;
+  const d = PRODUCTS[p.product];
+  const up = p.to > p.from;
+  if (p.guess) {
+    return (
+      <Card className="predict-card" title="Your guess is in" icon="note">
+        <p className="small">
+          {d.name} {up ? 'up' : 'down'} from {money2(p.from)} to {money2(p.to)}. You guessed <b>{p.guess === 'more' ? 'more sold' : p.guess === 'fewer' ? 'fewer sold' : 'about the same'}</b>. Open the doors and see; the report will show what happened.
+        </p>
+      </Card>
+    );
+  }
+  return (
+    <Card className="predict-card" title="What do you think will happen?" icon="note">
+      <p className="small">
+        You moved <b>{d.name}</b> {up ? 'up' : 'down'} from {money2(p.from)} to {money2(p.to)}. Lately it sold about <b>{p.unitsBefore.toFixed(0)}</b> a day. Tomorrow’s report will show the answer next to your guess (any guess earns XP; a right one earns more).
+      </p>
+      <div className="predict-choices" role="group" aria-label="Your prediction">
+        <Btn onClick={() => dispatch({ type: 'predict', guess: 'more' })}>
+          <Sprite name="faceHappy" scale={2} /> More sold
+        </Btn>
+        <Btn onClick={() => dispatch({ type: 'predict', guess: 'same' })}>
+          <Sprite name="faceOk" scale={2} /> About the same
+        </Btn>
+        <Btn onClick={() => dispatch({ type: 'predict', guess: 'fewer' })}>
+          <Sprite name="faceWorried" scale={2} /> Fewer sold
+        </Btn>
+      </div>
+    </Card>
+  );
+}
+
 function PlanCard() {
   const { state: s, dispatch } = useGame();
   const suggested = suggestedTrays(s);
@@ -433,6 +469,7 @@ export function KitchenPanel() {
         {s.phase !== 'morning' && <p className="muted small">Prices are set for today once the doors open.</p>}
       </Card>
       <MenuCard />
+      <PredictCard />
       <PlanCard />
       <RecipeBook />
     </div>

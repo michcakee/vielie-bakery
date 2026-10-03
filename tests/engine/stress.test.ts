@@ -389,3 +389,30 @@ describe('legal cleanup and story beats', () => {
     expect(eventFor(s, 46)?.id).not.toBe('storyLane');
   });
 });
+
+describe('predict, notice, name', () => {
+  it('a price change invites a guess; the day settles it, pays XP and opens the notebook page; surplus is counted', () => {
+    let s = createNewGame(71);
+    for (let d = 0; d < 3; d++) s = autoDay(s);
+    s = morning(s);
+    const before = s.prices.flan;
+    s = gameReducer(s, { type: 'setPrice', product: 'flan', price: before + 1 });
+    expect(s.pendingPrediction?.product).toBe('flan');
+    expect(s.pendingPrediction?.from).toBe(before);
+    const xp = s.xp;
+    s = gameReducer(s, { type: 'predict', guess: 'fewer' });
+    expect(s.pendingPrediction?.guess).toBe('fewer');
+    expect(s.xp).toBe(xp + 5);
+    expect(gameReducer(s, { type: 'predict', guess: 'more' }).pendingPrediction?.guess).toBe('fewer'); // one guess only
+    s = autoDay(s);
+    expect(s.pendingPrediction ?? null).toBeNull();
+    const pr = s.predictions?.[s.predictions.length - 1];
+    expect(pr?.product).toBe('flan');
+    expect(['more', 'same', 'fewer']).toContain(pr?.result);
+    expect(s.learned).toContain('elasticity');
+    const last = s.history[s.history.length - 1];
+    expect(last.surplus ?? 0).toBeGreaterThanOrEqual(0);
+    if (last.served > 0) expect(s.learned).toContain('surplus');
+    check(s);
+  });
+});

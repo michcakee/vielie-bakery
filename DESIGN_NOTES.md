@@ -338,3 +338,12 @@ Session shape: a hand-played day is 3–5 minutes; the day ends on the report an
 Known issues: none
 Next step proposed: Phase 8 (Predict → Notice → Name → Transfer loop for concepts 1–8, Notebook pages with Professor Notes and player-data graphs)
 ```
+
+```
+Phase 8 – done (concepts 1–8, the five-step loop)
+Changed: src/engine/types.ts (Prediction, Guess, surplus), src/engine/state.ts (setPrice records a pending prediction; 'predict' action; settlePrediction at closing: result by ±10%, +5 XP for guessing, +10 for a right guess, opens the notebook page), src/engine/service.ts (consumer surplus Σ(WTP − price) per day), src/data/notebook.ts (Professor's notes, Real World cards, Ask-a-grown-up questions and a graph kind for opportunity cost, profit, demand and price, inventory/newsvendor, fixed/sunk costs, marginal thinking, elasticity habits vs treats, consumer surplus), src/ui/panels/KitchenPanel.tsx (Predict card with three picture choices), src/ui/overlays.tsx (the report shows the result beside the guess), src/ui/panels/FinancesPanel.tsx (notebook pages expand: kid text, a chart from the player's own days, Professor's note, Real World, Ask a grown-up)
+Hooks added to game logic: pendingPrediction on setPrice; predict action; settlement at closeBooks; today.surplus in serve
+Playtest: changing bánh mì's price shows the Predict card, a guess locks in, and the report names the result; every notebook formula was checked against the intro-micro standard (π = TR − TC; Q(p) = N(1 − F(p)); Lerner; newsvendor F(Q*) = (p − c)/(p − s); MR = MC; CS = Σ(WTP − p))
+Known issues: 'Lately it sold about 0 a day' on day 1 (no history yet): the text could hide the number until there is a history
+Next step proposed: Phase 9 (concepts 9–18, Test Kitchen, Grown-up summary)
+```

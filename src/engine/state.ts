@@ -74,6 +74,8 @@ import type {
   SupplierId,
   UpgradeId,
   Weather,
+  Guess,
+  Prediction,
 } from './types';
 
 export const SAVE_VERSION = 3;
@@ -312,6 +314,7 @@ export type Action =
   | { type: 'openBranch'; location: LocationId; name: string }
   | { type: 'closeBranch'; id: number }
   | { type: 'retire' }
+  | { type: 'predict'; guess: Guess }
   | { type: 'dismissToast'; id: number }
   | { type: 'hint'; id: string }
   | { type: 'newGame'; seed?: number; options?: NewGameOptions }
@@ -471,8 +474,23 @@ function autoBake(s: GameState): GameState {
 
 // ---------------------------------------------------------------- closing the day
 
+/** Notice: the price change has played out. Score the guess, keep the record, teach the idea. */
+function settlePrediction(s: GameState): GameState {
+  const p = s.pendingPrediction;
+  if (!p) return s;
+  const unitsAfter = s.today.sold[p.product] ?? 0;
+  const diff = p.unitsBefore > 0 ? (unitsAfter - p.unitsBefore) / p.unitsBefore : unitsAfter > 0 ? 1 : 0;
+  const result: Guess = diff > 0.1 ? 'more' : diff < -0.1 ? 'fewer' : 'same';
+  const right = p.guess !== undefined && p.guess === result;
+  const record: Prediction = { day: s.day, product: p.product, from: p.from, to: p.to, unitsBefore: p.unitsBefore, unitsAfter, guess: p.guess, result };
+  let next: GameState = { ...s, pendingPrediction: null, predictions: [...(s.predictions ?? []).slice(-29), record], xp: s.xp + (right ? 10 : 0) };
+  next = { ...next, questProgress: { ...next.questProgress, predictions: (next.questProgress.predictions ?? 0) + (p.guess ? 1 : 0), predictionsRight: (next.questProgress.predictionsRight ?? 0) + (right ? 1 : 0) } };
+  return learn(next, 'elasticity', p.to > p.from ? 'elasticityCompare' : 'elasticity');
+}
+
 function closeBooks(s: GameState): GameState {
-  let next = s;
+  let next = settlePrediction(s);
+  if ((next.today.surplus ?? 0) > 0) next = learn(next, 'surplus');
   const t0 = next.today;
   // Leftovers.
   let display = { ...next.display };
@@ -629,6 +647,7 @@ function summarise(s: GameState, t: DayStats): DaySummary {
     inventoryValue: round2(inventoryValue(s)),
     staff: s.staff.length,
     satisfaction: t.served ? t.satisfaction / t.served : 0,
+    surplus: t.surplus ?? 0,
     segments: Object.fromEntries(Object.entries(t.segments).map(([k, v]) => [k, v?.served ?? 0])),
     share: totalShoppers ? t.customers / totalShoppers : 1,
     prices: { ...s.prices },
@@ -1025,7 +1044,11 @@ export function gameReducer(s: GameState, a: Action): GameState {
       const [lo, hi] = priceBounds(s, a.product);
       const price = round2(clamp(Math.round(a.price / ECON.service.priceStep) * ECON.service.priceStep, lo, hi));
       if (price === s.prices[a.product]) return s;
-      let next: GameState = { ...s, prices: { ...s.prices, [a.product]: price }, questProgress: { ...s.questProgress, priceTouched: 1 } };
+      // Predict: remember the change so tomorrow's result can be shown against a guess.
+      const recent = s.history.slice(-3);
+      const unitsBefore = recent.length ? recent.reduce((t, h) => t + (h.sold[a.product] ?? 0), 0) / recent.length : 0;
+      const pending = s.pendingPrediction?.product === a.product ? { ...s.pendingPrediction, to: price } : { product: a.product, from: s.prices[a.product], to: price, unitsBefore };
+      let next: GameState = { ...s, prices: { ...s.prices, [a.product]: price }, questProgress: { ...s.questProgress, priceTouched: 1 }, pendingPrediction: pending.from === pending.to ? null : pending };
       const last = s.decisions[s.decisions.length - 1];
       if (last && last.kind === 'price' && last.product === a.product && last.day === s.day) {
         next = { ...next, decisions: next.decisions.map((d) => (d.id === last.id ? { ...d, text: `${PRODUCTS[a.product].name}: $${(d.text.match(/\$([\d.]+) to/)?.[1] ?? s.prices[a.product].toFixed(2))} to $${price.toFixed(2)}.` } : d)) };
@@ -1248,6 +1271,10 @@ export function gameReducer(s: GameState, a: Action): GameState {
       let next = move({ ...s, branches: [...s.branches, b], nextId: s.nextId + 1 }, 'cashCapex', -(fit + dep));
       next = decide(next, { kind: 'branch', text: `Opened ${b.name} in ${loc.name} ($${(fit + dep).toLocaleString('en-US')} fit-out and deposit).`, metric: 'profit', before: avgProfit(s) });
       return checkProgress(learn(toast(next, 'unlock', 'New shop!', `${b.name} is open. Hire a manager, a baker and counter staff for it in the Staff tab.`), 'expansion', 'capex'));
+    }
+    case 'predict': {
+      if (s.phase !== 'morning' || !s.pendingPrediction || s.pendingPrediction.guess) return s;
+      return learn({ ...s, pendingPrediction: { ...s.pendingPrediction, guess: a.guess }, xp: s.xp + 5 }, 'forecasting');
     }
     case 'retire': {
       if (s.phase !== 'morning' || s.day < 60) return s;

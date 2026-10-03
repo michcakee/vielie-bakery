@@ -4856,3 +4856,60 @@ html[data-motion='reduced'] .title-logo span {
   background: var(--aqua);
   border: 3px solid var(--ink);
 }
+
+/* ---------- Phase 8: predict, notice, name ---------- */
+.predict-choices {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+}
+.predict-choices .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.prediction {
+  display: block;
+  padding: 6px 8px;
+  background: var(--aqua);
+  border: 2px solid var(--ink);
+}
+.prediction.right {
+  background: var(--butter);
+}
+.notebook-page summary {
+  cursor: pointer;
+  list-style: none;
+}
+.notebook-page summary::before {
+  content: '';
+  display: inline-block;
+  width: 0;
+  height: 0;
+  margin-right: 6px;
+  border: 5px solid transparent;
+  border-left: 7px solid var(--ink);
+  vertical-align: middle;
+}
+.notebook-page[open] summary::before {
+  transform: rotate(90deg);
+}
+.professor {
+  margin: 8px 0;
+  padding: 8px 10px;
+  background: var(--peach);
+  border-left: 4px solid var(--crust);
+}
+.professor b {
+  font-family: var(--pixel);
+}
+.real-world {
+  padding: 6px 10px;
+  background: var(--aqua);
+}
+.notebook-graph {
+  display: grid;
+  gap: 4px;
+  margin: 6px 0;
+}

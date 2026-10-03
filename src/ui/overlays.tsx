@@ -257,6 +257,18 @@ export function DayReport() {
               <Sprite name="star" scale={2} /> best order {t.bestOrder.score}/100: {PRODUCTS[t.bestOrder.product].name} for {t.bestOrder.name}
             </span>
           )}
+          {(() => {
+            const pr = s.predictions?.find((x) => x.day === r.day);
+            if (!pr) return null;
+            const word = (g: string) => (g === 'more' ? 'more' : g === 'fewer' ? 'fewer' : 'about the same');
+            const right = pr.guess && pr.guess === pr.result;
+            return (
+              <span className={`prediction ${right ? 'right' : ''}`}>
+                <Sprite name="note" scale={2} /> {PRODUCTS[pr.product].name} {money2(pr.from)} → {money2(pr.to)}: {pr.unitsBefore.toFixed(0)} a day became {pr.unitsAfter} ({word(pr.result)}).
+                {pr.guess ? (right ? ' Nice call! +10 XP' : ` You guessed ${word(pr.guess)}. +5 XP for guessing.`) : ''}
+              </span>
+            );
+          })()}
         <span>
           <Sprite name="people" scale={2} /> Community {r.communityDelta >= 0 ? '+' : '−'}
           {Math.abs(Math.round(r.communityDelta * 10) / 10)}

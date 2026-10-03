@@ -5242,3 +5242,4 @@ html[data-motion='reduced'] .title-logo span {
 @media (max-width: 760px) {
   .day-track span:last-of-type { left: auto !important; right: 4px; padding-left: 0; }
 }
+.try-next { margin-top: 8px; padding: 8px 10px; border: 2px dashed var(--mango); border-radius: 8px; background: var(--butter); }

@@ -1,3 +1,4 @@
+import { tryTomorrow } from '../engine/report';
 import { incomeStatement } from '../engine/accounting';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { LEVELS, PRODUCTS, WEATHER } from '../data/catalog';
@@ -322,11 +323,16 @@ export function DayReport() {
       <div className="biz-tip">
         <b>Little business tip</b>
         <p>{r.tip}</p>
+        {tryTomorrow(s) && (
+          <p className="try-next">
+            <Sprite name="spark" scale={2} /> <b>Try this tomorrow:</b> {tryTomorrow(s)}
+          </p>
+        )}
       </div>
       <p className="small muted cash-line">
         Cash {money2(r.cashBefore)} → {money2(r.cashAfter)}
         {r.loanPaid > 0 && ` · paid ${money2(r.loanPaid)} on your loan`}
-        {r.savedToFund > 0 && ` · saved ${money2(r.savedToFund)} to the safety fund`}. Stocking up and upgrades come out of cash but aren't counted as today's costs: they're things the bakery still owns.
+        {r.savedToFund > 0 && ` · saved ${money2(r.savedToFund)} to the safety fund`}.{r.day % 7 === 0 && " Stocking up and upgrades come out of cash but aren't counted as today's costs: they're things the bakery still owns."}
       </p>
       <p className="small tomorrow">
         Tomorrow: <b>{WEATHER[s.market.tomorrow].name}</b>. {WEATHER[s.market.tomorrow].tip}

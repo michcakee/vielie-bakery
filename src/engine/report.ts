@@ -57,3 +57,27 @@ export function businessTip(s: GameState, t: DayStats, profit: number): string {
   if (profit > 0 && s.safetyFund < 300 && on('finances.cash')) return 'Good day! Putting a little into the safety fund helps the bakery handle surprises.';
   return on('analytics.full') ? 'Nice work. Try one small change tomorrow, like a price or an extra tray, and check Analytics a week later to see what it did.' : 'Nice work! Try to beat today’s stars tomorrow.';
 }
+
+const TRY: { id: FeatureId; used: (s: GameState) => boolean; text: string; where: string }[] = [
+  { id: 'kitchen.prices', used: (s) => (s.questProgress.priceEdits ?? 0) > 0, text: 'Change a price and see if more or fewer people buy it.', where: 'Kitchen → Prices' },
+  { id: 'market.suppliers', used: (s) => s.supplierLoyalty.farm + s.supplierLoyalty.premium + s.supplierLoyalty.distributor > 0, text: 'Buy from the farm co-op: better ingredients make better food, and people pay more for it.', where: 'Market' },
+  { id: 'kitchen.menu', used: (s) => (s.questProgress.menuToggles ?? 0) > 0, text: 'Put a new recipe on the menu. More choice brings more customers.', where: 'Kitchen → Menu' },
+  { id: 'staff.hire', used: (s) => s.staff.length > 0, text: 'Hire a helper so fewer customers give up waiting.', where: 'Staff' },
+  { id: 'eco.all', used: (s) => s.packaging !== 'plastic', text: 'Switch away from plastic packaging. The neighbours will notice!', where: 'Eco' },
+  { id: 'growth.decor', used: (s) => s.decor.length > 1, text: 'Buy a decoration. Customers wait longer in a cosy shop.', where: 'Growth' },
+  { id: 'finances.cash', used: (s) => s.safetyFund > 0, text: 'Put some money in the safety fund for rainy days.', where: 'Money' },
+  { id: 'growth.equipment', used: (s) => s.equipment.length > 1, text: 'Buy equipment, like a second oven, to bake more every morning.', where: 'Growth' },
+  { id: 'kitchen.plan', used: (s) => s.staff.length === 0 || (s.questProgress.teamDays ?? 0) > 0, text: 'Let the team run a day using your baking plan.', where: 'Today' },
+  { id: 'market.contracts', used: (s) => s.locks.length + s.contracts.length + Object.keys(s.reorder).length > 0, text: 'Set an auto-reorder so you never run out of flour.', where: 'Market' },
+  { id: 'kitchen.deals', used: (s) => !!s.combo || !!s.sizes, text: 'Turn on the combo deal: coffee + bánh mì together.', where: 'Kitchen → Menu' },
+  { id: 'customers.marketing', used: (s) => s.campaigns.length > 0, text: 'Run an ad campaign to bring in new customers.', where: 'Customers' },
+];
+
+/** One unlocked thing the player hasn't tried yet, so every part of the bakery gets used. */
+export function tryTomorrow(s: GameState): string | null {
+  if (s.allUnlocked !== false || s.intro?.active) return null;
+  const open = TRY.filter((x) => featureOn(s, x.id) && (s.intro?.done ?? []).includes(x.id) && !x.used(s));
+  if (!open.length) return null;
+  const pick = open[s.day % open.length];
+  return `${pick.text} (${pick.where})`;
+}

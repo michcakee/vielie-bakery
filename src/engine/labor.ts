@@ -1,5 +1,6 @@
-import { ECON } from '../data/config';
+import { DIFFICULTY, ECON } from '../data/config';
 import { FRIENDS, ROLES, ROLE_ORDER, STAFF_NAMES } from '../data/world';
+import { CONFIG } from '../data/catalog';
 import { has, productivity } from './economy';
 import { rngFor } from './rng';
 import { randomLook } from './look';
@@ -9,7 +10,7 @@ import type { Applicant, Employee, GameState, RoleId } from './types';
 /** The going hourly wage for a role and skill level in today's economy. */
 export function marketWage(s: GameState, role: RoleId, skill = 3): number {
   const tight = s.macro.unemployment < 0.04 ? 1.08 : s.macro.unemployment > 0.07 ? 0.93 : 1;
-  return round2(ROLES[role].wage * s.macro.wageIndex * tight * (0.85 + 0.05 * skill));
+  return round2(ROLES[role].wage * s.macro.wageIndex * tight * (0.85 + 0.05 * skill) * (DIFFICULTY[s.difficulty].wageMult ?? 1));
 }
 
 /** A fresh pool of job seekers each week; more of them when unemployment is high. */
@@ -70,7 +71,8 @@ export function hireValue(s: GameState, role: RoleId, skill = 3): { cost: number
     case 'cook': {
       const kind = role === 'cashier' ? 'tray' : role === 'barista' ? 'drink' : 'sandwich';
       const lostKind = recent.length ? recent.reduce((t, h) => t + (h.lostSlowKind?.[kind] ?? (h.lostSlow / 3)), 0) / recent.length : 0;
-      const saved = Math.min(lostKind, 6 + 4 * prod);
+      // A helper can serve far more than this in a day; they're limited by how many people actually gave up.
+      const saved = Math.min(lostKind, (CONFIG.dayMinutes / ECON.service.staffMinutes[kind]) * prod * 0.5);
       const what = kind === 'tray' ? 'pastries' : kind === 'drink' ? 'drinks' : 'bánh mì';
       return { cost, adds: saved < 0.5 ? `serves ${what}, but nobody waiting for ${what} gave up lately` : `serves ${what}: about ${saved.toFixed(0)} more happy customers a day`, addsValue: saved * avgTicket * margin };
     }

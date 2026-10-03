@@ -191,6 +191,8 @@ export const DIFFICULTY: Record<
     costMult: number;
     /** Multiplies how fast regulars drift away. */
     churnMult: number;
+    /** Multiplies the going wage (helpers are cheaper on the gentle setting). */
+    wageMult?: number;
   }
 > = {
   easy: {
@@ -207,6 +209,7 @@ export const DIFFICULTY: Record<
     patience: 1.25,
     costMult: 0.85,
     churnMult: 0.7,
+    wageMult: 0.8,
   },
   normal: {
     name: 'Normal',

@@ -316,6 +316,11 @@ export function ServicePanel({ paused, setPaused, speed, setSpeed, activeId, set
       ) : (
         <div className="orders" aria-live="polite">
           {graded && <GradeCard key={graded.id} visit={graded} />}
+          {svc.servers.some((x) => x.id === 'ba') && !svc.auto && s.day <= 10 && (
+            <p className="ba-helps small">
+              <Sprite name="flan" scale={2} /> Bà is handing out the pastries. You make the bánh mì and drinks!
+            </p>
+          )}
           <h3 className="orders-title">
             At the counter {coming > 0 && <span className="muted">· {coming} walking in</span>}
           </h3>

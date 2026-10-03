@@ -193,6 +193,8 @@ export function makeServers(s: GameState, auto: boolean): ServerSlot[] {
   const out: ServerSlot[] = [];
   if (auto) out.push({ id: 'owner', busyUntil: 0, visitId: null, quality: ECON.service.ownerAutoQuality, served: 0 });
   for (const e of flagshipStaff(s)) if (e.role === 'cashier' || e.role === 'barista' || e.role === 'cook') out.push({ id: `staff:${e.id}`, busyUntil: 0, visitId: null, quality: 60 + 8 * e.skill, served: 0 });
+  // Guided games: Bà hands out pastries while you learn, until you hire a cashier of your own.
+  if (!auto && s.allUnlocked === false && !s.staff.some((e) => e.role === 'cashier' && e.branch === null)) out.push({ id: 'ba', busyUntil: 0, visitId: null, quality: 74, served: 0 });
   return out;
 }
 
@@ -451,6 +453,7 @@ export function serve(s: GameState, visitId: number, process?: number, by: strin
 
 function minutesFor(s: GameState, serverId: string, kind: ProductKind): number {
   if (serverId === 'owner') return ECON.service.ownerMinutes[kind];
+  if (serverId === 'ba') return ECON.service.ownerMinutes[kind] * 1.3;
   const e = s.staff.find((x) => `staff:${x.id}` === serverId);
   if (!e) return 3;
   let m = ECON.service.staffMinutes[kind] / productivity(e, s.day);
@@ -461,6 +464,7 @@ function minutesFor(s: GameState, serverId: string, kind: ProductKind): number {
 
 function canServe(s: GameState, serverId: string, kind: ProductKind): boolean {
   if (serverId === 'owner') return true;
+  if (serverId === 'ba') return kind === 'tray';
   const e = s.staff.find((x) => `staff:${x.id}` === serverId);
   if (!e) return false;
   return (e.role === 'cashier' && kind === 'tray') || (e.role === 'barista' && kind === 'drink') || (e.role === 'cook' && kind === 'sandwich');

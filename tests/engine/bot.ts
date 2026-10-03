@@ -79,3 +79,32 @@ export function autoDay(s: GameState): GameState {
   next = gameReducer(next, { type: 'runDay' });
   return finish(next);
 }
+
+/**
+ * A kid at the counter: one order at a time, oldest first. A pastry takes about 2 real seconds, a
+ * bánh mì or drink about 9, at the relaxed pace (4 game minutes a second), with the odd wrong tap.
+ */
+export function runServiceKid(s: GameState, slow = 1): GameState {
+  if (s.phase !== 'morning') return s;
+  let next = gameReducer(s, { type: 'open' });
+  let busyUntil = 0;
+  let n = 0;
+  let guard = 0;
+  while (next.phase === 'service' && guard++ < 1000) {
+    next = gameReducer(next, { type: 'tick', minutes: 2 });
+    if (next.phase !== 'service') break;
+    const clock = next.service!.clock;
+    if (clock >= 600 && !next.service!.lastCall) next = gameReducer(next, { type: 'lastCall', on: true });
+    if (clock < busyUntil) continue;
+    const v = next.service!.visits.filter((x) => x.status === 'waiting' && !x.servedBy).sort((a, b) => (a.waitStart ?? 0) - (b.waitStart ?? 0))[0];
+    if (!v) continue;
+    const tray = PRODUCTS[v.wants].kind === 'tray';
+    n++;
+    const mistakes = n % 7 === 0 ? 1 : 0;
+    next = gameReducer(next, { type: 'serve', visitId: v.id, process: tray ? undefined : 100 - mistakes * 15 });
+    busyUntil = clock + (tray ? 8 : 36 + mistakes * 8) * slow;
+  }
+  return next;
+}
+
+export const kidDay = (s: GameState, slow = 1) => finish(runServiceKid(morning(resolveEvents(s)), slow));

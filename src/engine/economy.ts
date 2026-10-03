@@ -508,6 +508,8 @@ export function patienceMult(s: GameState): number {
   if (effectActive(s, 'awning')) m *= 1.25;
   if (effectActive(s, 'cooler')) m *= 1.2;
   for (const d of s.decor) m += DECOR[d].patience ?? 0;
+  // Guided games: customers are extra patient while the player is still learning the counter.
+  if (s.allUnlocked === false) m *= 1 + 0.8 * Math.max(0, 21 - s.day) / 21;
   return m;
 }
 

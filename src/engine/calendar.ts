@@ -36,6 +36,8 @@ export function seasonOf(month: number): Season {
 
 /** First day of a game month (the day rent and loan payments are due). */
 export const isMonthStart = (day: number) => dateOf(day).dom === 1;
+/** Mornings until the next month starts (rent day): 0 means today. */
+export const daysToMonthStart = (day: number) => (dateOf(day).dom === 1 ? 0 : daysPerMonth - dateOf(day).dom + 1);
 export const isMonthEnd = (day: number) => dateOf(day).dom === daysPerMonth;
 export const isYearStart = (day: number) => dateOf(day).yearDay === 1;
 

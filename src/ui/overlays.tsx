@@ -1,3 +1,4 @@
+import { incomeStatement } from '../engine/accounting';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { LEVELS, PRODUCTS, WEATHER } from '../data/catalog';
 import { EVENTS } from '../engine/events';
@@ -187,7 +188,24 @@ export function DayReport() {
   const made = Object.values(t.made).reduce((a, b) => a + b, 0);
   const waste = made ? t.wasteUnits / made : 0;
   const leveled = r.levelAfter > r.levelBefore;
-  const mood = r.profit > 40 ? 'LOOK AT THAT!' : r.profit > 0 ? 'Ngon quá! A good day.' : r.profit > -10 ? 'Phew. Close one.' : 'Uh oh… the bakery wallet is feeling a little empty.';
+  const prize = t.books.otherIncome;
+  const is = incomeStatement(t.books);
+  const spent = is.revenue - (is.netProfit - is.otherIncome);
+  const served = t.customers ? t.served / t.customers : 0;
+  const mood =
+    r.profit > 40
+      ? 'LOOK AT THAT!'
+      : r.profit > 0
+        ? 'Ngon quá! A good day.'
+        : r.profit > -10
+          ? 'Phew. Close one.'
+          : r.day <= 7
+            ? served >= 0.8
+              ? `You served ${t.served} of ${t.customers}. Great job! New shops often lose a little at first. Bà did too.`
+              : 'New shops often lose a little at first. Bà did too. Tomorrow will be better!'
+            : served >= 0.8
+              ? 'Busy counter, thin wallet. Check your prices and what you threw away.'
+              : 'A tough day. Bake what sells and keep the line moving.';
   return (
     <Modal label={`Day ${r.day} report`} className="report">
       <div className="report-head">
@@ -219,9 +237,17 @@ export function DayReport() {
         <div className="num neg">
           <span>What we spent</span>
           <b>
-            −<Count value={r.expenses} />
+            −<Count value={Math.max(0, spent)} />
           </b>
         </div>
+        {prize > 0.005 && (
+          <div className="num pos">
+            <span>Prize money</span>
+            <b>
+              <Count value={prize} prefix="+" />
+            </b>
+          </div>
+        )}
         <div className={`num big ${r.profit >= 0 ? 'pos' : 'neg'}`}>
           <span>What the bakery made</span>
           <b>

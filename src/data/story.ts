@@ -20,7 +20,7 @@ export const STORY_BEATS: StoryBeat[] = [
     day: 45,
     title: 'The lane has noticed',
     vi: 'Cả xóm đã để ý',
-    text: 'Six weeks in. The woman who sells lottery tickets on the corner now saves you the morning paper, and the moto taxis have started calling it "the bakery" instead of "Bà\'s old place". You\'re part of the street now.',
+    text: 'Six weeks in. The woman who sells newspapers on the corner now saves you the morning paper, and the moto taxis have started calling it "the bakery" instead of "Bà\'s old place". You\'re part of the street now.',
     gift: { community: 3 },
     giftText: 'Community +3',
   },

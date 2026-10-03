@@ -777,6 +777,7 @@ function startOfMonth(s: GameState): GameState {
   // Rent for the coming month, paid in advance.
   const rentDue = rent(next) * ECON.calendar.daysPerMonth;
   next = move({ ...next, prepaidRent: next.prepaidRent + rentDue }, 'cashRent', -rentDue);
+  if (next.day > 1) next = toast(next, 'warning', 'Rent day!', `Paid ${Math.round(rentDue).toLocaleString('en-US')} dollars for the whole month. That's why we keep cash in the drawer.`);
 
   // Loan instalments: interest first, then principal.
   const loans = [];
@@ -930,7 +931,7 @@ function startDay(s: GameState): GameState {
     if (next.bailoutsUsed < DIFFICULTY[next.difficulty].bailouts) next = { ...next, events: [{ id: 'bailout', day }] };
     else {
       const v = valuation(next);
-      return { ...next, phase: 'ended', ending: { kind: 'bankrupt', day, value: Math.max(0, v.equityValue), text: `${next.bakeryName} ran out of cash and credit on day ${day}. The bank called in the loans.` } };
+      return { ...next, phase: 'ended', ending: { kind: 'bankrupt', day, value: Math.max(0, v.equityValue), text: `${next.bakeryName} ran out of cash and credit on day ${day}.${next.loans.length ? ' The bank called in the loans.' : ' There was no money left to pay the bills.'}` } };
     }
   }
 

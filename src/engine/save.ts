@@ -316,7 +316,7 @@ export interface Prefs {
   textScale: number;
 }
 
-export const DEFAULT_PREFS: Prefs = { reducedMotion: false, sound: false, music: false, audioDefault: 1, relaxed: false, translations: true, view: 'casual', slot: 1, textScale: 1 };
+export const DEFAULT_PREFS: Prefs = { reducedMotion: false, sound: false, music: false, audioDefault: 1, relaxed: true, translations: true, view: 'casual', slot: 1, textScale: 1 };
 
 export function loadPrefs(): Prefs {
   try {

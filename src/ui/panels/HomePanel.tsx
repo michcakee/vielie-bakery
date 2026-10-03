@@ -3,7 +3,7 @@ import { ECON } from '../../data/config';
 import { REGULARS } from '../../data/people';
 import { GOALS, LOCATIONS } from '../../data/world';
 import { incomeStatement, inventoryValue } from '../../engine/accounting';
-import { dateLabel, festivalsOn, FESTIVALS } from '../../engine/calendar';
+import { dateLabel, daysToMonthStart, festivalsOn, FESTIVALS } from '../../engine/calendar';
 import { activeRivals, businessStage, canBakeTray, effectActive, makeable, onMenu, rent, trayCapacity, effectivePrice } from '../../engine/economy';
 import { REGIMES } from '../../engine/macro';
 import { activeQuests, WEEKLY_GOALS, nextUnlock } from '../../engine/progression';
@@ -28,7 +28,9 @@ function readiness(s: GameState) {
   if (menu.includes('banhMi') && (s.pantry.chaLua.qty < 6 || s.pantry.veg.qty < 6)) warnings.push({ text: `Low on ${s.pantry.chaLua.qty < 6 ? 'chả lụa' : 'pickles & herbs'} for bánh mì.`, tab: 'market' });
   const trays = menu.filter((p) => PRODUCTS[p].kind === 'tray' && s.display[p].qty === 0);
   if (trays.length && s.traysToday < trayCapacity(s)) warnings.push({ text: `No ${trays.map((p) => PRODUCTS[p].name).join(', ')} in the case yet.`, tab: 'kitchen' });
-  if (s.cash < rent(s) * 5 && s.cash >= 0) warnings.push({ text: `Cash is getting thin: ${money(s.cash)}. Next month's rent is about ${money(rent(s) * 30)}.`, tab: 'money' });
+  const toRent = daysToMonthStart(s.day);
+  if (toRent > 0 && toRent <= 5) warnings.push({ text: `Rent day in ${toRent} day${toRent === 1 ? '' : 's'}: about ${money(rent(s) * 30)} for the month.${s.cash < rent(s) * 30 ? ' Save up!' : ' You have enough.'}`, tab: 'today' });
+  else if (s.cash < rent(s) * 5 && s.cash >= 0) warnings.push({ text: `Cash is getting thin: ${money(s.cash)}. Next month's rent is about ${money(rent(s) * 30)}.`, tab: 'money' });
   if (s.creditLine.balance > 0) warnings.push({ text: `You're using ${money(s.creditLine.balance)} of the bank's credit line. It charges high interest every day.`, tab: 'money' });
   return warnings.filter((w) => tabOn(s, w.tab));
 }
@@ -265,7 +267,7 @@ export function HomePanel({ goTo, onOpen, onRunDay }: { goTo: (t: Tab) => void; 
       {feature('customers.regulars') && <Neighbours />}
       <p className="small muted">
         Pantry check: {Object.entries(s.pantry).filter(([, p]) => p.qty > 0).length} ingredients in stock
-        {s.deliveries.length ? ` · ${s.deliveries.length} deliveries on the way (${s.deliveries.map((d) => INGREDIENTS[d.ingredient].name.toLowerCase()).join(', ')})` : ''}. Fixed costs today: about {money2(rent(s))} rent.
+        {s.deliveries.length ? ` · ${s.deliveries.length} deliveries on the way (${s.deliveries.map((d) => INGREDIENTS[d.ingredient].name.toLowerCase()).join(', ')})` : ''}. Rent: about {money(rent(s) * 30)} a month, paid on the 1st.
       </p>
     </div>
   );

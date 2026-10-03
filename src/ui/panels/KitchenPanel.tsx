@@ -145,7 +145,7 @@ function OvenCard() {
           {Array.from({ length: cap }).map((_, i) => (
             <i key={i} className={i < s.traysToday ? 'used' : ''} />
           ))}
-          <span>{left} trays left</span>
+          <span>{left} {left === 1 ? 'tray' : 'trays'} left</span>
         </span>
       }
     >

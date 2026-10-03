@@ -209,6 +209,12 @@ function Game({ onQuit }: { onQuit: () => void }) {
     [drawer, activeId, tab, s.phase],
   );
 
+  // A new phase (morning, service, report) always starts at the top of the page.
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+    document.querySelector('.modal.report')?.scrollTo({ top: 0 });
+  }, [s.phase, s.day]);
+
   // Whatever tab you're looking at counts as seen: its NEW badges clear.
   const newHere = (s.newFeatures ?? []).some((f) => FEATURE[f].tab === tab);
   useEffect(() => {

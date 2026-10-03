@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { clearAllData, clearSave, exportCode, importCode, restoreLink } from '../engine/save';
 import { useGame } from './GameContext';
 import { featureOn } from '../engine/unlocks';
@@ -22,28 +22,38 @@ function Toggle({ label, hint, on, set }: { label: string; hint?: string; on: bo
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-/** What the player has learned, behind a small arithmetic gate so it's clearly for adults. Nothing leaves the device. */
-function GrownUpSummary() {
-  const { state } = useGame();
+const TENS = ['twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
+const ONES = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
+
+/** A parent gate: type a number written in words as digits. Easy for adults, a speed bump for kids. */
+function GrownUpGate({ what, children }: { what: string; children: ReactNode }) {
+  const [n] = useState(() => 21 + Math.floor(Math.random() * 78));
   const [answer, setAnswer] = useState('');
   const [open, setOpen] = useState(false);
+  if (open) return <>{children}</>;
+  const words = n % 10 ? `${TENS[Math.floor(n / 10) - 2]}-${ONES[(n % 10) - 1]}` : TENS[n / 10 - 2];
+  return (
+    <div className="settings-group grownup-gate">
+      <p className="small">
+        {what} Grown-ups only: type <b>{words}</b> as a number.
+      </p>
+      <div className="btn-row">
+        <input value={answer} onChange={(e) => setAnswer(e.target.value)} inputMode="numeric" aria-label={`Type ${words} as a number`} className="num-in" />
+        <Btn disabled={answer.trim() !== String(n)} onClick={() => setOpen(true)}>
+          Open
+        </Btn>
+      </div>
+    </div>
+  );
+}
+
+/** What the player has learned, for a parent or teacher. Nothing leaves the device. */
+function GrownUpSummary() {
+  const { state } = useGame();
   const learned = NOTEBOOK_ORDER.filter((k) => state.learned.includes(k) && NOTEBOOK[k].professor);
   const total = NOTEBOOK_ORDER.filter((k) => NOTEBOOK[k].professor).length;
   const guesses = state.questProgress.predictions ?? 0;
   const right = state.questProgress.predictionsRight ?? 0;
-  if (!open) {
-    return (
-      <div className="settings-group grownup-gate">
-        <p className="small">A summary of what the player has learned, for a parent or teacher. To open it, what is 7 × 8?</p>
-        <div className="btn-row">
-          <input value={answer} onChange={(e) => setAnswer(e.target.value)} inputMode="numeric" aria-label="Seven times eight" className="num-in" />
-          <Btn disabled={answer.trim() !== '56'} onClick={() => setOpen(true)}>
-            Open
-          </Btn>
-        </div>
-      </div>
-    );
-  }
   return (
     <div className="settings-group grownup">
       <p className="small">
@@ -151,6 +161,7 @@ export function Settings({ onClose, onQuit }: { onClose: () => void; onQuit: () 
       <h3>Saving</h3>
       <p className="small">Your bakery saves automatically in this browser after every change. To move it to another device, or keep a backup, use a save code or email yourself a restore link.</p>
       <div className="settings-group">
+        <GrownUpGate what="Email a restore link.">
         <form
           className="email-form"
           onSubmit={(e) => {
@@ -165,6 +176,7 @@ export function Settings({ onClose, onQuit }: { onClose: () => void; onQuit: () 
           </Btn>
         </form>
         <p className="small muted">This opens your own email app with the link filled in. The game has no server and doesn't keep the address: it's used once to open that email, and that's it.</p>
+        </GrownUpGate>
         <div className="btn-row">
           <Btn onClick={() => void copy()}>Copy save code</Btn>
         </div>
@@ -189,7 +201,9 @@ export function Settings({ onClose, onQuit }: { onClose: () => void; onQuit: () 
       </div>
 
       <h3>For grown-ups</h3>
-      <GrownUpSummary />
+      <GrownUpGate what="A summary of what the player has learned, for a parent or teacher.">
+        <GrownUpSummary />
+      </GrownUpGate>
 
       <h3>About</h3>
       <div className="btn-row">

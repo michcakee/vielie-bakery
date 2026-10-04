@@ -36,7 +36,7 @@ Sign in at itch.io → **Dashboard → Create new project**.
 | Mobile friendly | ticked; orientation **Default** |
 | Fullscreen button | not needed with the fullscreen launch |
 | Cover image | `resources/itch-cover-630x500.png` |
-| Screenshots | `docs/store/screenshots/iphone-6.9-*.png` (3 to 5 of them) |
+| Screenshots | 3 to 5 from `docs/store/screenshots/itch/` (smaller copies of the App Store ones: itch refuses images over 3840×2160) |
 | Genre | Simulation |
 | Tags | `cozy`, `pixel-art`, `tycoon`, `management`, `cooking`, `economy`, `singleplayer`, `business`, `food`, `casual` |
 | AI disclosure | answer itch's question honestly for how the game was made |

@@ -83,4 +83,5 @@ Now called Viet Bake Shop Simulator. Meet the Dream team: Vy, Yen Vy, Hieu, Sang
 | --- | --- |
 | App icon 1024×1024 | `resources/icon-1024.png` (`npm run icons`) |
 | Play feature graphic 1024×500 | `resources/play-feature-1024x500.png` |
+| itch.io cover 630×500 | `resources/itch-cover-630x500.png` (see [`ITCH.md`](ITCH.md)) |
 | Screenshots | [`docs/store/screenshots/`](screenshots/): six each for iPhone 6.9" (1320×2868) and iPad 13" (2064×2752), in the order to upload. Taken from the web build; retake from a TestFlight build if anything looks different on a real phone. |

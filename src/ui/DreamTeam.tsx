@@ -120,7 +120,7 @@ function GetDiamonds() {
           {Object.keys(prices).length === 0 && <p className="small muted">The App Store isn’t answering right now. Check your connection and open this again.</p>}
         </>
       ) : (
-        <p className="small muted">Diamond packs are sold in the iPhone and iPad app. Here, earn them with 3-star days.</p>
+        <p className="small muted">Diamonds can’t be bought here. Earn them with 3-star days.</p>
       )}
       {note && (
         <p className="small purchase-note" role="status">

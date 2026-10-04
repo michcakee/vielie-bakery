@@ -1,4 +1,5 @@
 import { Capacitor } from '@capacitor/core';
+import { ON_ITCH } from '../lib/host';
 import { handleBack } from './backButton';
 
 /**
@@ -8,7 +9,7 @@ import { handleBack } from './backButton';
  */
 export async function initPlatform() {
   if (!Capacitor.isNativePlatform()) {
-    if ('serviceWorker' in navigator && import.meta.env.PROD) {
+    if ('serviceWorker' in navigator && import.meta.env.PROD && !ON_ITCH) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js').catch(() => {
           /* offline support is a bonus; the game works without it */

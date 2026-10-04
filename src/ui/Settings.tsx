@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { clearAllData, clearSave, exportCode, importCode, restoreLink } from '../engine/save';
 import { useGame } from './GameContext';
 import { featureOn } from '../engine/unlocks';
+import { ON_ITCH } from '../lib/host';
 import { Btn } from './kit';
 import { CreditsPage, LegalPage } from './Legal';
 import { Modal } from './overlays';
@@ -100,22 +101,28 @@ export function Settings({ onClose, onQuit }: { onClose: () => void; onQuit: () 
       </div>
 
       <h3>Saving</h3>
-      <p className="small">Your bakery saves automatically in this browser after every change. To move it to another device, or keep a backup, use a save code or email yourself a restore link.</p>
+      <p className="small">
+        Your bakery saves automatically in this browser after every change. To move it to another device, or keep a backup, use a save code{ON_ITCH ? ': copy it, keep it somewhere safe, and paste it back here any time.' : ' or email yourself a restore link.'}
+      </p>
       <div className="settings-group">
-        <form
-          className="email-form"
-          onSubmit={(e) => {
-            e.preventDefault();
-            void mail();
-          }}
-        >
-          <label htmlFor="save-email">Your email</label>
-          <input id="save-email" type="email" autoComplete="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
-          <Btn type="submit" kind="primary">
-            Email me a restore link
-          </Btn>
-        </form>
-        <p className="small muted">This opens your own email app with the link filled in. The game has no server and doesn't keep the address: it's used once to open that email, and that's it.</p>
+        {!ON_ITCH && (
+          <>
+            <form
+              className="email-form"
+              onSubmit={(e) => {
+                e.preventDefault();
+                void mail();
+              }}
+            >
+              <label htmlFor="save-email">Your email</label>
+              <input id="save-email" type="email" autoComplete="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+              <Btn type="submit" kind="primary">
+                Email me a restore link
+              </Btn>
+            </form>
+            <p className="small muted">This opens your own email app with the link filled in. The game has no server and doesn't keep the address: it's used once to open that email, and that's it.</p>
+          </>
+        )}
         <div className="btn-row">
           <Btn onClick={() => void copy()}>Copy save code</Btn>
         </div>

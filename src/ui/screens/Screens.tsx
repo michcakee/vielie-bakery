@@ -5,6 +5,7 @@ import { GOALS, LOCATIONS, LOCATION_ORDER, SCENARIOS, SCENARIO_ORDER } from '../
 import { DEFAULT_LOOK } from '../../engine/state';
 import type { LocationId, Look, ScenarioId } from '../../engine/types';
 import { money } from '../../lib/format';
+import { ON_ITCH } from '../../lib/host';
 import { play, startMusic } from '../audio';
 import { useGame } from '../GameContext';
 import { Btn } from '../kit';
@@ -200,7 +201,7 @@ export function Title({ onContinue, onNew }: { onContinue: () => void; onNew: ()
       </div>
       <footer className="title-foot">
         <span>v{APP_VERSION}</span>
-        <span className="title-foot-mid">{isNativeApp() ? 'Saves on this device. No account needed.' : 'Saves in your browser. No account needed. Works offline.'}</span>
+        <span className="title-foot-mid">{isNativeApp() ? 'Saves on this device. No account needed.' : ON_ITCH ? 'Saves in your browser. No account needed.' : 'Saves in your browser. No account needed. Works offline.'}</span>
         <span className="title-by">by mich! &lt;3</span>
       </footer>
       {fs.supported && (

@@ -12,6 +12,7 @@
     "balance": "vitest run tests/balance",
     "typecheck": "tsc --noEmit",
     "icons": "node scripts/make-icons.mjs",
+    "itch": "node scripts/itch.mjs",
     "mobile:sync": "npm run build && cap sync",
     "mobile:android": "npm run mobile:sync && cap open android",
     "mobile:ios": "npm run mobile:sync && cap open ios"

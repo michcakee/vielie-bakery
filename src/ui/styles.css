@@ -7008,7 +7008,11 @@ html[data-motion='reduced'] .menu-cursor {
   background: rgba(201, 179, 234, 0.18);
 }
 .get-diamonds p { margin: 0; }
-.free-diamonds { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.free-diamonds { display: flex; align-items: flex-start; gap: 6px; }
+.free-diamonds > span { min-width: 0; }
+/* Where a tray ends up: the glass case (pastries) or the bánh mì basket (baguettes). */
+.bake-where { font-weight: 700; color: var(--forest); }
+.bake-where.for-banh-mi { color: var(--ink-soft); }
 .diamond-packs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .diamond-pack {
   display: grid;

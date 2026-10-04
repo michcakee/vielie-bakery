@@ -266,7 +266,11 @@ function Game({ onQuit }: { onQuit: () => void }) {
     const missing: string[] = [];
     if (s.baguettes.qty === 0 && onMenu(s).some((p) => PRODUCTS[p].kind === 'sandwich')) missing.push('No baguettes, so no bánh mì today.');
     const trays = onMenu(s).filter((p) => PRODUCTS[p].kind === 'tray');
-    if (trays.length && trays.every((p) => s.display[p].qty === 0)) missing.push('The pastry case is empty.');
+    if (trays.length && trays.every((p) => s.display[p].qty === 0)) {
+      // Baguettes go in the basket for bánh mì, not in the case: say so, or "but I baked!" feels like a bug.
+      const names = trays.slice(0, 2).map((p) => PRODUCTS[p].name).join(' or ');
+      missing.push(s.baguettes.qty > 0 ? `The glass case is empty. Your baguettes are for making bánh mì; the case needs pastries. Bake ${names}.` : `The glass case is empty. Bake ${names} to fill it.`);
+    }
     if (missing.length) setOpenCheck(missing);
     else reallyOpen();
   };

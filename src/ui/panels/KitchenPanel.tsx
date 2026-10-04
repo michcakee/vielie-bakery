@@ -203,7 +203,10 @@ function OvenCard() {
                 <Sprite name="bell" scale={3} />
               </span>
               <Sprite name={result.item === 'baguette' ? (result.q >= 95 ? 'baguette:perfect' : 'baguette') : result.q >= 95 ? `${result.item}:perfect` : result.item} scale={3} />
-              <b>{result.q >= 95 ? 'Perfect bake!' : 'Ding! Out of the oven.'}</b>
+              {/* Say where it went: baguettes are for bánh mì, pastries fill the glass case. */}
+              <b>
+                {result.q >= 95 ? 'Perfect bake!' : 'Ding!'} {result.item === 'baguette' ? 'Baguettes ready for bánh mì.' : 'Into the glass case.'}
+              </b>
             </>
           )}
         </div>
@@ -232,6 +235,7 @@ function OvenCard() {
                     <span className="muted small">
                       Makes {inf.yield} · {money2(unit)} each · you have {have}
                     </span>
+                    <span className={`bake-where small ${item === 'baguette' ? 'for-banh-mi' : ''}`}>{item === 'baguette' ? 'For making bánh mì. Doesn’t go in the glass case.' : 'Pastry: goes in the glass case.'}</span>
                     {missing.length === 0 ? (
                       <span className="recipe-line small">
                         <Sprite name="check" scale={1} /> Made with {(Object.entries(inf.recipe) as [IngredientId, number][]).map(([id, n]) => `${INGREDIENTS[id].name.toLowerCase()} ×${n}`).join(', ')}: all in stock

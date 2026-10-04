@@ -43,7 +43,10 @@ export function readiness(s: GameState) {
   if (trays.length && left > 0) {
     const sold = (p: string) => s.history.slice(-7).reduce((t, h) => t + (h.sold[p as keyof typeof h.sold] ?? 0), 0);
     const best = [...trays].sort((a, b) => sold(b) - sold(a)).slice(0, 2);
-    warnings.push({ text: `Bake your ${left} tray${left === 1 ? '' : 's'}: start with ${best.map((p) => PRODUCTS[p].name).join(' and ')}.`, tab: 'kitchen', spot: `bake-${best[0]}` });
+    const names = best.map((p) => PRODUCTS[p].name).join(' and ');
+    // With nothing in the case, say so: baking baguettes alone doesn't fill it.
+    const caseEmpty = menu.every((p) => PRODUCTS[p].kind !== 'tray' || s.display[p].qty === 0);
+    warnings.push({ text: caseEmpty ? `The glass case is empty. Bake pastries to fill it: ${names}.` : `Bake your ${left} tray${left === 1 ? '' : 's'}: start with ${names}.`, tab: 'kitchen', spot: `bake-${best[0]}` });
   }
   const toRent = daysToMonthStart(s.day);
   if (toRent > 0 && toRent <= 5) warnings.push({ text: `Rent day in ${toRent} day${toRent === 1 ? '' : 's'}: about ${money(rent(s) * 30)} for the month.${s.cash < rent(s) * 30 ? ' Save up!' : ' You have enough.'}`, tab: 'today' });

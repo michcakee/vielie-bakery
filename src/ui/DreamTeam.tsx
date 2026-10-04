@@ -98,7 +98,10 @@ function GetDiamonds() {
   return (
     <section className="get-diamonds" aria-label="Get diamonds">
       <p className="small free-diamonds">
-        <Sprite name="star" scale={2} /> <b>Free:</b> every 3-star day pays <b>{DIAMOND.perThreeStarDay} diamonds</b>.{(s.diamondsEarned ?? 0) > 0 && ` This bakery has earned ${s.diamondsEarned} so far.`}
+        <Sprite name="star" scale={2} />
+        <span>
+          <b>Free:</b> every 3-star day pays <b>{DIAMOND.perThreeStarDay} diamonds</b>.{(s.diamondsEarned ?? 0) > 0 && ` This bakery has earned ${s.diamondsEarned} so far.`}
+        </span>
       </p>
       {store ? (
         <>

@@ -44,6 +44,7 @@ import {
 import { EVENTS, eventFor, refreshKinds, visibleChoices } from './events';
 import { pickChallenge, settleChallenge } from './challenge';
 import { allowedLook, allowedStyle, COSMETICS, owns, STAR_CASH, starsToSpend, STYLE_COUNTS } from '../data/cosmetics';
+import { clampPlace, DECO_SETS, DECOS, RENOVATIONS, type DecoId } from '../data/shopfit';
 import { arcDayEnd } from './arc';
 import { bondCapacity, borrowingLimit, creditLimit, creditLineRate, investorTerms, makeLoan, quoteLoan, valuation } from './finance';
 import { suggestedTrays, forecast, ingredientsNeeded } from './forecast';
@@ -330,8 +331,10 @@ export type Action =
   | { type: 'buyUpgrade'; id: UpgradeId }
   | { type: 'sellEquipment'; uid: number }
   | { type: 'buyDecor'; id: DecorId }
-  | { type: 'setStyle'; key: 'wall' | 'pattern' | 'floor' | 'counter'; value: number }
+  | { type: 'setStyle'; key: 'wall' | 'pattern' | 'floor' | 'counter' | 'garland' | 'awning' | 'sign' | 'uniform'; value: number }
   | { type: 'moveDecor'; id: DecorId }
+  | { type: 'placeDecor'; id: string; x: number; y: number }
+  | { type: 'renovate' }
   | { type: 'setPackaging'; packaging: PackagingId }
   | { type: 'hire'; applicantId: number; branch?: number | null }
   | { type: 'fire'; id: number }
@@ -1126,6 +1129,12 @@ function reduce(s: GameState, a: Action): GameState {
       const c = COSMETICS.find((x) => x.id === a.id);
       if (!c || owns(s, c.id) || starsToSpend(s) < c.cost) return s;
       const next = { ...s, cosmetics: [...(s.cosmetics ?? []), c.id], questProgress: { ...s.questProgress, starsSpent: (s.questProgress.starsSpent ?? 0) + c.cost } };
+      if (c.kind === 'deco') {
+        const set = DECO_SETS.find((x) => x.items.includes(c.id as DecoId));
+        const full = set && set.items.every((id) => owns(next, id));
+        const where = DECOS[c.id as DecoId].kind === 'garland' ? 'Hang it from Paint, under the shop picture.' : DECOS[c.id as DecoId].kind === 'floor' ? 'It’s in the shop: open Paint and drag it wherever you like.' : 'It’s already in the shop.';
+        return toast(next, 'unlock', full ? `Set complete: ${set!.name}!` : `Unlocked: ${c.name}!`, where);
+      }
       return toast(next, 'unlock', `Unlocked: ${c.name}!`, c.kind === 'hair' || c.kind === 'accessory' ? 'Change your look any time from the star shop.' : 'Choose it in Paint, under the shop picture.');
     }
     case 'rename':
@@ -1323,7 +1332,25 @@ function reduce(s: GameState, a: Action): GameState {
       const taken = other && s.decor.includes(other) ? decorSpot(style, other) : -1;
       let spot = (decorSpot(style, a.id) + 1) % 3;
       if (spot === taken) spot = (spot + 1) % 3;
-      return { ...s, style: { ...style, spots: { ...style.spots, [a.id]: spot } } };
+      const pos = { ...(style.pos ?? {}) };
+      delete pos[a.id];
+      return { ...s, style: { ...style, spots: { ...style.spots, [a.id]: spot }, pos } };
+    }
+    case 'placeDecor': {
+      // Drag a floor piece anywhere on the floor (it stays out from behind the counter).
+      const usable = a.id === 'plant' || a.id === 'hoaMai' ? s.decor.includes(a.id) || (a.id === 'hoaMai' && isTetDay(s.day)) : DECOS[a.id as DecoId]?.kind === 'floor' && owns(s, a.id);
+      if (!usable || !Number.isFinite(a.x) || !Number.isFinite(a.y)) return s;
+      const style = s.style ?? DEFAULT_STYLE;
+      return { ...s, style: { ...style, pos: { ...(style.pos ?? {}), [a.id]: clampPlace(a.id, a.x, a.y) } } };
+    }
+    case 'renovate': {
+      const tier = s.shopTier ?? 0;
+      const r = RENOVATIONS[tier + 1];
+      if (!r || !canShop(s) || levelOf(s.xp) < r.level || s.cash < r.cost) return s;
+      let next = spend(s, r.cost) ?? s;
+      if (next === s) return s;
+      next = { ...next, shopTier: r.tier, reputation: bump(next.reputation, r.rep) };
+      return checkProgress(toast(next, 'unlock', `Renovated: ${r.name}!`, `${r.blurb} ${r.perk}.`));
     }
     case 'buyDecor': {
       const def = DECOR[a.id];

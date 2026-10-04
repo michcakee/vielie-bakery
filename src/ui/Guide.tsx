@@ -1,3 +1,4 @@
+import { Speaker } from './Speaker';
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useState, type ReactNode } from 'react';
 import { FEATURES, FEATURE, type TabId } from '../data/unlocks';
 import { introStep } from '../engine/unlocks';
@@ -222,7 +223,7 @@ export function IntroCard() {
   return (
     <section className="tutorial-bar lesson-card" aria-label={`Today's lesson: ${f.name}`} data-spot="intro-card">
       <div className="tut-head">
-        <Sprite name="book" scale={3} />
+        <Speaker who={f.intro.who} />
         <div>
           <span className="tut-count">
             Today’s lesson · Lesson {lesson} · from {f.intro.who}

@@ -2,6 +2,7 @@ import { dreamOf } from '../data/dream';
 import { BAGUETTE, DECOR, INGREDIENTS, LEVELS, LOYALTY, PACKAGING, PRODUCTS, PRODUCT_ORDER, SUPPLIERS, UPGRADES, WEATHER } from '../data/catalog';
 import { DIFFICULTY, ECON } from '../data/config';
 import { LOCATIONS, SEGMENTS, SEGMENT_ORDER } from '../data/world';
+import { RENOVATIONS } from '../data/shopfit';
 import { dateOf, festivalsOn, giftSeason, isTetDay, mooncakeSeason } from './calendar';
 import { priceSensitivity, spendingFactor, trafficFactor } from './macro';
 import { gaussian, mulberry32 } from './rng';
@@ -524,6 +525,7 @@ export function expectedWalkIns(s: GameState): number {
   n *= momentum(s);
   if (has(s, 'corner')) n *= 1.2;
   if (has(s, 'loft')) n *= 1.25;
+  n *= 1 + (RENOVATIONS[s.shopTier ?? 0]?.walkIns ?? 0);
   if (has(s, 'website')) n *= 1.08;
   if (s.decor.includes('stools')) n *= 1.03;
   if (s.decor.includes('sign')) n *= 1.04;

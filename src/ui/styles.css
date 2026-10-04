@@ -7134,3 +7134,136 @@ html[data-motion='reduced'] .menu-cursor {
   border: 2px dashed var(--ink-soft);
   border-radius: 8px;
 }
+
+/* ---------- dressing the shop: renovations, garlands, drag-and-drop, the shop front ---------- */
+.stage .piece {
+  line-height: 0;
+}
+.stage .piece.draggable {
+  cursor: grab;
+  touch-action: none;
+  outline: 1px dashed rgba(62, 74, 54, 0.55);
+  outline-offset: 1px;
+}
+.stage .piece.dragging {
+  cursor: grabbing;
+  outline-style: solid;
+  filter: drop-shadow(0 2px 0 rgba(62, 74, 54, 0.35));
+}
+.renovate {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  background: var(--butter);
+  border: 3px solid var(--ink);
+  border-radius: var(--r);
+}
+.reno-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+.reno-steps {
+  display: flex;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.reno-steps li {
+  width: 18px;
+  height: 8px;
+  border: 2px solid var(--ink);
+  border-radius: 3px;
+  background: var(--cream);
+}
+.reno-steps li.done {
+  background: var(--forest);
+}
+.reno-next {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+.reno-next > div {
+  display: grid;
+  gap: 2px;
+  flex: 1 1 220px;
+  min-width: 0;
+}
+.front-preview {
+  max-width: 360px;
+  margin-bottom: 8px;
+  border: 3px solid var(--ink);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.garland-swatch.g-bunting { background: repeating-linear-gradient(90deg, #efb6a0 0 6px, #eee3a8 6px 12px, #9dbf78 12px 18px, #b8cfd6 18px 24px) !important; }
+.garland-swatch.g-silkLanterns { background: radial-gradient(circle, #d0634f 3px, transparent 3.5px) 0 0 / 10px 10px, radial-gradient(circle, #f4dc8c 3px, #f7efd8 3.5px) 5px 0 / 10px 10px !important; }
+.garland-swatch.g-flowerGarland { background: radial-gradient(circle, #efb6a0 2px, transparent 2.5px) 0 0 / 8px 8px, linear-gradient(#f7efd8 45%, #4f7d46 45% 55%, #f7efd8 55%) !important; }
+.garland-swatch.g-tetBanner { background: linear-gradient(#e3b23c 0 15%, #b8433a 15% 85%, #e3b23c 85%) !important; }
+.garland-swatch.g-neonStrip { background: linear-gradient(90deg, #f48fbf 0 50%, #8fd8f0 50%) !important; box-shadow: 0 0 6px #f48fbf; }
+.deco-set {
+  margin: 10px 0 14px;
+}
+.deco-set h3 {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  margin: 0 0 6px;
+}
+.deco-set.complete h3 {
+  color: var(--forest);
+}
+.deco-preview {
+  image-rendering: pixelated;
+}
+
+/* ---------- who's talking: Bà (or a neighbour) with a speech bubble ---------- */
+.speaker {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 58px;
+  height: 58px;
+  overflow: hidden;
+  background: var(--cream);
+  border: 3px solid var(--ink);
+  border-radius: 50%;
+}
+.speaker {
+  position: relative;
+}
+.speaker > * {
+  position: absolute;
+  left: 50%;
+  top: 6px;
+  transform: translateX(-50%);
+}
+.tut-text.speech,
+.lesson-card .lesson-line {
+  position: relative;
+  margin-top: 6px;
+  padding: 8px 10px;
+  background: #fffaf0;
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+}
+.tut-text.speech::before,
+.lesson-card .lesson-line::before {
+  /* the bubble's tail points up at whoever is talking */
+  content: '';
+  position: absolute;
+  left: 10px;
+  top: -9px;
+  border: 8px solid transparent;
+  border-bottom-color: var(--ink);
+  border-top: 0;
+}
+.lesson-card .lesson-en {
+  margin-left: 4px;
+}

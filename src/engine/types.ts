@@ -150,6 +150,13 @@ export interface ShopStyle {
   counter: number;
   /** Which spot each movable decoration sits in. */
   spots: Partial<Record<DecorId, number>>;
+  /** Where you dragged each floor piece (stage px, top-left). Overrides `spots`. */
+  pos?: Record<string, { x: number; y: number }>;
+  /** Indexes into GARLANDS, AWNINGS, SIGNS and UNIFORMS (data/shopfit.ts). */
+  garland?: number;
+  awning?: number;
+  sign?: number;
+  uniform?: number;
 }
 
 export interface StoryState {
@@ -690,6 +697,8 @@ export interface GameState {
   cosmetics?: string[];
   /** Paint and furniture placement chosen by the player. */
   style?: ShopStyle;
+  /** Renovation level, 0 to 4 (data/shopfit.ts). */
+  shopTier?: number;
   /** The Lantern Festival story. Missing until it starts. */
   story?: StoryState;
   /** Today's small task. */

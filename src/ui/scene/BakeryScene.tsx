@@ -6,6 +6,10 @@ import type { GameState, Look, Mood, ProductId, RoleId, TraitId, Visit } from '.
 import { TRAITS } from '../../data/world';
 import { useGame } from '../GameContext';
 import { decorSpot } from '../../engine/state';
+import { giftSeason, mooncakeSeason } from '../../engine/calendar';
+import { owns } from '../../data/cosmetics';
+import { clampPlace, DECOS, DEFAULT_POS, GARLANDS, PLACE_SIZE, UNIFORMS } from '../../data/shopfit';
+import { DRAW_DECO } from '../pixel/decor';
 import { CAGE_SPOTS, drawCounter, drawFront, drawRoom, drawWindowFront, FLOOR_SPOTS, LAMP_GLOW_Y, LAMPS_X, LAYOUT, seats, STAGE_H, STAGE_W, type Light, type SceneOpts } from '../pixel/scene';
 import { PERSON_H } from '../pixel/render';
 import { Person, Sprite } from '../pixel/Sprite';
@@ -168,6 +172,61 @@ function useStageScale(ref: React.RefObject<HTMLDivElement>): { scale: number; f
   return fit;
 }
 
+/** A star-shop floor piece, drawn once into its own little canvas. */
+function DecoPiece({ id }: { id: string }) {
+  const ref = useRef<HTMLCanvasElement>(null);
+  const size = PLACE_SIZE[id];
+  useEffect(() => {
+    const ctx = ref.current?.getContext('2d');
+    if (!ctx) return;
+    ctx.imageSmoothingEnabled = false;
+    ctx.clearRect(0, 0, size.w, size.h);
+    DRAW_DECO[id]?.(ctx);
+  }, [id, size.w, size.h]);
+  return <canvas ref={ref} width={size.w} height={size.h} style={{ width: size.w, height: size.h, display: 'block' }} />;
+}
+
+export interface Piece {
+  id: string;
+  x: number;
+  y: number;
+}
+
+/** Where new floor pieces go first: along the walls, clear of the counter, the queue, the door and the tables. */
+const START_SPOTS = [
+  { x: 8, y: 74 },
+  { x: 8, y: 112 },
+  { x: 214, y: 82 },
+  { x: 28, y: 52 },
+  { x: 172, y: 138 },
+  { x: 30, y: 96 },
+  { x: 8, y: 50 },
+  { x: 120, y: 102 },
+  { x: 96, y: 102 },
+  { x: 30, y: 118 },
+  { x: 54, y: 102 },
+];
+
+/** Everything on the floor that can be dragged around: the plant, the hoa mai and star-shop pieces. */
+export function floorPieces(s: GameState): Piece[] {
+  const pos = s.style?.pos ?? {};
+  const tet = isTet(s.day);
+  const plantSpot = decorSpot(s.style, 'plant');
+  // During Tết the hoa mai is out for everyone; it takes a spot the plant isn't using.
+  const maiSpot = s.decor.includes('hoaMai') ? decorSpot(s.style, 'hoaMai') : [2, 1, 0].find((i) => !s.decor.includes('plant') || i !== plantSpot)!;
+  const out: Piece[] = [];
+  if (s.decor.includes('plant')) out.push({ id: 'plant', ...(pos.plant ?? FLOOR_SPOTS[plantSpot]) });
+  if (s.decor.includes('hoaMai') || tet) out.push({ id: 'hoaMai', ...(pos.hoaMai ?? FLOOR_SPOTS[maiSpot]) });
+  // Pieces you haven't moved yet take the first free spot, so new ones never pile up on each other.
+  const free = (x: number, y: number) => out.every((p) => Math.abs(p.x - x) > 12 || Math.abs(p.y - y) > 14);
+  for (const d of Object.values(DECOS)) {
+    if (d.kind !== 'floor' || !owns(s, d.id)) continue;
+    const at = pos[d.id] ?? START_SPOTS.map((p) => clampPlace(d.id, p.x, p.y)).find((p) => free(p.x, p.y)) ?? DEFAULT_POS[d.id];
+    out.push({ id: d.id, ...at });
+  }
+  return out;
+}
+
 /** Bà's look: grey bun, glasses, green apron. */
 export const BA_LOOK: Look = { skin: 1, hair: 1, hairColor: 6, shirt: 5, apron: 0, accessory: 1 };
 
@@ -225,7 +284,9 @@ function workersOnShift(s: GameState): Worker[] {
       const id = `staff:${e.id}`;
       // two workers with the same job stand side by side
       const twin = s.staff.filter((x) => x.branch === null && x.role === e.role).findIndex((x) => x.id === e.id);
-      return { id, role: e.role, trait: e.trait, look: e.look, name: e.name, home: { ...home, x: home.x - twin * 18, feet: home.feet + (twin % 2) * 3 }, serving: visitOf(id), busyUntil: slot(id)?.busyUntil ?? 0 };
+      const apron = UNIFORMS[s.style?.uniform ?? 0]?.apron ?? -1;
+      const look = apron >= 0 && !e.dream ? { ...e.look, apron } : e.look;
+      return { id, role: e.role, trait: e.trait, look, name: e.name, home: { ...home, x: home.x - twin * 18, feet: home.feet + (twin % 2) * 3 }, serving: visitOf(id), busyUntil: slot(id)?.busyUntil ?? 0 };
     });
   // "Bà, help!" (the owner slot) and Bà handing out pastries are the same Bà on screen.
   const ba = slot('owner') ?? slot('ba');
@@ -318,10 +379,12 @@ interface Props {
   onCustomer?: (v: Visit) => void;
   baking?: boolean;
   caption?: React.ReactNode;
+  /** Paint and arrange: floor pieces can be dragged. */
+  arrange?: boolean;
 }
 
-export function BakeryScene({ onCustomer, baking = false, caption }: Props) {
-  const { state: s, reduced } = useGame();
+export function BakeryScene({ onCustomer, baking = false, caption, arrange = false }: Props) {
+  const { state: s, dispatch, reduced } = useGame();
   const wrap = useRef<HTMLDivElement>(null);
   const roomRef = useRef<HTMLCanvasElement>(null);
   const counterRef = useRef<HTMLCanvasElement>(null);
@@ -330,10 +393,44 @@ export function BakeryScene({ onCustomer, baking = false, caption }: Props) {
   const { scale, fill } = useStageScale(wrap);
   const light = sceneLight(s);
   const tet = isTet(s.day);
+  const season = giftSeason(s.day) ? 'tet' : mooncakeSeason(s.day) ? 'trungThu' : null;
+  const tier = s.shopTier ?? 0;
   const opts: SceneOpts = useMemo(
-    () => ({ weather: s.market.weather, light, decor: s.decor, upgrades: s.upgrades, tet, competitor: competitorOpen(s.day), style: s.style, prize: s.decor.includes('trophy') ? (s.story?.result ?? 'second') : undefined }),
-    [s.market.weather, light, s.decor, s.upgrades, tet, s.day, s.style, s.story?.result],
+    () => ({
+      weather: s.market.weather,
+      light,
+      decor: s.decor,
+      upgrades: s.upgrades,
+      tet,
+      competitor: competitorOpen(s.day),
+      style: s.style,
+      prize: s.decor.includes('trophy') ? (s.story?.result ?? 'second') : undefined,
+      tier,
+      garland: GARLANDS[s.style?.garland ?? 0] ?? 'bunting',
+      decos: s.cosmetics,
+      season,
+    }),
+    [s.market.weather, light, s.decor, s.upgrades, tet, s.day, s.style, s.story?.result, tier, s.cosmetics, season],
   );
+  // Dragging a floor piece: where it is right now, before it's dropped.
+  const [drag, setDrag] = useState<{ id: string; x: number; y: number; px: number; py: number; sx: number; sy: number } | null>(null);
+  const pieces = floorPieces(s).map((p) => (drag && drag.id === p.id ? { ...p, x: drag.x, y: drag.y } : p));
+  const startDrag = (e: React.PointerEvent, p: Piece) => {
+    if (!arrange) return;
+    e.preventDefault();
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    setDrag({ id: p.id, x: p.x, y: p.y, px: e.clientX, py: e.clientY, sx: p.x, sy: p.y });
+  };
+  const moveDrag = (e: React.PointerEvent) => {
+    if (!drag) return;
+    const at = clampPlace(drag.id, drag.sx + (e.clientX - drag.px) / scale, drag.sy + (e.clientY - drag.py) / scale);
+    setDrag({ ...drag, ...at });
+  };
+  const endDrag = () => {
+    if (!drag) return;
+    dispatch({ type: 'placeDecor', id: drag.id, x: drag.x, y: drag.y });
+    setDrag(null);
+  };
 
   useEffect(() => {
     const layers: [React.RefObject<HTMLCanvasElement>, (ctx: CanvasRenderingContext2D, o: SceneOpts) => void][] = [
@@ -364,9 +461,6 @@ export function BakeryScene({ onCustomer, baking = false, caption }: Props) {
   const rainy = s.market.weather === 'rainy';
   const chat = open && !reduced ? staffChat(s) : null;
   const diverted = s.service?.visits.filter((v) => v.divertedTo && v.status === 'done' && clock - (v.doneAt ?? 0) < 25) ?? [];
-  const plantSpot = decorSpot(s.style, 'plant');
-  // During Tết the hoa mai is out for everyone; it takes a spot the plant isn't using.
-  const maiSpot = s.decor.includes('hoaMai') ? decorSpot(s.style, 'hoaMai') : [2, 1, 0].find((i) => !s.decor.includes('plant') || i !== plantSpot)!;
   const sayAt = (x: number) => Math.max(84, Math.min(STAGE_W * scale - 84, (x + 8) * scale));
 
   const customer = ({ v, x, y, back, walking, leaving, seated, sat }: Placed) => {
@@ -469,17 +563,26 @@ export function BakeryScene({ onCustomer, baking = false, caption }: Props) {
           </div>
         )}
 
-        {/* plants on the floor, behind anyone who walks past */}
-        {s.decor.includes('plant') && (
-          <div className="sway slow" style={{ left: FLOOR_SPOTS[plantSpot].x, top: FLOOR_SPOTS[plantSpot].y }}>
-            <Sprite name="plant" scale={1} />
+        {/* things on the floor, behind anyone who walks past (in Paint they can be dragged) */}
+        {pieces.map((p) => (
+          <div
+            key={p.id}
+            className={`piece ${p.id === 'plant' || p.id === 'hoaMai' ? 'sway slow' : ''} ${arrange ? 'draggable' : ''} ${drag?.id === p.id ? 'dragging' : ''}`}
+            style={{ left: p.x, top: p.y, zIndex: arrange ? 50 + p.y : undefined }}
+            onPointerDown={(e) => startDrag(e, p)}
+            onPointerMove={moveDrag}
+            onPointerUp={endDrag}
+            onPointerCancel={endDrag}
+          >
+            {p.id === 'plant' || p.id === 'hoaMai' ? <Sprite name={p.id} scale={1} /> : <DecoPiece id={p.id} />}
           </div>
-        )}
-        {(s.decor.includes('hoaMai') || tet) && (
-          <div className="sway slow" style={{ left: FLOOR_SPOTS[maiSpot].x, top: FLOOR_SPOTS[maiSpot].y }}>
-            <Sprite name="hoaMai" scale={1} />
-          </div>
-        )}
+        ))}
+        {tier >= 4 &&
+          [70, 122, 174].map((x, i) => (
+            <div key={`bal${x}`} className="sway" style={{ left: x, top: 4, animationDelay: `${i * 0.5}s` }}>
+              <Sprite name={i === 1 ? 'lanternY' : 'lantern'} scale={1} />
+            </div>
+          ))}
 
         {/* staff stand behind the counter, so the counter is drawn over their legs */}
         <div className="plane">
@@ -536,7 +639,7 @@ export function BakeryScene({ onCustomer, baking = false, caption }: Props) {
           </div>
         )}
         <div className="board" style={{ left: (LAYOUT.board.x + 2) * scale, top: (LAYOUT.board.y + 1) * scale, width: (LAYOUT.board.w - 4) * scale, height: (LAYOUT.board.h - 2) * scale, fontSize: boardFont }}>
-          <div className="board-title">{tet ? 'Happy New Year!' : 'Menu'}</div>
+          <div className="board-title">{tet ? 'Happy New Year!' : season === 'trungThu' ? 'Mid-Autumn!' : 'Menu'}</div>
           {menu.slice(0, boardRows).map((p) => (
             <div key={p} className="board-row">
               <span>{BOARD_NAMES[p]}</span>

@@ -1,4 +1,5 @@
 import type { DecorId, ShopStyle, UpgradeId, Weather } from '../../engine/types';
+import { cementTile, drawGarland } from './decor';
 import { PAL } from './palette';
 
 /**
@@ -55,6 +56,14 @@ export interface SceneOpts {
   style?: ShopStyle;
   /** The Lantern Festival prize, on the back counter. */
   prize?: 'won' | 'second';
+  /** Renovation level, 0 to 4. */
+  tier?: number;
+  /** What hangs along the top of the back wall. */
+  garland?: string;
+  /** Star-shop pieces with a fixed spot (the wall clock, the moto outside). */
+  decos?: string[];
+  /** Seasonal dressing: Tết or the Mid-Autumn festival. */
+  season?: 'tet' | 'trungThu' | null;
 }
 
 /** Paint and floor choices. Index 0 of each list is how the shop starts. */
@@ -309,6 +318,16 @@ export function drawStreet(ctx: CanvasRenderingContext2D, o: SceneOpts) {
   rect(ctx, ix, iy + 17, iw, 2, '#e2d6b4');
   rect(ctx, ix, iy + 19, iw, ih - 19, night ? '#3e4a36' : '#6b7560');
   for (let i = 1; i < iw; i += 8) rect(ctx, ix + i, iy + 22, 4, 1, '#f2e2bd');
+  if (o.decos?.includes('parkedMoto')) {
+    // your red moto, parked on the pavement
+    const mx = ix + 14;
+    const my = iy + 13;
+    rect(ctx, mx + 1, my + 3, 9, 2, '#d0634f');
+    rect(ctx, mx + 3, my + 2, 5, 1, '#d0634f');
+    rect(ctx, mx + 4, my + 1, 3, 1, '#f4dc8c');
+    rect(ctx, mx + 9, my + 1, 1, 2, PAL.ink);
+    for (const wx of [mx, mx + 8]) box(ctx, wx, my + 4, 4, 4, '#cfd6c4');
+  }
   if (o.decor.includes('bike')) {
     box(ctx, ix + 31, iy + 14, 4, 4, C.cream);
     box(ctx, ix + 37, iy + 14, 4, 4, C.cream);
@@ -342,6 +361,12 @@ export function drawRoom(ctx: CanvasRenderingContext2D, o: SceneOpts) {
   rect(ctx, L.door.x, L.bottomY, L.door.w, STAGE_H - L.bottomY, '#dcae74');
   for (let x = L.door.x + 6; x < L.door.x + L.door.w; x += 8) rect(ctx, x, L.bottomY, 1, STAGE_H - L.bottomY, '#b98352');
   catMat(ctx, L.door.x - 1, 143);
+  if ((o.tier ?? 0) >= 3) {
+    // a carpet of gạch bông tiles where people walk to the tables
+    for (let y = 102; y < 126; y += 8) for (let x = 52; x < 124; x += 8) cementTile(ctx, x, y, 8, ((x - 52) / 8 + (y - 102) / 8) % 2);
+    rect(ctx, 51, 101, 74, 1, C.woodDeep);
+    rect(ctx, 51, 126, 74, 1, C.woodDeep);
+  }
   if (owns('rug')) {
     rect(ctx, 134, 108, 96, 16, '#e7c58d');
     for (let x = 137; x < 228; x += 6) rect(ctx, x, 111, 3, 10, '#c98a5a');
@@ -360,6 +385,22 @@ export function drawRoom(ctx: CanvasRenderingContext2D, o: SceneOpts) {
   if (pattern === 0) for (let x = 7; x < STAGE_W - 6; x += 6) rect(ctx, x, 4, 2, 35, wall.accent);
   if (pattern === 2) for (let y = 7, r = 0; y < 37; y += 6, r++) for (let x = 8 + (r % 2 ? 4 : 0); x < STAGE_W - 6; x += 8) rect(ctx, x, y, 2, 2, wall.accent);
   if (pattern === 3) for (let y = 4, r = 0; y < 39; y += 7, r++) for (let x = 6 + (r % 2) * 7; x < STAGE_W - 6; x += 14) rect(ctx, x, y, 7, Math.min(7, 39 - y), wall.accent);
+  const tier = o.tier ?? 0;
+  if (tier >= 3) {
+    // gạch bông: patterned cement tiles along the lower wall
+    for (let x = 6; x < STAGE_W - 6; x += 6) cementTile(ctx, x, 27, 6, (x / 6) % 2);
+    rect(ctx, 6, 26, STAGE_W - 12, 1, C.woodDeep);
+  } else if (tier >= 1) {
+    // wood panelling along the lower wall
+    rect(ctx, 6, 27, STAGE_W - 12, 12, C.woodPale);
+    rect(ctx, 6, 26, STAGE_W - 12, 1, C.woodDeep);
+    rect(ctx, 6, 27, STAGE_W - 12, 1, '#f3dcb3');
+    for (let x = 10; x < STAGE_W - 10; x += 12) {
+      rect(ctx, x, 29, 9, 8, C.woodLight);
+      rect(ctx, x, 29, 9, 1, C.woodDark);
+      rect(ctx, x, 29, 1, 8, C.woodDark);
+    }
+  }
   rect(ctx, 0, 39, STAGE_W, 3, C.base);
   rect(ctx, 0, 39, STAGE_W, 1, C.baseLine);
   rect(ctx, 0, L.floorY, STAGE_W, 2, 'rgba(62,74,54,0.10)');
@@ -372,20 +413,19 @@ export function drawRoom(ctx: CanvasRenderingContext2D, o: SceneOpts) {
   rect(ctx, STAGE_W - 2, 0, 1, STAGE_H, C.wallCapHi);
   rect(ctx, 5, 4, 1, STAGE_H - 4, C.wallEdge);
   rect(ctx, STAGE_W - 6, 4, 1, STAGE_H - 4, C.wallEdge);
-  if (has('loft')) {
+  if ((o.tier ?? 0) >= 4) {
+    // the lantern balcony: a carved wooden rail with gold trim across the top of the room
+    rect(ctx, 6, 0, STAGE_W - 12, 5, C.woodDark);
+    rect(ctx, 6, 0, STAGE_W - 12, 1, '#e3b23c');
+    rect(ctx, 6, 4, STAGE_W - 12, 1, '#e3b23c');
+    for (let x = 8; x < STAGE_W - 8; x += 4) rect(ctx, x, 1, 2, 3, C.woodLight);
+  } else if (has('loft')) {
     rect(ctx, 6, 0, STAGE_W - 12, 4, C.wood);
     for (let x = 8; x < STAGE_W - 8; x += 5) rect(ctx, x, 1, 1, 3, C.woodDeep);
   }
 
-  // bunting strung along the top of the wall (the bookcase, board and oven hang in front of it)
-  const flags = ['#efb6a0', '#eee3a8', '#9dbf78', '#b8cfd6', '#d97a62'];
-  for (let x = 8, i = 0; x < STAGE_W - 12; x += 7, i++) {
-    const sag = Math.round(1.5 * Math.sin((i / 4) * Math.PI) ** 2);
-    rect(ctx, x, 6 + sag, 7, 1, C.woodDeep);
-    rect(ctx, x + 1, 7 + sag, 5, 1, flags[i % flags.length]);
-    rect(ctx, x + 2, 8 + sag, 3, 1, flags[i % flags.length]);
-    rect(ctx, x + 3, 9 + sag, 1, 1, flags[i % flags.length]);
-  }
+  // a garland strung along the top of the wall (the bookcase, board and oven hang in front of it)
+  drawGarland(ctx, o.season === 'trungThu' ? 'starLanterns' : o.season === 'tet' && (o.garland ?? 'bunting') === 'bunting' ? 'tetBanner' : (o.garland ?? 'bunting'), STAGE_W);
 
   // window: the frame's backing and the street outside (the frame, sill and plants go on the front layer)
   const W = L.window;
@@ -541,14 +581,38 @@ export function drawRoom(ctx: CanvasRenderingContext2D, o: SceneOpts) {
   rect(ctx, O.x + 5, O.y + 37, O.w - 10, 1, PAL.ink);
   for (let i = 0; i < 3; i++) box(ctx, O.x + 8 + i * 9, O.y + 40, 5, 4, C.cream);
 
-  // pendant lamps, hanging in front of the wall
+  // pendant lamps, hanging in front of the wall (brass after the first renovation)
   for (const lx of LAMPS_X) {
     rect(ctx, lx + 4, 4, 1, 3, PAL.ink);
-    rect(ctx, lx, 7, 9, 1, PAL.ink);
-    rect(ctx, lx - 1, 8, 11, 3, C.lamp);
-    rect(ctx, lx - 1, 11, 11, 1, PAL.ink);
+    rect(ctx, lx, 7, 9, 1, tier >= 1 ? '#a87545' : PAL.ink);
+    rect(ctx, lx - 1, 8, 11, 3, tier >= 1 ? '#e3b23c' : C.lamp);
+    rect(ctx, lx - 1, 11, 11, 1, tier >= 1 ? '#a87545' : PAL.ink);
     rect(ctx, lx + 3, 12, 3, 1, '#fff7d6');
   }
+  if (o.decos?.includes('wallClock')) {
+    // a round clock between the bookcase and the menu
+    ctx.fillStyle = PAL.ink;
+    ctx.beginPath();
+    ctx.arc(89.5, 20.5, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = C.cream;
+    ctx.beginPath();
+    ctx.arc(89.5, 20.5, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+    rect(ctx, 89, 18, 1, 3, PAL.ink);
+    rect(ctx, 89, 20, 2, 1, PAL.ink);
+  }
+  if (tier >= 2)
+    // hanging plants in woven baskets
+    for (const hx of [146, 186]) {
+      rect(ctx, hx + 3, 2, 1, 5, C.woodDeep);
+      rect(ctx, hx, 7, 7, 4, '#c9955f');
+      rect(ctx, hx, 10, 7, 1, C.woodDeep);
+      rect(ctx, hx - 1, 5, 9, 2, C.leaf);
+      rect(ctx, hx - 1, 7, 2, 6, C.leafDark);
+      rect(ctx, hx + 6, 7, 2, 5, C.leaf);
+      rect(ctx, hx + 2, 4, 3, 1, C.leafDark);
+    }
 
   // a bench under the window, the compost bin, and the cat
   if (owns('stools')) {
@@ -624,6 +688,11 @@ export function drawCounter(ctx: CanvasRenderingContext2D, o: SceneOpts) {
     rect(ctx, x, K.y + 14, 12, 1, 'rgba(62,74,54,0.2)');
     rect(ctx, x, K.y + 14, 1, 12, 'rgba(62,74,54,0.2)');
     rect(ctx, x + 5, K.y + 19, 2, 2, counter.top);
+  }
+  if ((o.tier ?? 0) >= 3) for (let x = 133; x + 6 <= K.x + K.w - 2; x += 6) cementTile(ctx, x, K.y + 22, 6, (x / 6) % 2);
+  if ((o.tier ?? 0) >= 4) {
+    rect(ctx, K.x, K.y, K.w, 1, '#e3b23c');
+    rect(ctx, K.x, K.y + 10, K.w, 1, '#e3b23c');
   }
   rect(ctx, K.x, K.y + 29, K.w, 1, C.woodDeep);
   rect(ctx, K.x, K.y, 1, 30, C.woodDeep);

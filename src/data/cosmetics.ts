@@ -1,15 +1,16 @@
 import type { GameState, Look, ShopStyle } from '../engine/types';
+import { DECOS, GARLANDS } from './shopfit';
 
 /**
  * The star shop: every star from a day's goal is also a coin to spend here, on looks for you and
  * the shop. Everything is cosmetic, so stars never buy an advantage.
  */
-export type CosmeticKind = 'hair' | 'accessory' | 'wall' | 'floor' | 'counter';
+export type CosmeticKind = 'hair' | 'accessory' | 'wall' | 'floor' | 'counter' | 'deco';
 
 export interface CosmeticDef {
   id: string;
   kind: CosmeticKind;
-  /** Index in that list (HAIR_STYLES, ACCESSORY_NAMES, WALLS, FLOORS, COUNTERS). */
+  /** Index in that list (HAIR_STYLES, ACCESSORY_NAMES, WALLS, FLOORS, COUNTERS); 0 for decorations. */
   index: number;
   name: string;
   cost: number;
@@ -36,10 +37,12 @@ export const COSMETICS: CosmeticDef[] = [
   { id: 'duskWalls', kind: 'wall', index: 9, name: 'Dusk walls', cost: 50 },
   { id: 'honeyWood', kind: 'floor', index: 7, name: 'Honey wood floor', cost: 60 },
   { id: 'lavenderCounter', kind: 'counter', index: 7, name: 'Lavender counter', cost: 75 },
+  // Decorations in themed sets (data/shopfit.ts): the id is the decoration's own.
+  ...Object.values(DECOS).map((d): CosmeticDef => ({ id: d.id, kind: 'deco', index: 0, name: d.name, cost: d.cost })),
 ];
 
 /** How many choices each paint list has (the lists themselves are drawn in ui/pixel/scene.ts). */
-export const STYLE_COUNTS = { wall: 10, pattern: 4, floor: 8, counter: 8 } as const;
+export const STYLE_COUNTS = { wall: 10, pattern: 4, floor: 8, counter: 8, garland: 5, awning: 6, sign: 5, uniform: 10 } as const;
 
 /** Bà's tip jar: once every look is bought, stars still turn into cash for the bakery. */
 export const STAR_CASH = { stars: 10, cash: 150 };
@@ -67,5 +70,6 @@ export function allowedLook(s: Pick<GameState, 'cosmetics'>, look: Look): Look {
 }
 
 export function allowedStyle(s: Pick<GameState, 'cosmetics'>, style: ShopStyle): boolean {
-  return canUse(s, 'wall', style.wall) && canUse(s, 'floor', style.floor) && canUse(s, 'counter', style.counter);
+  const garland = GARLANDS[style.garland ?? 0];
+  return canUse(s, 'wall', style.wall) && canUse(s, 'floor', style.floor) && canUse(s, 'counter', style.counter) && (!garland || garland === 'bunting' || owns(s, garland));
 }

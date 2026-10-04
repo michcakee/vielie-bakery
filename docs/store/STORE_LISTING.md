@@ -14,8 +14,8 @@
 | Price | Free, with optional in-app purchases (diamond packs). No ads |
 | Developer name | My-Vien Nguyen |
 | Support email | myvientrannguyen@gmail.com |
-| Website | https://michcakee.github.io/vielie-bakery/ |
-| Privacy policy URL | https://github.com/michcakee/vielie-bakery/blob/main/docs/store/PRIVACY_POLICY.md|
+| Website | https://michcakee.github.io/viet-bake-shop-simulator/ |
+| Privacy policy URL | https://github.com/michcakee/viet-bake-shop-simulator/blob/main/docs/store/PRIVACY_POLICY.md|
 
 ## Short description (Google Play, 80 chars)
 
@@ -43,6 +43,7 @@ A real business sandbox
 
 Cozy and Vietnamese
 • Hand-made pixel art: a tube-house bakery, gạch bông tiles, lanterns and street life
+• Renovate through five bakery levels, paint it your way, drag decorations anywhere and collect themed decor sets
 • Regulars with habits and favourites, and Bà, who teaches you one thing a day (in Vietnamese, with English underneath)
 • Tết, Trung Thu mooncakes and 13 Vietnamese recipes, from bánh mì que to one legendary final cake
 

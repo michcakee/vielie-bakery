@@ -474,9 +474,9 @@ function Game({ onQuit }: { onQuit: () => void }) {
         <Modal label="Paint and arrange your shop" onClose={() => setDrawer(null)} className="drawer sheet paint-sheet">
           <h2>Paint and arrange</h2>
           <div className="paint-preview">
-            <BakeryScene />
+            <BakeryScene arrange />
           </div>
-          <Painter />
+          <Painter canDrag />
         </Modal>
       )}
       {drawer === 'settings' && <Settings onClose={() => setDrawer(null)} onQuit={onQuit} />}

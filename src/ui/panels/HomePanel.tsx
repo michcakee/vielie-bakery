@@ -21,6 +21,7 @@ import { nextFeature, tabOn } from '../../engine/unlocks';
 import { tutorialOn, tutorialStep } from '../Tutorial';
 import { FEATURE, FEATURES, type FeatureId } from '../../data/unlocks';
 import { COSMETICS, owns, starsToSpend } from '../../data/cosmetics';
+import { RENOVATIONS } from '../../data/shopfit';
 
 const WEATHER_ICON = { sunny: 'sun', cloudy: 'cloud', rainy: 'rain', hot: 'hot', cool: 'cool' } as const;
 
@@ -73,6 +74,8 @@ function AimFor({ onQuests }: { onQuests: () => void }) {
         .filter((u) => u.level <= level && !has(s, u.id) && (!u.requires || has(s, u.requires)) && (u.group === 'kitchen' || u.group === 'shop'))
         .sort((a, b) => a.cost - b.cost)[0]
     : undefined;
+  const reno = RENOVATIONS[(s.shopTier ?? 0) + 1];
+  const renoReady = reno && level >= reno.level;
   const stars = starsToSpend(s);
   const nextLook = COSMETICS.filter((c) => !owns(s, c.id)).sort((a, b) => a.cost - b.cost)[0];
   const quests = activeQuests(s);
@@ -91,6 +94,18 @@ function AimFor({ onQuests }: { onQuests: () => void }) {
                 {newRecipes.length ? `, plus new recipes: ${newRecipes.slice(0, 2).join(', ')}` : ''}.
               </span>
               <Meter value={lp.into / lp.span} tone="xp" label="Progress to the next level" />
+            </div>
+          </li>
+        )}
+        {renoReady && (
+          <li>
+            <Sprite name="spark" scale={2} />
+            <div>
+              <b>Renovate: {reno.name}</b>
+              <span className="small">
+                {reno.perk}, and the shop gets a new look. Costs {money(reno.cost)}; you have {money(s.cash)}. Tap Paint under the shop picture.
+              </span>
+              <Meter value={s.cash / reno.cost} tone="xp" label={`Saving for ${reno.name}`} />
             </div>
           </li>
         )}

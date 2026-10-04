@@ -3,7 +3,7 @@ import type { TabId } from '../data/unlocks';
 import { useGame } from './GameContext';
 import { useGuide } from './Guide';
 import { Btn } from './kit';
-import { Sprite } from './pixel/Sprite';
+import { Speaker } from './Speaker';
 
 interface Step {
   title: string;
@@ -96,10 +96,10 @@ export function TutorialBar() {
   return (
     <aside className="tutorial-bar" role="region" aria-label={`Tutorial, step ${at + 1} of ${TUTORIAL.length}`} aria-live="polite">
       <div className="tut-head">
-        <Sprite name={st.icon} scale={3} />
+        <Speaker who="Bà" />
         <div>
           <span className="tut-count">
-            Step {at + 1} of {TUTORIAL.length}
+            Bà · step {at + 1} of {TUTORIAL.length}
           </span>
           <b className="tut-title">{st.title}</b>
         </div>
@@ -107,7 +107,7 @@ export function TutorialBar() {
           Skip tutorial
         </button>
       </div>
-      <p className="tut-text">{st.text}</p>
+      <p className="tut-text speech">{st.text}</p>
       <div className="tut-foot">
         <ol className="tut-dots" aria-hidden="true">
           {TUTORIAL.map((_, i) => (

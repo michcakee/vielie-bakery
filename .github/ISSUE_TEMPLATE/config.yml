@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: Security problem
-    url: https://github.com/michcakee/vielie-bakery/security/advisories/new
+    url: https://github.com/michcakee/viet-bake-shop-simulator/security/advisories/new
     about: Please report security issues privately, not as a public issue.
   - name: How to play
-    url: https://github.com/michcakee/vielie-bakery/blob/main/HOW_TO_PLAY.md
+    url: https://github.com/michcakee/viet-bake-shop-simulator/blob/main/HOW_TO_PLAY.md
     about: Stuck in the game? The guide explains every part of the bakery.

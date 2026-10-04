@@ -8,7 +8,7 @@ The economics are never a lecture. You learn elasticity when customers say "Đ�
 
 No backend, no accounts, no ads, no tracking. It plays offline, and saves stay on your device.
 
-**Play:** https://michcakee.github.io/vielie-bakery/ · **Guide:** [HOW_TO_PLAY.md](HOW_TO_PLAY.md)
+**Play:** https://michcakee.github.io/viet-bake-shop-simulator/ · **Guide:** [HOW_TO_PLAY.md](HOW_TO_PLAY.md)
 
 ---
 

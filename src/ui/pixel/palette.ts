@@ -61,5 +61,5 @@ export const SKINS = ['#ffe0c4', '#f6cba4', '#e0a57c', '#b97852', '#7e4f35'];
 export const SKIN_SHADE = ['#f2c7a6', '#e3b18a', '#c98d66', '#9e6440', '#663e29'];
 export const HAIR_COLORS = ['#2b2220', '#4a3226', '#7a4b2e', '#9b4a2c', '#d77a9a', '#c9a15a', '#9e9a96', '#f4b6d2', '#c9b3ea', '#a9dcc9', '#f2c14e'];
 export const SHIRTS = ['#e0b072', '#6b7560', '#d97a62', '#9dbf78', '#e0b072', '#9c8fb4', '#9c8fb4', '#efb6a0'];
-export const APRONS = ['#4f7d46', '#f7f0dc', '#d97a62', '#6b7560', '#e0b072'];
+export const APRONS = ['#4f7d46', '#f7f0dc', '#d97a62', '#6b7560', '#e0b072', '#b8543f', '#4f6680', '#efb6a0', '#3e4a36'];
 export const PANTS = ['#6f7fa8', '#3e4a36', '#8a6f8f', '#5d7f8f'];

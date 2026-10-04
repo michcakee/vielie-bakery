@@ -179,7 +179,7 @@ export function Title({ onContinue, onNew }: { onContinue: () => void; onNew: ()
   return (
     <main className="title-screen">
       <div className="title-art">
-        <Exterior still={reduced} />
+        <Exterior still={reduced} front={resumable ? { tier: state.shopTier, awning: state.style?.awning, sign: state.style?.sign } : undefined} name={resumable ? state.bakeryName : undefined} />
       </div>
       <div className="title-card">
         <h1 className="title-logo" aria-label="Viet Bake Shop Sim">

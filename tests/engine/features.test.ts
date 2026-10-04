@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import { AWNINGS, GARLANDS, SIGNS, UNIFORMS } from '../../src/data/shopfit';
+import { APRONS } from '../../src/ui/pixel/palette';
 import { PRODUCTS, PRODUCT_ORDER } from '../../src/data/catalog';
 import { favouritesPull } from '../../src/engine/economy';
 import { TRAITS } from '../../src/data/world';
@@ -217,7 +219,9 @@ describe('tester round 4', () => {
 
 describe('playtest 3 follow-ups', () => {
   it('the paint counts match the drawn lists, and every star-shop item points at a real choice', () => {
-    expect(STYLE_COUNTS).toEqual({ wall: WALLS.length, pattern: PATTERNS.length, floor: FLOORS.length, counter: COUNTERS.length });
+    expect(STYLE_COUNTS).toEqual({ wall: WALLS.length, pattern: PATTERNS.length, floor: FLOORS.length, counter: COUNTERS.length, garland: GARLANDS.length, awning: AWNINGS.length, sign: SIGNS.length, uniform: UNIFORMS.length });
+    // Every team apron is a real apron colour.
+    for (const u of UNIFORMS) expect(u.apron).toBeLessThan(APRONS.length);
     for (const c of COSMETICS) if (c.kind === 'wall' || c.kind === 'floor' || c.kind === 'counter') expect(c.index).toBeLessThan(STYLE_COUNTS[c.kind]);
   });
 

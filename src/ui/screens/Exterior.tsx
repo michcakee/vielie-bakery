@@ -5,6 +5,15 @@ import { paint } from '../pixel/render';
 import { SPRITE_COLORS } from '../pixel/palette';
 import { SPRITES } from '../pixel/sprites';
 import { Person, Sprite } from '../pixel/Sprite';
+import { AWNINGS, SIGNS } from '../../data/shopfit';
+import { cementTile } from '../pixel/decor';
+
+/** How the front looks: the renovation level and the colours chosen in Paint. */
+export interface Front {
+  tier?: number;
+  awning?: number;
+  sign?: number;
+}
 
 const W = 240;
 const H = 135;
@@ -45,7 +54,10 @@ function pot(ctx: CanvasRenderingContext2D, x: number, y: number, flower?: strin
 }
 
 /** The bakery's street front: a narrow Vietnamese tube house between two neighbours. */
-export function drawExterior(ctx: CanvasRenderingContext2D) {
+export function drawExterior(ctx: CanvasRenderingContext2D, front: Front = {}) {
+  const tier = front.tier ?? 0;
+  const awning = (AWNINGS[front.awning ?? 0] ?? AWNINGS[0]).c;
+  const sign = SIGNS[front.sign ?? 0] ?? SIGNS[0];
   const sky = ctx.createLinearGradient(0, 0, 0, 110);
   sky.addColorStop(0, '#f7f0dc');
   sky.addColorStop(1, '#f7f0dc');
@@ -109,14 +121,29 @@ export function drawExterior(ctx: CanvasRenderingContext2D) {
   pot(ctx, x0 + 24, 48);
   pot(ctx, x0 + 74, 48, PAL.mango);
   pot(ctx, x0 + 84, 48, PAL.red);
+  // hanging lanterns under the balcony (grand bakery)
+  if (tier >= 4)
+    for (const lx of [x0 + 18, x0 + 46, x0 + 78]) {
+      r(ctx, lx + 2, 61, 1, 2, PAL.ink);
+      b(ctx, lx, 63, 5, 5, '#d0634f');
+      r(ctx, lx + 2, 68, 1, 1, '#e3b23c');
+    }
   // sign board
-  b(ctx, x0 + 10, 64, bw - 20, 12, PAL.forest);
-  r(ctx, x0 + 12, 66, bw - 24, 8, '#3e4a36');
+  b(ctx, x0 + 10, 64, bw - 20, 12, sign.c);
+  r(ctx, x0 + 12, 66, bw - 24, 8, sign.c);
+  if (tier >= 4) {
+    // light bulbs all the way round
+    for (let i = x0 + 11; i < x0 + bw - 10; i += 4) {
+      r(ctx, i, 64, 1, 1, '#f4dc8c');
+      r(ctx, i, 75, 1, 1, '#f4dc8c');
+    }
+    r(ctx, x0 - 4, 3, bw + 8, 1, '#e3b23c');
+  }
   // awning with scallops
-  for (let i = 0; i < bw + 8; i++) r(ctx, x0 - 4 + i, 78, 1, 7, Math.floor(i / 6) % 2 ? PAL.coconut : '#9dbf78');
+  for (let i = 0; i < bw + 8; i++) r(ctx, x0 - 4 + i, 78, 1, 7, Math.floor(i / 6) % 2 ? PAL.coconut : awning);
   r(ctx, x0 - 4, 77, bw + 8, 1, PAL.ink);
   for (let i = 0; i < bw + 8; i += 6) {
-    ctx.fillStyle = Math.floor(i / 6) % 2 ? PAL.coconut : '#9dbf78';
+    ctx.fillStyle = Math.floor(i / 6) % 2 ? PAL.coconut : awning;
     ctx.beginPath();
     ctx.arc(x0 - 1 + i, 85, 3, 0, Math.PI);
     ctx.fill();
@@ -131,6 +158,13 @@ export function drawExterior(ctx: CanvasRenderingContext2D) {
     paint(ctx, [rows], SPRITE_COLORS, x0 + 8 + i * 17, 101 - (last + 1));
   }
   r(ctx, x0 + 10, 92, 3, 6, 'rgba(255,255,255,0.7)');
+  if (tier >= 3) for (let x = x0 + 1; x < x0 + bw - 1; x += 4) cementTile(ctx, x, 108, 4, ((x - x0) / 4) % 2);
+  if (tier >= 1)
+    // brass wall lamps either side of the door
+    for (const lx of [x0 + 64, x0 + 93]) {
+      r(ctx, lx, 90, 3, 4, '#e3b23c');
+      r(ctx, lx + 1, 94, 1, 1, PAL.ink);
+    }
   b(ctx, x0 + 68, 88, 24, 24, '#9dbf78');
   b(ctx, x0 + 71, 91, 18, 10, '#f7f0dc');
   r(ctx, x0 + 85, 103, 2, 2, PAL.mango);
@@ -159,6 +193,12 @@ export function drawExterior(ctx: CanvasRenderingContext2D) {
   for (let y = 113; y < 124; y += 4) for (let x = (y % 8) * 2; x < W; x += 8) b(ctx, x, y, 8, 4, '#f7f0dc');
   r(ctx, 0, 124, W, 11, '#aab39a');
   for (let x = 4; x < W; x += 16) r(ctx, x, 129, 8, 1, '#f2e2bd');
+  // a parasol over the pavement café (neighbourhood café and up)
+  if (tier >= 2) {
+    r(ctx, 46, 92, 1, 16, PAL.ink);
+    for (let i = 0; i < 22; i++) r(ctx, 36 + i, 88 + Math.round(Math.abs(i - 11) / 3), 1, 3, Math.floor(i / 4) % 2 ? PAL.coconut : awning);
+    r(ctx, 35, 87, 24, 1, PAL.ink);
+  }
   // stools and a table on the sidewalk
   b(ctx, 40, 106, 14, 3, PAL.red);
   r(ctx, 42, 109, 2, 4, PAL.red);
@@ -176,7 +216,7 @@ const WALKERS: Look[] = [
   { skin: 0, hair: 3, hairColor: 2, shirt: 3, apron: -1, accessory: 2 },
 ];
 
-export function Exterior({ still = false }: { still?: boolean }) {
+export function Exterior({ still = false, front, name = 'Viet Bake Shop' }: { still?: boolean; front?: Front; name?: string }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const box = useRef<HTMLDivElement>(null);
   const [k, setK] = useState(1);
@@ -184,9 +224,10 @@ export function Exterior({ still = false }: { still?: boolean }) {
     const ctx = ref.current?.getContext('2d');
     if (ctx) {
       ctx.imageSmoothingEnabled = false;
-      drawExterior(ctx);
+      ctx.clearRect(0, 0, W, H);
+      drawExterior(ctx, front);
     }
-  }, []);
+  }, [front?.tier, front?.awning, front?.sign]);
   // Integer device-pixel scale, letterboxed in the wrapper.
   useLayoutEffect(() => {
     const el = box.current;
@@ -204,7 +245,9 @@ export function Exterior({ still = false }: { still?: boolean }) {
     <div className="exterior" aria-hidden="true" ref={box}>
       <div className="ext-stage" style={{ width: W * k, height: H * k }}>
         <canvas ref={ref} width={W} height={H} />
-        <div className="ext-sign">Viet Bake Shop</div>
+        <div className="ext-sign" style={{ color: (SIGNS[front?.sign ?? 0] ?? SIGNS[0]).text, fontSize: `${Math.min(4, 56 / Math.max(14, name.length))}cqw` }}>
+          {name}
+        </div>
         {!still && (
           <>
             <div className="ext-cloud c1" />

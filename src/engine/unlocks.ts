@@ -65,7 +65,7 @@ export function refreshIntroBase(s: GameState): GameState {
 export function introStep(s: GameState): number {
   const intro = s.intro;
   if (!intro?.active) return -1;
-  return FEATURE[intro.active].intro.steps.findIndex((st) => !st.done(s, intro.base));
+  return FEATURE[intro.active].intro.steps.findIndex((st) => !st.done(s, intro.base ?? {}));
 }
 
 export function checkIntro(s: GameState): GameState {

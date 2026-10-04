@@ -2,7 +2,7 @@
 
 Welcome to the lane! Bà (grandma) is retiring, and her little Vietnamese bakery is yours now. This guide gets you baking in five minutes, then explains the rest as you need it.
 
-**Play:** https://michcakee.github.io/vielie-bakery/ · no account needed · works on phones and offline
+**Play:** https://michcakee.github.io/viet-bake-shop-simulator/ · no account needed · works on phones and offline
 
 ---
 
@@ -155,6 +155,17 @@ Nearby bakeries have personalities: a **discounter** undercuts you, a **matcher*
 ### Growing
 Equipment (ovens, mixer, steamer, fridges, display case, coffee station, POS, bike, van…), rooms (storage, coffee corner, garden, loft), renovation, marketing campaigns (results are measured: new customers, cost per customer, return), and **new shops** in five more neighbourhoods, each with its own rent, customers and rivals.
 
+### Your bakery's levels
+The shop itself has five levels. Renovate from the top of **Paint** (or when "What to aim for" says you can) and the room and the shop front change, and more people walk in:
+
+| Level | Name | Unlocks at | Cost | What changes |
+| --- | --- | --- | --- | --- |
+| 1 | Bà's little shop | start | | One oven, two tables and a cat |
+| 2 | Fresh coat | player level 2 | $900 | Wood panelling, brass lamps, a new awning; +3% walk-ins |
+| 3 | Neighbourhood café | player level 3 | $2,600 | Hanging plants, café tables and a parasol outside; +6% walk-ins |
+| 4 | Saigon classic | player level 4 | $6,500 | Gạch bông tiles on the wall, floor and counter; +10% walk-ins |
+| 5 | Grand bakery | player level 6 | $15,000 | A lantern balcony, gold trim, a lit-up sign; +15% walk-ins |
+
 ---
 
 ## Scenarios and goals
@@ -229,7 +240,8 @@ On Android, the back button closes windows and sheets, then returns to Today.
 - **Special requests.** From day 5, some customers ask for a twist: "No chili", "Extra herbs" or "In a hurry". The ticket shows what they want and the ingredient to leave out is crossed off. Get it exactly right (or be quick for a hurry order) for a bonus tip.
 - **Daily challenge.** Each morning from day 3 there is one small task, such as "Sell 5 bánh flan" or "Nobody gives up waiting today". Finish it for +20 XP and a few dollars in the tip jar.
 - **Staff personalities.** Every worker has one: Lightning hands (faster, a bit messier), Careful (slower, better), Sunshine (customers tip more) or Early bird (extra fast before lunch). You can see it before you hire, and they chat in the shop.
-- **Paint and arrange.** Tap **Paint** under the shop picture in the morning to choose the wall colour and pattern, the floor and the counter, and to move your plants and the songbird cage. It is free.
+- **Paint and arrange.** Tap **Paint** under the shop picture to renovate, choose the wall colour and pattern, what hangs along the wall, the floor and the counter, the shop front's awning and sign (your bakery's name is on it, and it's what the title screen shows), and the team's aprons. **Drag** plants and star-shop pieces anywhere on the floor in the picture, or tap **Move**. Painting is free.
+- **Decorations from the star shop** come in themed sets: a Hội An lantern shop, a Đà Lạt flower café, Tết red and gold, a Saigon coffee bar, and little extras (a goldfish tank, a wall clock, your moto parked outside). They're looks only. Tết and the Mid-Autumn festival dress the shop up on their own: a red banner and hoa mai for Tết, star lanterns for Mid-Autumn.
 - **The Lantern Festival.** Around day 36 a story begins: a big bakery chain wants Bà’s shop, and the lane will vote for its favourite bakery. Each chapter is one card with a choice. Kind choices and 2-star days win lane hearts; 16 hearts wins the Golden Whisk.
 - **Collection book.** The book button at the top now has a **Collection** page: neighbours you have met, recipes and medals, story chapters, moments and decorations.
 - **New looks.** Characters are drawn in a cuter style, with pigtails, pastel hair colours, a bow, headphones and heart clips to choose from.

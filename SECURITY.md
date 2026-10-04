@@ -8,7 +8,7 @@ Because the game is rated for all ages, we treat anything that could expose pers
 
 ## Supported versions
 
-Only the latest version, the one deployed at https://michcakee.github.io/vielie-bakery/ and the `main` branch, gets security fixes.
+Only the latest version, the one deployed at https://michcakee.github.io/viet-bake-shop-simulator/ and the `main` branch, gets security fixes.
 
 ## Reporting a vulnerability
 

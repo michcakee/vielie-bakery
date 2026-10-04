@@ -1,13 +1,13 @@
 # Code of conduct
 
-Viet Bake Shop is a game for kids and families, so we hold everyone who takes part in this project to a high bar for kindness. That includes issues, pull requests, discussions and reviews.
+Viet Bake Shop Simulator is a cozy game for everyone, so we hold everyone who takes part in this project to a high bar for kindness. That includes issues, pull requests, discussions and reviews.
 
 ## What we expect
 
 - Be welcoming and patient, especially with people who are new to coding or to GitHub.
 - Be respectful of different cultures, languages and points of view. The game celebrates Vietnamese food and culture; treat that culture with care.
 - Give feedback about the work, not the person. Assume good intent.
-- Keep everything suitable for children: no swearing, sexual content, violence or gambling references, and no links to anything you wouldn't show a 9-year-old.
+- Keep everything suitable for all ages: no swearing, sexual content, violence or gambling references.
 - Protect privacy. Never post anyone's personal information, including a child's name, photo, school or location.
 
 ## What's not OK
@@ -25,4 +25,4 @@ The maintainer may remove comments, close issues or pull requests, or block peop
 
 ## Credit
 
-Inspired by the [Contributor Covenant](https://www.contributor-covenant.org/), adapted for a project whose players are children.
+Inspired by the [Contributor Covenant](https://www.contributor-covenant.org/), adapted for a cozy all-ages game.

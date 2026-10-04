@@ -111,7 +111,8 @@ function OvenGame({ item, onDone, onCancel, learning }: { item: Bakeable; onDone
       <p className={`oven-say zone-${zone}`} aria-live="polite">
         {result === null ? label : result >= 85 ? `Perfect bake! Quality ${result}` : result >= 60 ? `Not bad! Quality ${result}` : `Oops… quality ${result}`}
       </p>
-      <Btn kind="go" onClick={() => stop()} disabled={result !== null} sfx={null} className="big">
+      {/* New bakers: the button shines while the tray is golden, so "now!" is easy to see. */}
+      <Btn kind="go" onClick={() => stop()} disabled={result !== null} sfx={null} className={`big ${learning && zone === 'golden' && result === null ? 'shine shine-rel' : ''}`}>
         Take it out!
       </Btn>
       <span className="muted small kbd-hint">Space or Enter works too.</span>
@@ -566,10 +567,11 @@ function MenuCard() {
 }
 
 const SECTION_OF: Record<string, 'bake' | 'prices' | 'menu' | 'plan'> = { bake: 'bake', price: 'prices', predict: 'prices', menu: 'menu', deals: 'menu', plan: 'plan' };
+const sectionOf = (spot: string) => SECTION_OF[spot] ?? (spot.startsWith('bake-') ? 'bake' : null);
 
 export function KitchenPanel() {
   const { state: s, business, feature } = useGame();
-  const { spot } = useGuide();
+  const { spot, target } = useGuide();
   const walkIns = Math.round(expectedWalkIns(s));
   const sections = [
     { id: 'bake' as const, label: 'Bake', icon: 'hot' },
@@ -579,7 +581,7 @@ export function KitchenPanel() {
   ];
   const [sec, setSec] = useState<'bake' | 'prices' | 'menu' | 'plan'>('bake');
   useEffect(() => {
-    const want = spot ? SECTION_OF[spot] ?? (spot.startsWith('bake-') ? 'bake' : null) : null;
+    const want = spot ? sectionOf(spot) : null;
     if (want && sections.some((x) => x.id === want)) setSec(want);
   }, [spot]); // eslint-disable-line react-hooks/exhaustive-deps
   // With one section there's nothing to switch: show everything that's unlocked on one page.
@@ -589,7 +591,7 @@ export function KitchenPanel() {
       {sections.length > 1 && (
         <div className="sub-tabs" role="tablist" aria-label="Kitchen sections">
           {sections.map((x) => (
-            <button key={x.id} type="button" role="tab" aria-selected={sec === x.id} className={sec === x.id ? 'on' : ''} onClick={() => setSec(x.id)}>
+            <button key={x.id} type="button" role="tab" aria-selected={sec === x.id} className={sec === x.id ? 'on' : ''} onClick={() => setSec(x.id)} data-section-for={x.id !== sec && target?.spot && sectionOf(target.spot) === x.id ? target.spot : undefined}>
               <Sprite name={x.icon} scale={2} /> {x.label}
             </button>
           ))}

@@ -290,7 +290,7 @@ function Game({ onQuit }: { onQuit: () => void }) {
   const teaser = nextFeature(s);
 
   return (
-    <GuideProvider goTo={goTo}>
+    <GuideProvider goTo={goTo} tab={tab}>
     <div className={`app phase-${s.phase}${s.phase === 'morning' && !intro && tab !== 'today' ? ' has-fab' : ''}${shake ? ' shake' : ''}`}>
       <a className="skip-link" href="#panel">
         Skip to controls
@@ -367,7 +367,7 @@ function Game({ onQuit }: { onQuit: () => void }) {
                 </span>
               ))}
               {/* Always there on phones: Quests, Concepts and Settings live in it too. */}
-              <button type="button" className={`tab mobile-only ${!current.mobile ? 'on' : ''}`} aria-haspopup="dialog" onClick={() => (play('click'), setDrawer('more'))}>
+              <button type="button" className={`tab mobile-only ${!current.mobile ? 'on' : ''}`} aria-haspopup="dialog" onClick={() => (play('click'), setDrawer('more'))} data-spot="tab-more">
                 <Sprite name="gear" scale={2} />
                 <span className="tab-label">More</span>
                 {moreTabs.some((m) => isNew(m.id)) && <span className="new-dot" aria-label="new" />}
@@ -400,7 +400,7 @@ function Game({ onQuit }: { onQuit: () => void }) {
 
       {s.phase === 'morning' && !intro && tab !== 'today' && (
         <div className="open-fab">
-          <Btn kind="go" onClick={open} disabled={s.events.length > 0} sfx="bell">
+          <Btn kind="go" onClick={open} disabled={s.events.length > 0} sfx="bell" data-spot="open">
             Open the shop
           </Btn>
         </div>

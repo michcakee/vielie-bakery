@@ -2,9 +2,9 @@
 
 ## How the game handles data
 
-Viet Bake Shop has no server, no accounts, no ads and no analytics. Saves and settings stay in the player's own browser (local storage). The only time data leaves the device is when a player chooses to copy a save code or to open their own email app with a restore link, and that feature sits behind a grown-ups check.
+Viet Bake Shop Simulator has no server, no accounts, no ads and no analytics. Saves and settings stay in the player's own browser (local storage). The only time data leaves the device is when a player chooses to copy a save code or to open their own email app with a restore link, and that feature sits behind a grown-ups check.
 
-Because players are children, we treat anything that could expose personal information, run someone else's code, or send data off the device as a serious issue.
+Because the game is rated for all ages, we treat anything that could expose personal information, run someone else's code, or send data off the device as a serious issue.
 
 ## Supported versions
 

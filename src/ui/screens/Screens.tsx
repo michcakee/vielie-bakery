@@ -181,9 +181,9 @@ export function Title({ onContinue, onNew }: { onContinue: () => void; onNew: ()
         <Exterior still={reduced} />
       </div>
       <div className="title-card">
-        <h1 className="title-logo">
+        <h1 className="title-logo" aria-label="Viet Bake Shop Sim">
           <span>Viet Bake</span>
-          <span>Shop</span>
+          <span>Shop Sim</span>
         </h1>
         <nav className="main-menu" aria-label="Main menu" ref={menu}>
           {items.map((it) => (
@@ -482,7 +482,7 @@ export function IntroLines({ onDone, guided = false }: { onDone: () => void; gui
         {lines[i].vi}
       </p>
       <p className="intro-en">{i === 0 && state.playerName ? `The bakery is yours now, ${state.playerName}.` : lines[i].en}</p>
-      <Btn kind="go" onClick={next} sfx={null} className="big">
+      <Btn kind="go" onClick={next} sfx={null} className="big" data-spot="intro-next">
         {i + 1 >= lines.length ? (guided ? 'Let’s start!' : 'Open the doors') : 'Next'}
       </Btn>
     </div>

@@ -1,4 +1,4 @@
-# How to play Viet Bake Shop
+# How to play Viet Bake Shop Simulator
 
 Welcome to the lane! Bà (grandma) is retiring, and her little Vietnamese bakery is yours now. This guide gets you baking in five minutes, then explains the rest as you need it.
 
@@ -249,3 +249,9 @@ On Android, the back button closes windows and sheets, then returns to Today.
 - **Slower levels, a longer road to the michcake** (around day 130–150), then **legend goals**: sell 100 michcakes, a five-day 3-star streak, a $1,000 day and more.
 - **More in the star shop:** nine new wall, floor and counter paints, and **Bà's tip jar** turns 10★ into $150 whenever you like.
 - **Smaller things:** a broken oven says when waiting means no pastries; customers are a little more forgiving on price in your first days; recipe rows in the Kitchen fold into one line when everything is in stock.
+
+## Launch polish
+
+- **The game is now Viet Bake Shop Simulator** ("Viet Bake Shop Sim" under the app icon and on the title screen).
+- **Follow the shine.** During the first-day tutorial and each of Bà's lessons, the next thing to tap glows and a little arrow points at it. If it's on another tab, that tab glows first. It stops as soon as you've done the step, and nothing is ever blocked: you can still look around.
+- **Golden means now.** For a new baker's first days, "Take it out!" shines while the tray is in the golden zone.

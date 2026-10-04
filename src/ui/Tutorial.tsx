@@ -23,12 +23,13 @@ export const TUTORIAL: Step[] = [
     title: 'This is your bakery',
     text: 'Customers come in at the door, line up at the counter and buy what’s in the glass case. Let’s run your first day together.',
     icon: 'shop',
+    spot: 'tut-next',
     next: { label: 'Let’s go!', hint: 'tut:welcome' },
     done: (s) => s.hints.includes('tut:welcome'),
   },
   {
     title: 'Bake something to sell',
-    text: 'The case is empty. Go to the Kitchen and tap Bake on the bánh mì que (crispy breadsticks). Tap “Take it out” when the bar is in the golden zone.',
+    text: 'The case is empty. Go to the Kitchen and tap Bake on the bánh mì que (crispy breadsticks). Tap “Take it out” when it shines: that’s the golden zone.',
     icon: 'hot',
     tab: 'kitchen',
     spot: 'bake-banhMiQue',
@@ -44,14 +45,16 @@ export const TUTORIAL: Step[] = [
   },
   {
     title: 'Serve your first customer',
-    text: 'Kevin Nguyen is first through the door! Tap his order under “At the counter”. Pastries take one tap. For bánh mì and drinks, tap the glowing step each time.',
+    text: 'Kevin Nguyen is first through the door! Tap his shining order under “At the counter”. Pastries take one tap. For bánh mì and drinks, tap the glowing step each time.',
     icon: 'people',
+    spot: 'first-order',
     done: (s) => s.lifetime.served > 0 || s.history.length > 0,
   },
   {
     title: 'Bà can help, a little',
     text: 'Too busy? Tap “Bà, help!” and she serves for you, but her orders earn no tips and no XP. Tap “I’ll serve” to take over again.',
     icon: 'heart',
+    spot: 'tut-next',
     next: { label: 'Got it', hint: 'baHelpTip' },
     done: (s) => s.hints.includes('baHelpTip') || s.history.length > 0,
   },
@@ -63,8 +66,9 @@ export const TUTORIAL: Step[] = [
   },
   {
     title: 'See your stars',
-    text: 'Tap “Turn off the lights”. The report shows your stars and what to try tomorrow. Tomorrow Bà teaches you one new thing.',
+    text: 'Tap the shining “Turn off the lights”. The report shows your stars and what to try tomorrow. Tomorrow Bà teaches you one new thing.',
     icon: 'star',
+    spot: 'lights-off',
     done: (s) => s.history.length > 0,
   },
 ];
@@ -111,10 +115,11 @@ export function TutorialBar() {
           ))}
         </ol>
         {st.next ? (
-          <Btn kind="go" onClick={() => dispatch({ type: 'hint', id: st.next!.hint })} sfx="pop">
+          <Btn kind="go" onClick={() => dispatch({ type: 'hint', id: st.next!.hint })} sfx="pop" data-spot="tut-next">
             {st.next.label}
           </Btn>
         ) : (
+          st.tab &&
           st.spot && (
             <Btn kind="primary" onClick={() => showMe(st.tab, st.spot)}>
               Show me

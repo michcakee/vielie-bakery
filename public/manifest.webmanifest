@@ -1,6 +1,6 @@
 {
-  "name": "Viet Bake Shop",
-  "short_name": "Viet Bake",
+  "name": "Viet Bake Shop Simulator",
+  "short_name": "Viet Bake Shop Sim",
   "description": "A cozy Vietnamese pixel-art bakery game about running a small business.",
   "id": "./",
   "categories": ["games", "education"],

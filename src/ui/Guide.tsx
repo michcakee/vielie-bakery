@@ -1,7 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useState, type ReactNode } from 'react';
 import { FEATURES, FEATURE, type TabId } from '../data/unlocks';
 import { introStep } from '../engine/unlocks';
+import type { GameState } from '../engine/types';
 import { useGame } from './GameContext';
+import { TUTORIAL, tutorialOn, tutorialStep } from './Tutorial';
 import { Btn } from './kit';
 import { Sprite } from './pixel/Sprite';
 
@@ -13,12 +15,37 @@ interface Guide {
   showMe: (tab?: TabId, spot?: string) => void;
   /** The control being pointed at right now, so a panel can open the section it lives in. */
   spot: string | null;
+  /** What the tutorial or today's lesson wants you to tap next: it shines until you do. */
+  target: Target | null;
 }
 
-const GuideCtx = createContext<Guide>({ showMe: () => undefined, spot: null });
+interface Target {
+  tab?: TabId;
+  spot?: string;
+}
+
+const GuideCtx = createContext<Guide>({ showMe: () => undefined, spot: null, target: null });
 export const useGuide = () => useContext(GuideCtx);
 
-export function GuideProvider({ goTo, children }: { goTo: (t: TabId) => void; children: ReactNode }) {
+/** The one control the first-day walkthrough or the active lesson is waiting for, if any. */
+function currentTarget(s: GameState): Target | null {
+  if (s.events.length > 0) return null;
+  if (tutorialOn(s)) {
+    const welcoming = s.scenario === 'family' && s.day === 1 && !s.hints.includes('intro');
+    const at = tutorialStep(s);
+    if (welcoming) return { spot: 'intro-next' };
+    if (at < 0) return null;
+    const st = TUTORIAL[at];
+    return st.tab || st.spot ? { tab: st.tab, spot: st.spot } : null;
+  }
+  const a = s.intro?.active;
+  if (!a || s.phase !== 'morning') return null;
+  const at = introStep(s);
+  const st = at >= 0 ? FEATURE[a].intro.steps[at] : null;
+  return st && (st.tab || st.spot) ? { tab: st.tab, spot: st.spot } : null;
+}
+
+export function GuideProvider({ goTo, tab, children }: { goTo: (t: TabId) => void; tab: TabId; children: ReactNode }) {
   const [spot, setSpot] = useState<string | null>(null);
   const { state: s } = useGame();
   const endSpot = useCallback(() => setSpot(null), []);
@@ -29,11 +56,93 @@ export function GuideProvider({ goTo, children }: { goTo: (t: TabId) => void; ch
   useEffect(() => {
     if (s.phase === 'service' || s.phase === 'closing') setSpot(null);
   }, [s.phase]);
+  const target = currentTarget(s);
   return (
-    <GuideCtx.Provider value={{ showMe, spot }}>
+    <GuideCtx.Provider value={{ showMe, spot, target }}>
       {children}
       {spot && <Spotlight anchor={spot} onDone={endSpot} />}
+      {!spot && target && <Shine target={target} tab={tab} />}
     </GuideCtx.Provider>
+  );
+}
+
+const visible = (e: HTMLElement) => e.offsetParent !== null && e.getBoundingClientRect().height > 0;
+
+/** A whole card is too big to shine: shine the first thing in it you can actually tap. */
+function tappable(el: HTMLElement): HTMLElement {
+  if (el.matches('button, a, input, select, summary')) return el;
+  const ok = (e: HTMLElement) => visible(e) && !e.closest('.tip') && e.getAttribute('aria-checked') !== 'true' && e.getAttribute('aria-pressed') !== 'true';
+  return [...el.querySelectorAll<HTMLElement>('.btn-primary:not([disabled]), .btn-go:not([disabled])')].find(ok) ?? [...el.querySelectorAll<HTMLElement>('button:not([disabled]), input, select')].find(ok) ?? el;
+}
+
+/**
+ * Makes the next thing to tap shine (and a little arrow bob over it) until it's done. If it lives on
+ * another tab or in a closed section, the way there shines instead: the tab, then the section.
+ * Nothing is blocked or dimmed, so you can still look around.
+ */
+function Shine({ target, tab }: { target: Target; tab: TabId }) {
+  const [rect, setRect] = useState<DOMRect | null>(null);
+  // Tabs sit in a row with neighbours: point at them from above or below, not from the side.
+  const [inRow, setInRow] = useState(false);
+  useEffect(() => {
+    let lit: HTMLElement | null = null;
+    const find = (sel: string) => [...document.querySelectorAll<HTMLElement>(sel)].find(visible) ?? null;
+    const pick = (): HTMLElement | null => {
+      const dialog = [...document.querySelectorAll<HTMLElement>('[role="dialog"]')].pop();
+      const inView = (e: HTMLElement | null) => (e && (!dialog || dialog.contains(e)) ? e : null);
+      if (target.spot) {
+        const el = inView(find(`[data-spot="${target.spot}"]`));
+        if (el) return tappable(el);
+        // On the right tab but tucked in another section: shine that section's button.
+        const sec = inView(find(`[data-section-for~="${target.spot}"]`));
+        if (sec) return sec;
+      }
+      if (target.tab && target.tab !== tab) return inView(find(`[data-spot="tab-${target.tab}"]`)) ?? inView(find('[data-spot="tab-more"]'));
+      return null;
+    };
+    const tick = () => {
+      const el = pick();
+      if (el !== lit) {
+        lit?.classList.remove('shine', 'shine-rel');
+        lit = el;
+        // Newly lit and off screen: bring it into view once (scrolling away afterwards is fine).
+        const r = el?.getBoundingClientRect();
+        if (el && r && (r.top < 0 || r.bottom > window.innerHeight)) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      }
+      if (el && !el.classList.contains('shine')) {
+        // The light sweep needs a positioned box; leave ones that already are (fixed, absolute) alone.
+        if (getComputedStyle(el).position === 'static') el.classList.add('shine-rel');
+        el.classList.add('shine');
+      }
+      setRect(el ? el.getBoundingClientRect() : null);
+      setInRow(!!el?.closest('.tabs, .sub-tabs, .more-grid, .seg'));
+    };
+    tick();
+    const id = window.setInterval(tick, 250);
+    window.addEventListener('scroll', tick, true);
+    window.addEventListener('resize', tick);
+    return () => {
+      window.clearInterval(id);
+      window.removeEventListener('scroll', tick, true);
+      window.removeEventListener('resize', tick);
+      lit?.classList.remove('shine', 'shine-rel');
+    };
+  }, [target.spot, target.tab, tab]);
+  if (!rect || rect.bottom < 0 || rect.top > window.innerHeight) return null;
+  // Beside the control if there's room (covers no text), otherwise above or below it.
+  const mid = rect.top + rect.height / 2 - 16;
+  const place =
+    !inRow && rect.left >= 40
+      ? { left: rect.left - 38, top: mid, dir: 'point-right' }
+      : !inRow && rect.right + 40 <= window.innerWidth
+        ? { left: rect.right + 6, top: mid, dir: 'point-left' }
+        : rect.top > 48
+          ? { left: rect.left + rect.width / 2 - 16, top: rect.top - 38, dir: 'point-down' }
+          : { left: rect.left + rect.width / 2 - 16, top: rect.bottom + 4, dir: 'point-up' };
+  return (
+    <div className="shine-arrow" aria-hidden="true" style={{ left: place.left, top: place.top }}>
+      <Sprite name="arrow" scale={4} className={place.dir} />
+    </div>
   );
 }
 

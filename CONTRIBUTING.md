@@ -1,6 +1,6 @@
-# Contributing to Viet Bake Shop
+# Contributing to Viet Bake Shop Simulator
 
-Thanks for helping! Viet Bake Shop is a pixel-art Vietnamese bakery game for kids aged about 9–12. It runs entirely in the browser, with no server, accounts, ads or tracking. Please read the [code of conduct](CODE_OF_CONDUCT.md) first.
+Thanks for helping! Viet Bake Shop Simulator is a cozy pixel-art Vietnamese bakery business game for everyone. It runs entirely in the browser, with no server, accounts, ads or tracking. Please read the [code of conduct](CODE_OF_CONDUCT.md) first.
 
 ## Ways to help
 

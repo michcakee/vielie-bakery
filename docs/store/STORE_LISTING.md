@@ -6,7 +6,8 @@
 
 | Field | Value |
 | --- | --- |
-| App name | Viet Bake Shop |
+| App name | Viet Bake Shop Simulator |
+| Name under the icon | Viet Bake Shop Sim |
 | Subtitle (iOS, 30 chars) | Run a cozy Vietnamese bakery |
 | Bundle / package ID | `com.michcakee.vietbakeshop` |
 | Category | Games → Simulation (secondary: Education) |
@@ -51,11 +52,13 @@ Fair and private
 
 ## Keywords (iOS, 100 chars)
 
-bakery,tycoon,business,simulator,vietnamese,banh mi,cozy,pixel,economics,cafe,shop,manager
+bakery,tycoon,business,vietnamese,banh mi,cozy,pixel,economics,cafe,shop,manager,restaurant,cooking
+
+("Simulator" is already in the app name, so it is left out of the keywords.)
 
 ## What's new (3.1.0)
 
-A step-by-step first day with Bà, your first customer Kevin Nguyen (who later asks for a job), quests and a star shop for new looks, a clearer day report, and a new first recipe: bánh mì que. The game now asks your name, and the last recipe in the book is a secret worth playing for.
+Now called Viet Bake Shop Simulator. The tutorial and Bà's lessons make the next button to tap shine, with a little arrow, until you tap it. Plus a step-by-step first day with Bà, your first customer Kevin Nguyen (who later asks for a job), quests and a star shop for new looks, a clearer day report, and a new first recipe: bánh mì que. The game now asks your name, and the last recipe in the book is a secret worth playing for.
 
 ## Assets
 
@@ -63,4 +66,4 @@ A step-by-step first day with Bà, your first customer Kevin Nguyen (who later a
 | --- | --- |
 | App icon 1024×1024 | `resources/icon-1024.png` (`npm run icons`) |
 | Play feature graphic 1024×500 | `resources/play-feature-1024x500.png` |
-| Screenshots | **TODO**: capture from real builds (phone + tablet) |
+| Screenshots | [`docs/store/screenshots/`](screenshots/): six each for iPhone 6.9" (1320×2868) and iPad 13" (2064×2752), in the order to upload. Taken from the web build; retake from a TestFlight build if anything looks different on a real phone. |

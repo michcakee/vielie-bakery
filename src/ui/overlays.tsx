@@ -161,7 +161,7 @@ export function ClosingPanel() {
           <p className="muted small">Donating helps the neighbourhood (community and reputation go up). Binning is waste: it lowers your eco score. Either way, the money spent making it is gone.</p>
         </>
       )}
-      <Btn kind="go" className="big" onClick={() => dispatch({ type: 'finishDay' })} sfx="bell">
+      <Btn kind="go" className="big" onClick={() => dispatch({ type: 'finishDay' })} sfx="bell" data-spot="lights-off">
         Turn off the lights
       </Btn>
     </div>

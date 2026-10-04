@@ -1,4 +1,4 @@
-# Design notes: making Viet Bake Shop sticky
+# Design notes: making Viet Bake Shop Simulator sticky
 
 An audit of the game against the five things bakery sims share (every action feels good, every order is graded, customers are people, a next goal is always on screen, upgrades create decisions), followed by a log of each change made for it.
 

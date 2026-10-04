@@ -1,13 +1,14 @@
 # Building the mobile apps
 
-Viet Bake Shop ships to phones with **Capacitor 7**: the same Vite build that runs on GitHub Pages is copied into a native Android project (`android/`) and a native iOS project (`ios/`). The game runs fully offline inside the app, with no backend and **no network permissions at all** (Capacitor's default `INTERNET` permission was removed from the manifest; add it back only for a live-reload dev build).
+Viet Bake Shop Simulator ships to phones with **Capacitor 7**: the same Vite build that runs on GitHub Pages is copied into a native Android project (`android/`) and a native iOS project (`ios/`). The game runs fully offline inside the app, with no backend and **no network permissions at all** (Capacitor's default `INTERNET` permission was removed from the manifest; add it back only for a live-reload dev build).
 
 > **Status:** the owner is shipping **iOS only**. Version 3.1.0 is checked on GitHub's Macs by the *iOS build check* workflow (`.github/workflows/ios.yml`): it builds the app, launches it on an iPhone and an iPad simulator and saves a screenshot of each. Nothing is signed or submitted yet; that needs an Apple Developer account. The Android project is kept and its debug build still compiles, but it is not being released.
 
 | | |
 | --- | --- |
 | App ID / bundle ID | `com.michcakee.vietbakeshop` |
-| App name | Viet Bake Shop |
+| App name | Viet Bake Shop Simulator |
+| Name under the icon | Viet Bake Shop Sim |
 | Version | 3.1.0 (`package.json`, Android `versionName`, iOS `MARKETING_VERSION`) |
 | Build number | Android `versionCode` 1, iOS `CURRENT_PROJECT_VERSION` 1 |
 | Web assets | `dist/` → `android/app/src/main/assets/public`, `ios/App/App/public` (generated, git-ignored) |

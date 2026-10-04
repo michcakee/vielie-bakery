@@ -12,7 +12,7 @@ import { useGame } from '../GameContext';
 import { Btn } from '../kit';
 import { Person, Sprite } from '../pixel/Sprite';
 import { ChallengeChip } from '../Challenge';
-import { tutorialOn } from '../Tutorial';
+import { TUTORIAL, tutorialOn, tutorialStep } from '../Tutorial';
 
 const STEP_ICON: Record<string, string> = {
   slice: 'knife',
@@ -253,6 +253,8 @@ export function ServicePanel({ paused, setPaused, speed, setSpeed, activeId, set
 
   // After the first customer, Bà points out that she can take the counter (once per game).
   const baTip = s.allUnlocked === false && s.lifetime.served >= 1 && !svc.auto && !s.hints.includes('baHelpTip') && !tutorialOn(s);
+  // The walkthrough's "Bà can help" step points at her button too.
+  const baStep = tutorialOn(s) && TUTORIAL[tutorialStep(s)]?.next?.hint === 'baHelpTip';
 
   useEffect(() => {
     if (activeId !== null && !active) setActiveId(null);
@@ -304,7 +306,7 @@ export function ServicePanel({ paused, setPaused, speed, setSpeed, activeId, set
         </Btn>
         <Btn
           kind={svc.auto ? 'primary' : 'go'}
-          className={`ba-help-btn ${baTip ? 'glow' : ''}`}
+          className={`ba-help-btn ${baTip || baStep ? 'glow' : ''}`}
           data-spot="ba-help"
           aria-pressed={svc.auto}
           title={svc.auto ? 'Take the counter back' : 'Bà serves everyone for you; tap again to take over'}
@@ -386,7 +388,7 @@ export function ServicePanel({ paused, setPaused, speed, setSpeed, activeId, set
                 const tray = PRODUCTS[v.wants].kind === 'tray';
                 return (
                   <li key={v.id}>
-                    <button type="button" className={`order ${patience < 0.3 ? 'urgent' : ''}`} onClick={() => pick(v)}>
+                    <button type="button" className={`order ${patience < 0.3 ? 'urgent' : ''}`} onClick={() => pick(v)} data-spot={i === 0 ? 'first-order' : undefined}>
                       <kbd>{i + 1}</kbd>
                       <Person look={v.look} scale={2} />
                       <span className="order-who">

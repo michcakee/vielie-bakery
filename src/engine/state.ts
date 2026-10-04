@@ -1160,7 +1160,8 @@ function reduce(s: GameState, a: Action): GameState {
       return a.mode === 'help' || a.mode === 'all' ? { ...s, staffMode: a.mode } : s;
     case 'starsForCash': {
       if (starsToSpend(s) < STAR_CASH.stars) return s;
-      const next = { ...s, cash: round2(s.cash + STAR_CASH.cash), questProgress: { ...s.questProgress, starsSpent: (s.questProgress.starsSpent ?? 0) + STAR_CASH.stars } };
+      // Booked as other income, so the balance sheet still balances.
+      const next = move({ ...s, questProgress: { ...s.questProgress, starsSpent: (s.questProgress.starsSpent ?? 0) + STAR_CASH.stars } }, 'cashOperatingOther', STAR_CASH.cash, { otherIncome: STAR_CASH.cash });
       return toast(next, 'info', `Bà’s tip jar: +$${STAR_CASH.cash}`, `${STAR_CASH.stars} stars turned into cash for the bakery.`);
     }
     case 'autoBake':

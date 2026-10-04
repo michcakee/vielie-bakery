@@ -13,6 +13,7 @@ import type { GameState, Visit } from '../../src/engine/types';
 import { COSMETICS, STAR_CASH, STYLE_COUNTS, starsToSpend } from '../../src/data/cosmetics';
 import { COUNTERS, FLOORS, PATTERNS, WALLS } from '../../src/ui/pixel/scene';
 import { biggestProblem } from '../../src/engine/advice';
+import { balanceSheet, bookEquity } from '../../src/engine/accounting';
 import { staffWait } from '../../src/engine/service';
 import { activeQuests, QUESTS } from '../../src/engine/progression';
 import { act, finish, morning, playDay, resolveEvents, runService } from './bot';
@@ -226,6 +227,8 @@ describe('playtest 3 follow-ups', () => {
     s = gameReducer(s, { type: 'starsForCash' });
     expect(s.cash).toBeCloseTo(cash + STAR_CASH.cash, 2);
     expect(starsToSpend(s)).toBe(3);
+    // The cash is booked, so the balance sheet still balances.
+    expect(balanceSheet(s).equity).toBeCloseTo(bookEquity(s), 1);
     expect(gameReducer(s, { type: 'starsForCash' })).toBe(s);
   });
 

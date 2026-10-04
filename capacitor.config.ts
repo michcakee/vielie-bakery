@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.michcakee.vietbakeshop',
-  appName: 'Viet Bake Shop',
+  appName: 'Viet Bake Shop Sim',
   webDir: 'dist',
   backgroundColor: '#d7ecca',
   android: {

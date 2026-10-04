@@ -5518,6 +5518,51 @@ html[data-motion='reduced'] .title-logo span {
   }
 }
 
+/* ---------- the next thing to tap shines (tutorial and lessons) ---------- */
+.shine.shine-rel { position: relative; }
+.shine {
+  z-index: 3;
+  animation: shine-pulse 1.1s ease-in-out infinite;
+}
+@keyframes shine-pulse {
+  0%, 100% { box-shadow: 0 0 0 3px var(--mango), 0 0 10px 3px rgba(255, 196, 77, 0.55); }
+  50% { box-shadow: 0 0 0 6px var(--butter), 0 0 0 9px var(--mango), 0 0 24px 10px rgba(255, 196, 77, 0.75); }
+}
+/* A streak of light sweeps across, like a shiny new button. */
+.shine::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(110deg, transparent 35%, rgba(255, 255, 255, 0.75) 48%, transparent 60%) no-repeat;
+  background-size: 250% 100%;
+  animation: shine-sweep 1.8s ease-in-out infinite;
+}
+@keyframes shine-sweep {
+  0% { background-position: 130% 0; }
+  60%, 100% { background-position: -30% 0; }
+}
+.shine-arrow {
+  position: fixed;
+  z-index: 58;
+  pointer-events: none;
+  animation: spot-bob 0.6s steps(2) infinite;
+}
+.shine-arrow .point-down { transform: rotate(90deg); }
+.shine-arrow .point-up { transform: rotate(-90deg); }
+.shine-arrow .point-left { transform: scaleX(-1); }
+.shine-arrow:has(.point-right) { animation-name: shine-nudge-right; }
+.shine-arrow:has(.point-left) { animation-name: shine-nudge-left; }
+@keyframes shine-nudge-right { 50% { translate: 5px 0; } }
+@keyframes shine-nudge-left { 50% { translate: -5px 0; } }
+.shine-arrow img { filter: drop-shadow(2px 0 0 #fff) drop-shadow(-2px 0 0 #fff) drop-shadow(0 2px 0 #fff) drop-shadow(0 -2px 0 #fff) drop-shadow(3px 3px 0 var(--ink)); }
+@media (prefers-reduced-motion: reduce) {
+  .shine, .shine::after, .shine-arrow { animation: none; }
+  .shine { box-shadow: 0 0 0 4px var(--butter), 0 0 0 7px var(--mango); }
+  .shine::after { display: none; }
+}
+
 /* ---------- Bà's lessons path ---------- */
 .lesson-part {
   margin: 0 0 8px;

@@ -255,3 +255,12 @@ On Android, the back button closes windows and sheets, then returns to Today.
 - **The game is now Viet Bake Shop Simulator** ("Viet Bake Shop Sim" under the app icon and on the title screen).
 - **Follow the shine.** During the first-day tutorial and each of Bà's lessons, the next thing to tap glows and a little arrow points at it. If it's on another tab, that tab glows first. It stops as soon as you've done the step, and nothing is ever blocked: you can still look around.
 - **Golden means now.** For a new baker's first days, "Take it out!" shines while the tray is in the golden zone.
+
+## The Dream team and diamonds
+
+- **Five special staff:** Vy (pastry counter), Yen Vy (drinks), Hieu (bánh mì), Sang (baking) and Phuong Khanh (pastry quality). These names belong to them alone, and only they have the bright hair colours.
+- **Way more efficient:** each serves any order, two to three times faster than the best person you can hire, and never fumbles one. Their service is so good that customers tip two to three times more, plus a bonus on every great order. Each also preps trays before opening (Sang the most) and lifts bake quality (Phuong Khanh the most). They're paid the ordinary going rate and never quit.
+- **Diamonds unlock them:** 60 for Vy, 80 for Yen Vy, 100 for Hieu, 120 for Sang and 150 for Phuong Khanh. Every 3-star day pays 5 diamonds for free. In the iPhone and iPad app you can also buy packs of 60, 200 or 520 diamonds: much faster.
+- **Where:** tap the diamond counter at the top, or *See them* on the Staff tab. Once unlocked, they wait in the applicants every week; hire them any morning, and if you let one go they come back to the pile.
+- **One wallet per device:** diamonds and unlocked members are shared by every bakery on the device. *Delete all my data* erases them too.
+

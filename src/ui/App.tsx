@@ -34,6 +34,7 @@ import { FEATURE, TAB_FEATURES } from '../data/unlocks';
 import { introStep, nextFeature, tabOn } from '../engine/unlocks';
 import { Settings } from './Settings';
 import { Concepts } from './Concepts';
+import { DreamTeamSheet } from './DreamTeam';
 
 const TABS: { id: Tab; label: string; icon: string; mobile: boolean }[] = [
   { id: 'today', label: 'Today', icon: 'house', mobile: true },
@@ -181,7 +182,7 @@ function Game({ onQuit }: { onQuit: () => void }) {
   const [paused, setPaused] = useState(false);
   const [speed, setSpeed] = useState(1);
   const [activeId, setActiveId] = useState<number | null>(null);
-  const [drawer, setDrawer] = useState<'quests' | 'settings' | 'more' | 'help' | 'paint' | 'pause' | 'how' | 'concepts' | null>(null);
+  const [drawer, setDrawer] = useState<'quests' | 'settings' | 'more' | 'help' | 'paint' | 'pause' | 'how' | 'concepts' | 'dream' | null>(null);
   const fs = useFullscreen();
   const [hidden, setHidden] = useState(false);
   const intro = s.phase === 'morning' && s.day === 1 && s.history.length === 0 && !s.hints.includes('intro') && s.scenario === 'family';
@@ -295,7 +296,7 @@ function Game({ onQuit }: { onQuit: () => void }) {
       <a className="skip-link" href="#panel">
         Skip to controls
       </a>
-      <Hud onConcepts={() => setDrawer('concepts')} onQuests={() => setDrawer('quests')} onSettings={() => setDrawer('settings')} onHelp={() => setDrawer('help')} questCount={activeQuests(s).length} />
+      <Hud onDiamonds={() => setDrawer('dream')} onConcepts={() => setDrawer('concepts')} onQuests={() => setDrawer('quests')} onSettings={() => setDrawer('settings')} onHelp={() => setDrawer('help')} questCount={activeQuests(s).length} />
       <div className="layout">
         <section className="scene-col" aria-label="Your bakery">
           <div className="scene-box">
@@ -472,6 +473,7 @@ function Game({ onQuit }: { onQuit: () => void }) {
       {drawer === 'settings' && <Settings onClose={() => setDrawer(null)} onQuit={onQuit} />}
       {drawer === 'how' && <HowToPlay onClose={() => setDrawer(null)} />}
       {drawer === 'concepts' && <Concepts onClose={() => setDrawer(null)} />}
+      {drawer === 'dream' && <DreamTeamSheet onClose={() => setDrawer(null)} />}
       {drawer === 'pause' && (
         <Modal label="Paused" onClose={() => setDrawer(null)} className="pause-menu">
           <h2>Paused</h2>

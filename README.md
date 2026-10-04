@@ -27,6 +27,8 @@ No backend, no accounts, no ads, no tracking. It plays offline, and saves stay o
 - **Growth:** equipment, renovations, marketing campaigns with measured ROI, and branches in other neighbourhoods.
 - **Understanding:** "Why did this happen?", break-even, product margins per oven tray and per labour minute, forecasts, a decision journal, and a notebook of plain-language business concepts.
 
+**The Dream team:** Vy, Yen Vy, Hieu, Sang and Phuong Khanh, five all-rounders unlocked with diamonds (earned on 3-star days, or bought in the iOS app). Each serves anything two to three times faster than the best hire, never fumbles an order, and earns two to three times the tips, with one job they're simply the best at.
+
 **Sandbox:** six scenarios (Family Business, Startup, Survive the Recession, Rapid Expansion, Community Bakery, Competitive Market), four difficulty levels that change the economy rather than just the numbers, long-term goals, three save slots with automatic backups, and endings: sell to a buyer, retire, or go bankrupt.
 
 **Cozy and Vietnamese:** a tube-house bakery with gạch bông tiles, lanterns and street life; 13 recipes from bánh mì que to bánh trung thu, with the michcake as the final unlock; regulars with habits and favourites; Bà teaching in Vietnamese with English underneath; Tết and Trung Thu.

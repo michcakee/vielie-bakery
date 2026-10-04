@@ -262,6 +262,11 @@ export function DayReport() {
               {r.stars === 3 ? 'Three stars! ' : r.stars === 0 ? `Sell ${money(t.goal[0])} tomorrow for your first star. ` : `Next star at ${money(t.goal[r.stars])}. `}
               {r.starXp ? `+${r.starXp} XP` : ''}
             </span>
+            {r.diamonds ? (
+              <span className="report-diamonds">
+                <Sprite name="diamond" scale={3} /> +{r.diamonds} diamonds for a 3-star day
+              </span>
+            ) : null}
           </div>
         )}
         {s.challenge?.day === r.day && <ChallengeChip />}
@@ -314,6 +319,16 @@ export function DayReport() {
             −<Count value={Math.max(0, spent)} />
           </b>
         </div>
+        {(t.dreamTips ?? 0) > 0.005 && (
+          <div className="num pos dream-num">
+            <span>
+              <Sprite name="diamond" scale={2} /> Dream team tips (in sales)
+            </span>
+            <b>
+              <Count value={t.dreamTips ?? 0} prefix="+" />
+            </b>
+          </div>
+        )}
         {prize > 0.005 && (
           <div className="num pos">
             <span>Prize money</span>

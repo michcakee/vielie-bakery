@@ -161,7 +161,7 @@ export const NOTEBOOK: Record<string, NotebookEntry> = {
     term: 'Comparative advantage',
     friendly: 'Who should do what',
     text: 'Put each helper on what they’re relatively best at, even if one of them is better at everything.',
-    professor: 'Specialise by opportunity cost, not by absolute skill. If Vy is faster at both coffee and sandwiches but much faster at coffee, the team makes most when Vy makes coffee and Sang makes sandwiches: Sang’s sandwiches cost the team less in coffee forgone. The same logic lets two shops gain from trading what each makes most cheaply.',
+    professor: 'Specialise by opportunity cost, not by absolute skill. If Mochi is faster at both coffee and sandwiches but much faster at coffee, the team makes most when Mochi makes coffee and Peanut makes sandwiches: Peanut’s sandwiches cost the team less in coffee forgone. The same logic lets two shops gain from trading what each makes most cheaply.',
     realWorld: 'A surgeon who types faster than her assistant still shouldn’t do the typing.',
   },
   anchoring: {

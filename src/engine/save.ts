@@ -2,7 +2,8 @@ import { START_PRODUCTS, INGREDIENTS, INGREDIENT_ORDER, PRODUCTS, PRODUCT_ORDER,
 import { balanceSheet } from './accounting';
 import { refreshKinds } from './events';
 import { createNewGame, SAVE_VERSION } from './state';
-import type { DaySummary, Employee, Equipment, GameState, UpgradeId } from './types';
+import type { Applicant, DaySummary, Employee, Equipment, GameState, UpgradeId } from './types';
+import { isDreamId, normalHairColor, type DreamId } from '../data/dream';
 import { migrateFeatures } from './unlocks';
 
 /** Old single-slot key from v2 (kept untouched as a backup after migration). It keeps the game's first name. */
@@ -10,6 +11,8 @@ export const LEGACY_V2_KEY = 'vielie-bakery-save-v2';
 export const SLOT_PREFIX = 'vietbakeshop-v3-slot-';
 export const BACKUP_SUFFIX = '-backup';
 export const PREFS_KEY = 'vietbakeshop-prefs-v2';
+/** Diamonds and the Dream team belong to the device, not one bakery. */
+export const WALLET_KEY = 'vietbakeshop-wallet-v1';
 /** Where saves and settings lived before the game was renamed; they are moved to the new keys on first run. */
 const OLD_SLOT_PREFIX = 'vielie-bakery-v3-slot-';
 const OLD_PREFS_KEY = 'vielie-bakery-prefs-v2';
@@ -93,6 +96,19 @@ export function fillNewContent(data: unknown): void {
     if (!s.pantry[id]) s.pantry[id] = { qty: 0, avgCost: def.price / def.pack, quality: 70, eco: 50 };
     if (s.market?.prices && !finite(s.market.prices[id])) s.market.prices[id] = def.price * (s.macro?.priceIndex ?? 1);
     if (s.market?.walk && !finite(s.market.walk[id])) s.market.walk[id] = 1;
+  }
+  // The Dream team: unknown members are dropped, and only they keep the bright hair colours.
+  if (Array.isArray(s.dreamTeam)) s.dreamTeam = [...new Set(s.dreamTeam.filter(isDreamId))];
+  if (s.diamonds !== undefined && (!finite(s.diamonds) || s.diamonds < 0)) s.diamonds = 0;
+  // An applicant claiming to be a Dream team member who isn't unlocked (or doesn't exist) is dropped.
+  if (Array.isArray(s.applicants)) s.applicants = s.applicants.filter((a) => !a || a.dream === undefined || (isDreamId(a.dream) && !!s.dreamTeam?.includes(a.dream)));
+  for (const list of [s.staff, s.applicants]) {
+    if (!Array.isArray(list)) continue;
+    for (const p of list as (Employee | Applicant)[]) {
+      if (!p || typeof p !== 'object') continue;
+      if (p.dream !== undefined && !isDreamId(p.dream)) delete p.dream;
+      if (!p.dream && p.look && finite(p.look.hairColor)) p.look = { ...p.look, hairColor: normalHairColor(p.look.hairColor) };
+    }
   }
 }
 
@@ -327,6 +343,7 @@ export function clearAllData(store: StorageLike | null = storage()): void {
       store.removeItem(`${OLD_SLOT_PREFIX}${slot}${BACKUP_SUFFIX}`);
     }
     store.removeItem(OLD_PREFS_KEY);
+    store.removeItem(WALLET_KEY);
   } catch {
     /* storage unavailable */
   }
@@ -433,3 +450,38 @@ export function savePrefs(p: Prefs): void {
     /* ignore */
   }
 }
+
+// ---------------------------------------------------------------- wallet
+
+export interface Wallet {
+  diamonds: number;
+  dreamTeam: DreamId[];
+  /** App Store transactions already turned into diamonds, so none is ever counted twice. */
+  credited: string[];
+}
+
+/** The device's wallet, or null if this device has never had one. */
+export function loadWallet(store: StorageLike | null = storage()): Wallet | null {
+  try {
+    const raw = store?.getItem(WALLET_KEY);
+    if (!raw) return null;
+    const w = JSON.parse(raw) as Partial<Wallet>;
+    return {
+      diamonds: finite(w.diamonds) && (w.diamonds as number) > 0 ? Math.floor(w.diamonds as number) : 0,
+      dreamTeam: Array.isArray(w.dreamTeam) ? [...new Set(w.dreamTeam.filter(isDreamId))] : [],
+      credited: Array.isArray(w.credited) ? w.credited.filter((x): x is string => typeof x === 'string').slice(-200) : [],
+    };
+  } catch {
+    return null;
+  }
+}
+
+export function saveWallet(w: Wallet, store: StorageLike | null = storage()): boolean {
+  try {
+    store?.setItem(WALLET_KEY, JSON.stringify({ diamonds: Math.max(0, Math.floor(w.diamonds)), dreamTeam: w.dreamTeam, credited: w.credited.slice(-200) }));
+    return true;
+  } catch {
+    return false;
+  }
+}
+

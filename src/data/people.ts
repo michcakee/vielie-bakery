@@ -148,7 +148,7 @@ export const REGULARS: RegularDef[] = [
     frequency: 0.35,
     eco: false,
     time: 3,
-    look: { skin: 2, hair: 0, hairColor: 4, shirt: 0, apron: -1, accessory: 2 },
+    look: { skin: 2, hair: 0, hairColor: 3, shirt: 0, apron: -1, accessory: 2 },
     level: 4,
     hello: "It's my friend's birthday today!",
     reactions: { great: ['My friend is going to love this!', 'Pretty as the picture!'], ok: ['It’ll do, let me see.'], bad: ['The party is tonight…'] },

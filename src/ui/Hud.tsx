@@ -11,7 +11,7 @@ import { Sprite } from './pixel/Sprite';
 
 const WEATHER_ICON = { sunny: 'sun', cloudy: 'cloud', rainy: 'rain', hot: 'hot', cool: 'cool' } as const;
 
-export function Hud({ onQuests, onSettings, onHelp, questCount, onConcepts }: { onQuests: () => void; onSettings: () => void; onHelp: () => void; questCount: number; onConcepts: () => void }) {
+export function Hud({ onQuests, onSettings, onHelp, questCount, onConcepts, onDiamonds }: { onQuests: () => void; onSettings: () => void; onHelp: () => void; questCount: number; onConcepts: () => void; onDiamonds: () => void }) {
   const { state: s, reduced } = useGame();
   const cash = useTween(s.cash, 500, reduced);
   // Money earned while the shop is open floats up from the cash figure.
@@ -62,6 +62,12 @@ export function Hud({ onQuests, onSettings, onHelp, questCount, onConcepts }: { 
           <b>{Math.round(s.reputation)}</b>
           <span className="sr-only">reputation</span>
         </span>
+        {(featureOn(s, 'staff.hire') || (s.diamonds ?? 0) > 0 || (s.dreamTeam ?? []).length > 0) && (
+          <button type="button" className="hud-stat diamond-chip" onClick={onDiamonds} aria-label={`${s.diamonds ?? 0} diamonds: open the Dream team`} title="Diamonds: unlock the Dream team">
+            <Sprite name="diamond" scale={3} />
+            <b>{s.diamonds ?? 0}</b>
+          </button>
+        )}
         {featureOn(s, 'eco.all') && (
         <span className="hud-stat" title="Eco score: sourcing, waste and packaging">
           <Sprite name="leaf" scale={3} />

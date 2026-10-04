@@ -527,6 +527,7 @@ export const SPRITES: Record<string, string[]> = {
   playIcon: ['o.......', 'ooo.....', 'ooooo...', 'ooooooo.', 'ooooo...', 'ooo.....', 'o.......'],
   fast: ['o...o...', 'oo..oo..', 'ooo.ooo.', 'oooooooo', 'ooo.ooo.', 'oo..oo..', 'o...o...'],
   coin: ['..oooo..', '.oyyyyo.', 'oyywyyYo', 'oyyYyyYo', 'oyyYyyYo', 'oyyyyYYo', '.oYYYYo.', '..oooo..'],
+  diamond: ['.oooooo.', 'owwiitIo', 'oooooooo', 'oiwiiIto', '.oiiIto.', '..oiIo..', '...oo...'],
   heart: ['.oo..oo.', 'orroorro', 'orwrrrro', 'orrrrrro', '.orrrro.', '..orro..', '...oo...'],
   star: ['...oo...', '...oyo..', 'ooooyooo', 'oyyyyyyo', '.oyyyyo.', '.oyooyo.', 'oyo..oyo', 'oo....oo'],
   leaf: ['.....ooo', '...oollo', '..ollgGo', '.olgggGo', '.oggGGo.', 'oGGGoo..', 'oGoo....', 'oo......'],

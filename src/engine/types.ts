@@ -1,3 +1,4 @@
+import type { DreamId } from '../data/dream';
 import type { FeatureId } from '../data/unlocks';
 export type ProductId =
   | 'banhMi'
@@ -295,6 +296,8 @@ export interface DayStats {
   donatedUnits: number;
   keptUnits: number;
   servedBeforeNoon: number;
+  /** Tips the Dream team earned today. */
+  dreamTips?: number;
   /** Five-star orders the player made by hand, and special requests done just right (daily challenges). */
   fiveStar?: number;
   twistsRight?: number;
@@ -446,6 +449,10 @@ export interface Employee {
   branch: number | null;
   /** Personality: changes how they serve. Optional so older saves load. */
   trait?: TraitId;
+  /** One of the Dream team (unlocked with diamonds). */
+  dream?: DreamId;
+  /** Tips this person has earned for the bakery (the Dream team's are shown). */
+  tips?: number;
 }
 
 export type TraitId = 'speedy' | 'careful' | 'cheerful' | 'earlyBird';
@@ -458,6 +465,8 @@ export interface Applicant {
   skill: number;
   look: Look;
   trait?: TraitId;
+  /** One of the Dream team, waiting to be hired. */
+  dream?: DreamId;
 }
 
 export interface Competitor {
@@ -679,6 +688,12 @@ export interface GameState {
   story?: StoryState;
   /** Today's small task. */
   challenge?: Challenge | null;
+  /** Diamonds to spend (bought in the app or earned on 3-star days). Shared by every bakery on the device. */
+  diamonds?: number;
+  /** Dream team members unlocked with diamonds (also shared across bakeries). */
+  dreamTeam?: DreamId[];
+  /** Diamonds this bakery has earned from 3-star days. */
+  diamondsEarned?: number;
   visitsByRegular: Record<string, number>;
   quests: string[];
   questProgress: Record<string, number>;
@@ -758,6 +773,8 @@ export interface Report {
   branchProfit: number;
   /** Stars earned on today's goal, and the XP they paid. */
   stars?: number;
+  /** Diamonds earned today (a 3-star day). */
+  diamonds?: number;
   starXp?: number;
 }
 

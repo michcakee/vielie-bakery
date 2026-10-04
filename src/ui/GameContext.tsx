@@ -1,10 +1,11 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState, type Dispatch, type ReactNode } from 'react';
-import { slotInfo, loadGame, loadPrefs, saveGame, savePrefs, type Prefs } from '../engine/save';
+import { slotInfo, loadGame, loadPrefs, loadWallet, saveGame, savePrefs, saveWallet, type Prefs } from '../engine/save';
 import { createNewGame, gameReducer, type Action } from '../engine/state';
 import type { GameState } from '../engine/types';
 import { featureOn } from '../engine/unlocks';
 import type { FeatureId } from '../data/unlocks';
 import { setAudio } from './audio';
+import { listenForPurchases } from './purchases';
 
 interface Ctx {
   state: GameState;
@@ -108,6 +109,30 @@ export function GameProvider({ children }: { children: ReactNode }) {
     },
     [state, slot, setPrefs],
   );
+
+  // Diamonds and the Dream team belong to the device. When a different bakery loads (another slot, a
+  // new game, a restored save), the device's wallet comes into it; after that, whatever this bakery
+  // earns or spends is written back, so every bakery on the device shares one wallet.
+  const walletFor = useRef<string | null>(null);
+  const gameKey = `${slot}:${state.seed}`;
+  useEffect(() => {
+    const team = state.dreamTeam ?? [];
+    const w = loadWallet();
+    if (walletFor.current === gameKey) {
+      const same = w && w.diamonds === (state.diamonds ?? 0) && w.dreamTeam.length === team.length && team.every((id) => w.dreamTeam.includes(id));
+      if (!same) saveWallet({ diamonds: state.diamonds ?? 0, dreamTeam: team, credited: w?.credited ?? [] });
+      return;
+    }
+    walletFor.current = gameKey;
+    // A device without a wallet yet (first run, or a save code brought from another device) keeps the bakery's own.
+    const diamonds = w ? w.diamonds : state.diamonds ?? 0;
+    const dreamTeam = [...new Set([...(w?.dreamTeam ?? []), ...team])];
+    saveWallet({ diamonds, dreamTeam, credited: w?.credited ?? [] });
+    dispatch({ type: 'syncWallet', diamonds, dreamTeam });
+  }, [gameKey, state.diamonds, state.dreamTeam]);
+
+  // App Store purchases that finish in the background (approved later, interrupted) still arrive.
+  useEffect(() => listenForPurchases((n) => dispatch({ type: 'addDiamonds', n })), []);
 
   // Finishing Bà's first week opens the other scenarios for every future game.
   useEffect(() => {

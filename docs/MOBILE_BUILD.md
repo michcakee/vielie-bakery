@@ -107,7 +107,15 @@ A green run means the project compiles and starts. It does not prove the game pl
 
 - iPhone plays upright only; iPad allows every orientation.
 - `ITSAppUsesNonExemptEncryption` is `false` in `Info.plist`, so App Store Connect does not ask the export-compliance question on each upload.
-- iOS 14 or later; iPhone and iPad.
+- iOS 15 or later (the purchase plugin uses StoreKit 2); iPhone and iPad.
+
+### In-app purchases (diamonds)
+
+- Plugin: [`@capgo/native-purchases`](https://github.com/Cap-go/capacitor-native-purchases) 7.19.3 (StoreKit 2, no server or extra account). `npx cap sync ios` adds its pod.
+- Code: `src/ui/purchases.ts`. Purchases are only offered when `Capacitor.getPlatform() === 'ios'`; the website and Android never sell anything.
+- Each transaction id is written to the device wallet (`vietbakeshop-wallet-v1`) before the transaction is finished, so a crash or a second notice can't credit it twice. Purchases approved later (Ask to Buy) arrive through the `transactionUpdated` listener.
+- Products: see [`STORE_LISTING.md`](store/STORE_LISTING.md#in-app-purchases-set-up-in-app-store-connect). The *In-App Purchase* capability is on by default for App Store apps; nothing to add in Xcode.
+- **Testing:** prices and purchases only work once the products exist in App Store Connect (status *Ready to Submit*) and the build runs from TestFlight or Xcode with a Sandbox Apple ID (Settings → App Store → Sandbox Account on the iPhone). Until then the shop shows "Not available" and the rest of the game works normally.
 
 ## Offline and saves
 
@@ -124,6 +132,8 @@ Placeholders for everything the stores ask for are in [`docs/store/`](store/):
 - [ ] Answer the content rating questionnaires using [`CONTENT_RATING.md`](store/CONTENT_RATING.md)
 - [ ] Google Play *Data safety*: no data collected or shared
 - [ ] App Store *App Privacy*: Data Not Collected
+- [ ] Create the three diamond in-app purchases and submit them with the app ([`STORE_LISTING.md`](store/STORE_LISTING.md))
+- [ ] Buy each pack once on TestFlight with a Sandbox account; check the diamonds arrive, the Dream team unlocks, and a second launch doesn't add them again
 - [ ] Screenshots: phone (and 7"/10" tablet for Play, 6.7"/6.5"/iPad for Apple), taken from real builds
 - [ ] Test on at least one small phone (≈360 dp wide) and one tablet
 - [ ] Signed release builds uploaded to an internal test track / TestFlight first

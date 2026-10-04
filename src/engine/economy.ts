@@ -1,3 +1,4 @@
+import { dreamOf } from '../data/dream';
 import { BAGUETTE, DECOR, INGREDIENTS, LEVELS, LOYALTY, PACKAGING, PRODUCTS, PRODUCT_ORDER, SUPPLIERS, UPGRADES, WEATHER } from '../data/catalog';
 import { DIFFICULTY, ECON } from '../data/config';
 import { LOCATIONS, SEGMENTS, SEGMENT_ORDER } from '../data/world';
@@ -71,6 +72,13 @@ export function laborTrays(s: GameState): number {
   const mixer = has(s, 'mixer') ? ECON.production.mixerBoost : 1;
   let hands = 0;
   for (const e of flagshipStaff(s)) {
+    const d = dreamOf(e);
+    if (d) {
+      // The Dream team preps trays before the doors open, each by their own talent (Sang most of all).
+      hands++;
+      t += d.trays * productivity(e, s.day) * mixer * crowdingFactor(s, hands);
+      continue;
+    }
     if (e.role !== 'baker' && e.role !== 'pastryChef') continue;
     hands++;
     const crowd = crowdingFactor(s, hands);
@@ -406,8 +414,14 @@ export function masteryBonus(s: Pick<GameState, 'lifetime'>, p: ProductId): numb
 
 export function staffQualityBonus(s: GameState): number {
   let b = has(s, 'renovation') ? 5 : 0;
-  for (const e of flagshipStaff(s)) if (e.role === 'pastryChef') b += (ECON.production.pastryChefQuality * e.skill) / 3;
-  return Math.min(15, b);
+  let dream = 0;
+  for (const e of flagshipStaff(s)) {
+    const d = dreamOf(e);
+    if (d) dream += d.bakeQuality;
+    else if (e.role === 'pastryChef') b += (ECON.production.pastryChefQuality * e.skill) / 3;
+  }
+  // The Dream team's touch goes on top of the usual cap.
+  return Math.min(15, b) + Math.min(15, dream);
 }
 
 export function blendQuality(process: number, ingredients: number, bonus: number): number {

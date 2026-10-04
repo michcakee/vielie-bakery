@@ -48,7 +48,8 @@ import { arcDayEnd } from './arc';
 import { bondCapacity, borrowingLimit, creditLimit, creditLineRate, investorTerms, makeLoan, quoteLoan, valuation } from './finance';
 import { suggestedTrays, forecast, ingredientsNeeded } from './forecast';
 import { bump, decide, learn, spend, toast } from './helpers';
-import { hireValue, makeEmployee, marketWage, quitters, updateMorale, weeklyApplicants } from './labor';
+import { hireValue, makeEmployee, marketWage, quitters, updateMorale, weeklyApplicants, withDream } from './labor';
+import { DIAMOND, DREAM, isDreamId } from '../data/dream';
 import { createMacro, dailyMacro, monthlyMacro } from './macro';
 import { generateMarket } from './market';
 import { applySchedule, checkProgress, goalMet, WEEKLY_GOALS } from './progression';
@@ -314,6 +315,11 @@ export type Action =
   | { type: 'claim'; visitId: number; release?: boolean }
   | { type: 'setStaffMode'; mode: 'help' | 'all' }
   | { type: 'starsForCash' }
+  /** Diamonds the App Store just confirmed were bought. */
+  | { type: 'addDiamonds'; n: number }
+  | { type: 'unlockDream'; id: string }
+  /** Device-wide diamonds and Dream team, loaded into this bakery. */
+  | { type: 'syncWallet'; diamonds: number; dreamTeam: string[] }
   | { type: 'lastCall'; on: boolean }
   | { type: 'closeEarly' }
   | { type: 'leftover'; key: ProductId | 'baguette'; choice: LeftoverChoice }
@@ -734,6 +740,9 @@ function finishDay(s: GameState): GameState {
   const stars = starsFor(incomeStatement(t.books).revenue, t.goal);
   const starXp = STAR_XP[stars];
   next = arcDayEnd(next, stars);
+  // A 3-star day pays diamonds (the free way to the Dream team).
+  const diamonds = stars === 3 ? DIAMOND.perThreeStarDay : 0;
+  if (diamonds) next = { ...next, diamonds: (next.diamonds ?? 0) + diamonds, diamondsEarned: (next.diamondsEarned ?? 0) + diamonds };
   const xpGain = t.xp + starXp + Math.max(0, Math.round(profit / ECON.progression.xpProfitDivisor));
   next = {
     ...next,
@@ -764,6 +773,7 @@ function finishDay(s: GameState): GameState {
     profit,
     stars,
     starXp,
+    diamonds: diamonds || undefined,
     cashBefore,
     cashAfter: next.cash,
     recap: recap(s, next.today),
@@ -953,7 +963,7 @@ function startDay(s: GameState): GameState {
   }
   if (day % 7 === 1) {
     const apps = weeklyApplicants(next);
-    next = { ...next, applicants: apps, nextId: next.nextId + apps.length };
+    next = withDream({ ...next, applicants: apps, nextId: next.nextId + apps.length });
     const r = reactWeekly(next);
     next = { ...next, competitors: r.competitors };
     for (const n of r.news.slice(0, 2)) next = toast(next, 'info', 'Rival move', n);
@@ -1164,6 +1174,25 @@ function reduce(s: GameState, a: Action): GameState {
       const next = move({ ...s, questProgress: { ...s.questProgress, starsSpent: (s.questProgress.starsSpent ?? 0) + STAR_CASH.stars } }, 'cashOperatingOther', STAR_CASH.cash, { otherIncome: STAR_CASH.cash });
       return toast(next, 'info', `Bà’s tip jar: +$${STAR_CASH.cash}`, `${STAR_CASH.stars} stars turned into cash for the bakery.`);
     }
+    case 'addDiamonds': {
+      const n = Math.floor(a.n);
+      if (!Number.isFinite(n) || n <= 0 || n > 100000) return s;
+      return toast({ ...s, diamonds: (s.diamonds ?? 0) + n }, 'achievement', `+${n} diamonds`, 'Thank you! Spend them on the Dream team.');
+    }
+    case 'unlockDream': {
+      if (!isDreamId(a.id)) return s;
+      const d = DREAM[a.id];
+      const team = s.dreamTeam ?? [];
+      if (team.includes(a.id) || (s.diamonds ?? 0) < d.cost) return s;
+      const next = withDream({ ...s, diamonds: (s.diamonds ?? 0) - d.cost, dreamTeam: [...team, a.id] });
+      return toast(next, 'unlock', `${d.name} unlocked!`, `${d.name} is ready to join: tap Hire on their Dream team card any morning.`);
+    }
+    case 'syncWallet': {
+      const diamonds = Number.isFinite(a.diamonds) ? Math.max(0, Math.floor(a.diamonds)) : 0;
+      const dreamTeam = [...new Set(a.dreamTeam.filter(isDreamId))];
+      if (diamonds === (s.diamonds ?? 0) && dreamTeam.length === (s.dreamTeam ?? []).length && dreamTeam.every((id) => s.dreamTeam?.includes(id))) return s;
+      return withDream({ ...s, diamonds, dreamTeam });
+    }
     case 'autoBake':
       return autoBake(s);
     case 'setPlan':
@@ -1314,7 +1343,7 @@ function reduce(s: GameState, a: Action): GameState {
       const severance = round2(e.wage * ECON.labor.hoursPerShift * ECON.labor.severanceDays);
       const next = move(s, 'cashWages', -severance, { wages: severance });
       return decide(
-        { ...next, staff: next.staff.filter((x) => x.id !== a.id).map((x) => ({ ...x, morale: Math.max(0, x.morale - 8) })) },
+        withDream({ ...next, staff: next.staff.filter((x) => x.id !== a.id).map((x) => ({ ...x, morale: Math.max(0, x.morale - 8) })) }),
         { kind: 'fire', text: `Let ${e.name} go (${severance.toFixed(0)} severance).`, metric: 'profit', before: avgProfit(s) },
       );
     }
@@ -1453,7 +1482,7 @@ function reduce(s: GameState, a: Action): GameState {
       if (!b) return s;
       let next = move({ ...s, branches: s.branches.map((x) => (x.id === a.id ? { ...x, closed: true } : x)) }, 'cashCapex', b.deposit);
       next = accrue(next, { otherExpense: b.fitOut });
-      next = { ...next, staff: next.staff.filter((e) => e.branch !== a.id) };
+      next = withDream({ ...next, staff: next.staff.filter((e) => e.branch !== a.id) });
       return toast(next, 'info', 'Shop closed', `${b.name} has closed. The deposit came back; the fit-out ($${b.fitOut.toFixed(0)} left on the books) is written off.`);
     }
     case 'dismissToast':

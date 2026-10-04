@@ -1,3 +1,4 @@
+import { dreamOf } from '../data/dream';
 import { dailyGoal } from './goals';
 import { rollTwist, twistBonus, twistLine, twistsOn } from './twists';
 import { CONFIG, PRODUCTS, type ProductKind } from '../data/catalog';
@@ -208,7 +209,12 @@ export function buildSchedule(s: GameState): Visit[] {
 export function makeServers(s: GameState, auto: boolean): ServerSlot[] {
   const out: ServerSlot[] = [];
   if (auto) out.push({ id: 'owner', busyUntil: 0, visitId: null, quality: ECON.service.ownerAutoQuality, served: 0 });
-  for (const e of flagshipStaff(s)) if (e.role === 'helper' || e.role === 'cashier' || e.role === 'barista' || e.role === 'cook') out.push({ id: `staff:${e.id}`, busyUntil: 0, visitId: null, quality: 60 + 8 * e.skill + (e.trait ? TRAITS[e.trait].quality : 0), served: 0 });
+  for (const e of flagshipStaff(s)) {
+    // The Dream team works the counter whatever their spike, with near-perfect service.
+    const d = dreamOf(e);
+    if (d) out.push({ id: `staff:${e.id}`, busyUntil: 0, visitId: null, quality: d.quality, served: 0 });
+    else if (e.role === 'helper' || e.role === 'cashier' || e.role === 'barista' || e.role === 'cook') out.push({ id: `staff:${e.id}`, busyUntil: 0, visitId: null, quality: 60 + 8 * e.skill + (e.trait ? TRAITS[e.trait].quality : 0), served: 0 });
+  }
   // Guided games: Bà hands out pastries while you learn, until you hire a cashier of your own.
   if (!auto && s.allUnlocked === false && !s.staff.some((e) => e.role === 'cashier' && e.branch === null)) out.push({ id: 'ba', busyUntil: 0, visitId: null, quality: 74, served: 0 });
   return out;
@@ -386,9 +392,12 @@ export function serve(s: GameState, visitId: number, process?: number, by: strin
   const twistTip = by === 'player' ? twistBonus(v, process, waited) : 0;
   const server = by.startsWith('staff:') ? s.staff.find((e) => `staff:${e.id}` === by) : undefined;
   const smileTip = server?.trait ? TRAITS[server.trait].tip : 0;
+  // The Dream team's service is so good that customers tip several times more, and something even on an ordinary order.
+  const dream = dreamOf(server);
+  const dreamTip = dream ? round2(grade.tip * (dream.tipMult - 1) + (grade.stars >= 4 ? dream.tipFlat : dream.tipFlat * 0.4)) : 0;
   // "Bà, help!" has a price: her orders earn no tips and no XP.
   const byBa = by === 'owner';
-  const tip = byBa ? 0 : round2(grade.tip + (v.specialOrder ? paid * ECON.service.specialOrder.tipShare : 0) + twistTip + smileTip);
+  const tip = byBa ? 0 : round2(grade.tip + (v.specialOrder ? paid * ECON.service.specialOrder.tipShare : 0) + twistTip + smileTip + dreamTip);
   const reg = named ? REGULARS.find((r) => r.id === v.who) : undefined;
   const reaction = reg?.reactions ? (grade.stars >= 4 ? reg.reactions.great : grade.stars === 3 ? reg.reactions.ok : reg.reactions.bad) : null;
   const line = v.who === KEVIN.id ? KEVIN.thanks : reaction ? pick(rand, reaction) : pick(rand, mood === 'love' ? LINES.love : mood === 'happy' ? LINES.happy : LINES.ok);
@@ -413,6 +422,7 @@ export function serve(s: GameState, visitId: number, process?: number, by: strin
   if (svc.clock < 300) t.servedBeforeNoon++;
   if (by === 'player' && grade.stars === 5) t.fiveStar = (t.fiveStar ?? 0) + 1;
   if (twistTip > 0) t.twistsRight = (t.twistsRight ?? 0) + 1;
+  if (dream) t.dreamTips = round2((t.dreamTips ?? 0) + tip);
   if (by === 'player' || by === 'owner') t.ownerServed++;
   else t.staffServed++;
   if (!byBa) t.xp += ECON.progression.xpPerServe + (mood === 'love' ? ECON.progression.xpPerLove : 0);
@@ -451,13 +461,13 @@ export function serve(s: GameState, visitId: number, process?: number, by: strin
   nsvc = addFx(nsvc, 'coin', paid + tip, visitId);
   if (mood === 'love') nsvc = addFx(nsvc, 'heart', undefined, visitId);
   // A perfect order: flawless assembly, or a golden tray, and a customer who loved it.
-  if (mood === 'love' && (process === 100 || (process === undefined && c.quality >= 95))) nsvc = addFx(nsvc, 'sparkle', undefined, visitId);
+  if ((mood === 'love' && (process === 100 || (process === undefined && c.quality >= 95))) || (dream && grade.stars === 5)) nsvc = addFx(nsvc, 'sparkle', undefined, visitId);
   if (badgeWon !== null) {
     next = toast(next, 'achievement', `${v.name} is a ${BADGE_NAMES[badgeWon - 1]} regular!`, badgeWon === 3 ? 'Gold: the highest. They’ll visit more and always tip.' : 'They’ll visit more often, and the badge is yours for good.');
     next = { ...next, questProgress: { ...next.questProgress, goldRegulars: Object.values(badges).filter((b) => b >= 3).length } };
   }
   if (v.critic && grade.stars === 5) next = toast(next, 'achievement', 'The Food Critic is impressed', 'A glowing write-up. Reputation up.');
-  const staff = by.startsWith('staff:') ? next.staff.map((e) => (`staff:${e.id}` === by ? { ...e, served: e.served + 1 } : e)) : next.staff;
+  const staff = by.startsWith('staff:') ? next.staff.map((e) => (`staff:${e.id}` === by ? { ...e, served: e.served + 1, ...(e.dream ? { tips: round2((e.tips ?? 0) + tip) } : {}) } : e)) : next.staff;
   const campaigns = v.source ? next.campaigns.map((c) => (`c${c.id}` === v.source ? { ...c, newCustomers: c.newCustomers + 1, revenue: c.revenue + paid } : c)) : next.campaigns;
   return {
     ...next,
@@ -482,8 +492,9 @@ function minutesFor(s: GameState, serverId: string, kind: ProductKind): number {
   if (serverId === 'ba') return ECON.service.ownerMinutes[kind] * 1.3;
   const e = s.staff.find((x) => `staff:${x.id}` === serverId);
   if (!e) return 3;
-  let m = (ECON.service.staffMinutes[kind] * (e.role === 'helper' ? 1.5 : 1)) / productivity(e, s.day);
-  if (e.trait && (e.trait !== 'earlyBird' || (s.service?.clock ?? 0) < 300)) m *= TRAITS[e.trait].speed;
+  const d = dreamOf(e);
+  let m = (ECON.service.staffMinutes[kind] * (d ? d.speed[kind] : e.role === 'helper' ? 1.5 : 1)) / productivity(e, s.day);
+  if (!d && e.trait && (e.trait !== 'earlyBird' || (s.service?.clock ?? 0) < 300)) m *= TRAITS[e.trait].speed;
   if (has(s, 'pos')) m *= 0.87;
   if (kind === 'drink' && has(s, 'coffeeBar')) m *= 0.75;
   return m;
@@ -494,7 +505,7 @@ function canServe(s: GameState, serverId: string, kind: ProductKind): boolean {
   if (serverId === 'ba') return kind === 'tray';
   const e = s.staff.find((x) => `staff:${x.id}` === serverId);
   if (!e) return false;
-  return e.role === 'helper' || (e.role === 'cashier' && kind === 'tray') || (e.role === 'barista' && kind === 'drink') || (e.role === 'cook' && kind === 'sandwich');
+  return !!e.dream || e.role === 'helper' || (e.role === 'cashier' && kind === 'tray') || (e.role === 'barista' && kind === 'drink') || (e.role === 'cook' && kind === 'sandwich');
 }
 
 /** In "help" mode, staff leave this many orders waiting for the player at a time. */

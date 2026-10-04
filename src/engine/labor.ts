@@ -1,6 +1,7 @@
 import { DIFFICULTY, ECON } from '../data/config';
 import { FRIENDS, ROLES, ROLE_ORDER, STAFF_NAMES, TRAIT_ORDER } from '../data/world';
 import { CONFIG } from '../data/catalog';
+import { DREAM, DREAM_ORDER, DREAM_WAGE_PREMIUM, type DreamId } from '../data/dream';
 import { has, productivity } from './economy';
 import { rngFor } from './rng';
 import { randomLook } from './look';
@@ -65,7 +66,29 @@ export function updateMorale(s: GameState, utilisation: number): Employee[] {
 
 export function quitters(s: GameState): Employee[] {
   const rand = rngFor(s.seed, s.day, 503);
-  return s.staff.filter((e) => e.morale < ECON.labor.quitMorale && rand() < ECON.labor.quitChance);
+  // The Dream team never walks out: you paid diamonds for them.
+  return s.staff.filter((e) => e.morale < ECON.labor.quitMorale && rand() < ECON.labor.quitChance && !e.dream);
+}
+
+/** A Dream team member waiting to be hired: top skill, paid a little over the going rate. */
+export function dreamApplicant(s: GameState, id: DreamId, applicantId: number): Applicant {
+  const d = DREAM[id];
+  return { id: applicantId, name: d.name, role: d.role, wage: round2(marketWage(s, d.role, 5) * DREAM_WAGE_PREMIUM), skill: 5, look: { ...d.look }, dream: id };
+}
+
+/**
+ * Everyone you've unlocked and haven't hired is always in the applicant pile, every week, and comes
+ * back if you let them go. Returns the same state when nothing needs to change.
+ */
+export function withDream(s: GameState): GameState {
+  const unlocked = (s.dreamTeam ?? []).filter((id) => DREAM[id]);
+  const want = DREAM_ORDER.filter((id) => unlocked.includes(id) && !s.staff.some((e) => e.dream === id));
+  const have = s.applicants.filter((a) => a.dream);
+  if (want.length === have.length && want.every((id) => have.some((a) => a.dream === id))) return s;
+  let nextId = s.nextId;
+  const keep = s.applicants.filter((a) => !a.dream || want.includes(a.dream));
+  const add = want.filter((id) => !keep.some((a) => a.dream === id)).map((id) => dreamApplicant(s, id, nextId++));
+  return { ...s, applicants: [...add, ...keep], nextId };
 }
 
 /** What one more person in a role would add per day, for marginal decisions. */
@@ -108,5 +131,6 @@ export function hireValue(s: GameState, role: RoleId, skill = 3): { cost: number
 }
 
 export function makeEmployee(a: Applicant, day: number, branch: number | null = null): Employee {
-  return { id: a.id, name: a.name, role: a.role, wage: a.wage, skill: a.skill, morale: 72, hiredDay: day, trainingUntil: 0, look: a.look, served: 0, branch, trait: a.trait };
+  const e: Employee = { id: a.id, name: a.name, role: a.role, wage: a.wage, skill: a.skill, morale: a.dream ? 90 : 72, hiredDay: day, trainingUntil: 0, look: a.look, served: 0, branch, trait: a.dream ? undefined : a.trait };
+  return a.dream ? { ...e, dream: a.dream, tips: 0 } : e;
 }

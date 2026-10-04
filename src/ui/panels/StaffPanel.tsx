@@ -9,6 +9,8 @@ import { useGame } from '../GameContext';
 import { featureOn } from '../../engine/unlocks';
 import { Btn, Card, ConfirmBtn, Empty, Meter, Stepper, Tip } from '../kit';
 import { Person, Sprite } from '../pixel/Sprite';
+import { DreamTeamCard, DreamTeamSheet } from '../DreamTeam';
+import { dreamOf } from '../../data/dream';
 
 function EmployeeRow({ e }: { e: Employee }) {
   const { state: s, dispatch } = useGame();
@@ -17,13 +19,24 @@ function EmployeeRow({ e }: { e: Employee }) {
   const prod = productivity(e, s.day);
   const busy = s.phase === 'service';
   const branches = s.branches.filter((b) => !b.closed);
+  const d = dreamOf(e);
   return (
-    <li className="staff-row">
+    <li className={`staff-row ${d ? 'dream-row' : ''}`}>
       <Person look={e.look} scale={3} />
       <div className="staff-info">
         <b>
-          {e.name} <span className="muted">· {ROLES[e.role].name}</span>
+          {e.name} <span className="muted">· {d ? `all-rounder, best at ${d.spike.toLowerCase()}` : ROLES[e.role].name}</span>
+          {d && (
+            <span className="special-tag dream-tag">
+              <Sprite name="diamond" scale={1} /> Dream team
+            </span>
+          )}
         </b>
+        {d && (
+          <span className="small dream-earned">
+            <Sprite name="coin" scale={2} /> <b>{money2(e.tips ?? 0)}</b> in tips earned for the bakery
+          </span>
+        )}
         <span className="small">
           Skill {Array.from({ length: e.skill }).map((_, i) => (<span key={i} className="star-on"><Sprite name="star" scale={2} /></span>))}
           {Array.from({ length: 5 - e.skill }).map((_, i) => (<span key={i} className="star-off"><Sprite name="star" scale={2} /></span>))} · productivity {Math.round(prod * 100)}% · {e.served} served · since day {e.hiredDay}
@@ -74,13 +87,15 @@ export function StaffPanel() {
   // Best value first: what they add minus what they cost. Bà recommends the top one if it pays.
   // Kevin Nguyen, your first customer, always heads the list.
   const kevin = (name: string) => (name === FRIENDS[0].name ? 1 : 0);
-  const ranked = [...s.applicants].map((a) => ({ a, v: hireValue(s, a.role, a.skill) })).sort((x, y) => kevin(y.a.name) - kevin(x.a.name) || y.v.addsValue - y.v.cost - (x.v.addsValue - x.v.cost));
+  const [dream, setDream] = useState(false);
+  // The Dream team waits in the Dream team card, not the ranked pile.
+  const ranked = s.applicants.filter((a) => !a.dream).map((a) => ({ a, v: hireValue(s, a.role, a.skill) })).sort((x, y) => kevin(y.a.name) - kevin(x.a.name) || y.v.addsValue - y.v.cost - (x.v.addsValue - x.v.cost));
   const pick = ranked[0] && ranked[0].v.addsValue >= ranked[0].v.cost * 0.6 ? ranked[0].a.id : null;
   const shown = all ? ranked : ranked.slice(0, 3);
   const team = s.staff;
   const ovens = ovenCapacity(s);
   const people = laborTrays(s);
-  const servers = team.filter((e) => e.branch === null && (e.role === 'helper' || e.role === 'cashier' || e.role === 'barista' || e.role === 'cook'));
+  const servers = team.filter((e) => e.branch === null && (!!e.dream || e.role === 'helper' || e.role === 'cashier' || e.role === 'barista' || e.role === 'cook'));
   const recent = s.history.slice(-7);
   const lostSlow = recent.length ? recent.reduce((t, h) => t + h.lostSlow, 0) / recent.length : 0;
   const hireFee = Math.round(ECON.labor.hiringCost * s.macro.priceIndex);
@@ -132,6 +147,9 @@ export function StaffPanel() {
         </p>
       </Card>
 
+      {(feature('staff.hire') || (s.diamonds ?? 0) > 0 || (s.dreamTeam ?? []).length > 0) && <DreamTeamCard onOpen={() => setDream(true)} />}
+      {dream && <DreamTeamSheet onClose={() => setDream(false)} />}
+
       {feature('staff.hire') && (
       <Card spot="hire" fresh={fresh('staff.hire')} title="Job applicants" icon="note" aside={<span className="small muted">New faces every Monday</span>}>
         {branches.length > 0 && (
@@ -147,7 +165,7 @@ export function StaffPanel() {
             </select>
           </label>
         )}
-        {s.applicants.length === 0 ? (
+        {ranked.length === 0 ? (
           <Empty icon="note">No one is looking for work this week. Check again on Monday.</Empty>
         ) : (
           <ul className="staff-list">
@@ -204,10 +222,10 @@ export function StaffPanel() {
             })}
           </ul>
         )}
-        {!pick && s.applicants.length > 0 && <p className="small">Bà says: “Nobody here would pay for themselves yet. Hire when lots of people give up waiting.”</p>}
-        {s.applicants.length > 3 && (
+        {!pick && ranked.length > 0 && <p className="small">Bà says: “Nobody here would pay for themselves yet. Hire when lots of people give up waiting.”</p>}
+        {ranked.length > 3 && (
           <button type="button" className="link-btn" onClick={() => setAll(!all)}>
-            {all ? 'Show fewer' : `Show all ${s.applicants.length} applicants`}
+            {all ? 'Show fewer' : `Show all ${ranked.length} applicants`}
           </button>
         )}
         <p className="small muted">

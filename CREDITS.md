@@ -29,6 +29,7 @@ Everything in Viet Bake Shop Simulator, with where it came from and its licence.
 | typescript | language | Apache-2.0 |
 | vitest | tests (not shipped) | MIT |
 | @capacitor/core, @capacitor/app, @capacitor/status-bar, @capacitor/splash-screen | mobile shells | MIT |
+| @capgo/native-purchases | App Store purchases of diamond packs (iOS app) | MPL-2.0 (used unmodified) |
 | @capacitor/cli, @capacitor/android, @capacitor/ios | mobile build (not shipped in the web build) | MIT |
 | AndroidX appcompat, coordinatorlayout, core-splashscreen (Android project) | Capacitor's template dependencies | Apache-2.0 |
 
@@ -36,4 +37,4 @@ No library requires attribution in the game beyond this file. No GPL/AGPL code.
 
 ## Things the game does not use
 
-No analytics, ads, crash reporting, accounts, purchases, remote fonts or third-party image/audio files.
+No analytics, ads, crash reporting, accounts, remote fonts or third-party image/audio files. The only purchases are optional diamond packs through Apple's App Store.

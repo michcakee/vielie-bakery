@@ -11,7 +11,7 @@
 | Subtitle (iOS, 30 chars) | Run a cozy Vietnamese bakery |
 | Bundle / package ID | `com.michcakee.vietbakeshop` |
 | Category | Games → Simulation (secondary: Education) |
-| Price | Free. No ads, no in-app purchases |
+| Price | Free, with optional in-app purchases (diamond packs). No ads |
 | Developer name | My-Vien Nguyen |
 | Support email | myvientrannguyen@gmail.com |
 | Website | https://michcakee.github.io/vielie-bakery/ |
@@ -39,6 +39,7 @@ A real business sandbox
 • Income statement, balance sheet and cash flow, explained in plain words
 • "Why did this happen?" for every good and bad week
 • Six scenarios, four difficulty levels, long-term goals and three save slots
+• The Dream team: five all-rounders with their own looks who serve anything far faster than anyone you can hire, and earn the biggest tips in town
 
 Cozy and Vietnamese
 • Hand-made pixel art: a tube-house bakery, gạch bông tiles, lanterns and street life
@@ -46,9 +47,25 @@ Cozy and Vietnamese
 • Tết, Trung Thu mooncakes and 13 Vietnamese recipes, from bánh mì que to one legendary final cake
 
 Fair and private
-• No ads, no in-app purchases, no account
+• No ads, no account
+• Optional diamond packs unlock the Dream team sooner; every 3-star day earns diamonds for free
 • Plays fully offline
 • Saves stay on your device
+
+## In-app purchases (set up in App Store Connect)
+
+Create these under *Monetization → In-App Purchases* as **Consumable**, with exactly these product IDs (the game looks them up by ID; `src/data/dream.ts`). Each needs a display name, a description, a price tier and a review screenshot of the Dream team screen (`docs/store/screenshots/` has the game; take one of the diamond shop from TestFlight). Submit them **with** the app version that adds them.
+
+| Product ID | Reference name | Display name | Description | Price |
+| --- | --- | --- | --- | --- |
+| `com.michcakee.vietbakeshop.diamonds60` | Diamonds 60 | Handful of diamonds | 60 diamonds: enough to unlock Vy. | $0.99 |
+| `com.michcakee.vietbakeshop.diamonds200` | Diamonds 200 | Pouch of diamonds | 200 diamonds for the Dream team. | $2.99 |
+| `com.michcakee.vietbakeshop.diamonds520` | Diamonds 520 | Chest of diamonds | 520 diamonds: the whole Dream team. | $5.99 |
+
+- Diamonds are consumables, so there's nothing to "restore": Apple doesn't require a Restore button for them. They live on the device (see the privacy policy).
+- Every 3-star day also pays 5 diamonds, so everything can be earned without paying.
+- *App Privacy* stays **Data Not Collected**: Apple processes the payment and the game sends nothing to us.
+- Review notes for Apple: "Diamonds are an optional consumable currency for unlocking the Dream team characters (Staff tab, or the diamond counter in the top bar). They can also be earned in play: 5 per 3-star day. Nothing is random."
 
 ## Keywords (iOS, 100 chars)
 
@@ -58,7 +75,7 @@ bakery,tycoon,business,vietnamese,banh mi,cozy,pixel,economics,cafe,shop,manager
 
 ## What's new (3.1.0)
 
-Now called Viet Bake Shop Simulator. The tutorial and Bà's lessons make the next button to tap shine, with a little arrow, until you tap it. Plus a step-by-step first day with Bà, your first customer Kevin Nguyen (who later asks for a job), quests and a star shop for new looks, a clearer day report, and a new first recipe: bánh mì que. The game now asks your name, and the last recipe in the book is a secret worth playing for.
+Now called Viet Bake Shop Simulator. Meet the Dream team: Vy, Yen Vy, Hieu, Sang and Phuong Khanh, five all-rounders who serve anything at lightning speed and earn the biggest tips in town. Unlock them with diamonds: earn them on 3-star days or buy a pack. The tutorial and Bà's lessons make the next button to tap shine, with a little arrow, until you tap it. Plus a step-by-step first day with Bà, your first customer Kevin Nguyen (who later asks for a job), quests and a star shop for new looks, a clearer day report, and a new first recipe: bánh mì que. The game now asks your name, and the last recipe in the book is a secret worth playing for.
 
 ## Assets
 

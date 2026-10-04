@@ -278,7 +278,7 @@ export const EVENTS: Record<string, EventDef> = {
     title: 'A food vlogger calls',
     vi: 'Food vlogger',
     concept: 'risk',
-    text: (s) => `Vy, a local food vlogger, offers a video about your bakery for ${money(scaled(s, 300))}. It could bring 0 to 60 extra customers over the next 4 days. Nobody knows until it's posted.`,
+    text: (s) => `A local food vlogger offers a video about your bakery for ${money(scaled(s, 300))}. It could bring 0 to 60 extra customers over the next 4 days. Nobody knows until it's posted.`,
     choices: (s) => [
       {
         id: 'yes',

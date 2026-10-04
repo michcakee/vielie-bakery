@@ -28,6 +28,7 @@ import { BakeryScene } from './scene/BakeryScene';
 import { Painter } from './Painter';
 import { TutorialBar, tutorialOn } from './Tutorial';
 import { HowToPlay, IntroLines, Loading, NewGame, Setup, Title } from './screens/Screens';
+import { scrollPageTop } from '../lib/host';
 import { hasKeyboard, typing, useFullscreen } from './web';
 import { GuideProvider, TabHelp, WhatNow } from './Guide';
 import { FEATURE, TAB_FEATURES } from '../data/unlocks';
@@ -234,7 +235,7 @@ function Game({ onQuit }: { onQuit: () => void }) {
 
   // A new phase (morning, service, report) always starts at the top of the page.
   useEffect(() => {
-    window.scrollTo({ top: 0 });
+    scrollPageTop();
     document.querySelector('.modal.report')?.scrollTo({ top: 0 });
   }, [s.phase, s.day]);
 
@@ -273,7 +274,7 @@ function Game({ onQuit }: { onQuit: () => void }) {
     if (!tabOn(s, t)) return;
     setTab(t);
     setDrawer(null);
-    window.scrollTo({ top: 0 });
+    scrollPageTop();
     dispatch({ type: 'hint', id: `tab:${t}` });
     // "Open the X tab" steps of the active intro quest count as done when you get there.
     const a = s.intro?.active;

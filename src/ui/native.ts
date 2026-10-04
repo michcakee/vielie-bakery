@@ -1,5 +1,5 @@
 import { Capacitor } from '@capacitor/core';
-import { ON_ITCH } from '../lib/host';
+import { FRAMED, ON_ITCH } from '../lib/host';
 import { handleBack } from './backButton';
 
 /**
@@ -9,6 +9,7 @@ import { handleBack } from './backButton';
  */
 export async function initPlatform() {
   if (!Capacitor.isNativePlatform()) {
+    if (FRAMED || ON_ITCH) document.documentElement.classList.add('framed');
     if ('serviceWorker' in navigator && import.meta.env.PROD && !ON_ITCH) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js').catch(() => {

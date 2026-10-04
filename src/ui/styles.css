@@ -4237,6 +4237,21 @@ html.native body {
   -webkit-user-select: none;
   user-select: none;
 }
+
+/* ---------- inside another site's player frame (itch.io and the like) ----------
+   Those frames often can't scroll the page, so the game scrolls in its own box. */
+html.framed,
+html.framed body {
+  height: 100%;
+  overflow: hidden;
+}
+html.framed #root {
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-color: var(--leaf-dark, #4f7d46) transparent;
+}
 html.native input,
 html.native textarea {
   -webkit-user-select: text;

@@ -1,5 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 import { useCallback, useEffect, useState } from 'react';
+import { ON_ITCH } from '../lib/host';
 
 /**
  * Things only the website version has: a fullscreen button, an "install" prompt, and a
@@ -61,7 +62,8 @@ export function useInstall(): (() => void) | null {
     installListeners.add(f);
     return () => void installListeners.delete(f);
   }, []);
-  if (!pendingInstall) return null;
+  // On itch the game is played on its page; there's no offline app to install.
+  if (!pendingInstall || ON_ITCH) return null;
   return () => {
     const e = pendingInstall;
     if (!e) return;

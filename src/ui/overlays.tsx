@@ -1,5 +1,5 @@
 import { biggestProblem } from '../engine/advice';
-import { ChallengeChip } from './Challenge';
+import { ChallengeChip, OpeningTomorrow } from './Challenge';
 import { Collection, collectionCount } from './Collection';
 import { StarShop } from './StarShop';
 import { starsToSpend } from '../data/cosmetics';
@@ -454,6 +454,7 @@ export function DayReport() {
           <Sprite name="bell" scale={2} /> <b>Biggest thing to fix:</b> {problem.text}
         </p>
       )}
+      <OpeningTomorrow />
       {tryTomorrow(s) && (
         <p className="try-next">
           <Sprite name="spark" scale={2} /> <b>Try this tomorrow:</b> {tryTomorrow(s)}

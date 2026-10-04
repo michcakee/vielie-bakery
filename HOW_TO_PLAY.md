@@ -25,12 +25,28 @@ A new bakery starts with just **Today** and **Kitchen**. Every other part of the
 
 | Around day | What opens |
 | --- | --- |
-| 2–3 | The wet market, then setting your own prices (with a guess about what will happen) |
-| 5–8 | Today's special, getting to know your regulars, more suppliers and bulk packs |
-| 10–16 | The menu, why did this happen?, your first hire (Bà points out the best one), then letting the team run a day |
+| 2–5 | The wet market, your first hire (Kevin Nguyen asks for a job), then setting your own prices (with a guess about what will happen) |
+| 3, 6 | New recipes: bánh chuối nướng (with enough from Bà for a first tray), then trà tắc |
+| 7–10 | Today's special, getting to know your regulars, letting the team run a day, more suppliers and bulk packs |
+| 10–16 | Why did this happen? |
 | 15–22 | Money pages, the menu and recipe book, Eco, rivals, the safety fund, equipment, the baking plan, trends |
 | 23–35 | Contracts and price locks, training, combos and sizes, bank loans, marketing, the economy |
 | Later | Investors and bonds, the Test Kitchen, more shops |
+
+### Opening week
+
+Each of your first days brings its own twist, with a goal and a bonus (XP and cash in the tip jar) when you hit it. The day report tells you what's coming tomorrow.
+
+| Day | Event | Goal |
+| --- | --- | --- |
+| 2 | Morning rush: a crowd of parents around 8am | Serve 10 customers before lunch |
+| 3 | Taste test: everyone wants the new banana cake | Sell 6 bánh chuối nướng |
+| 4 | The Food Critic visits early, and she loves flan | Give her a 4- or 5-star order (bake in the golden zone and serve her fast) |
+| 5 | Big order from the office tower before lunch | Serve the big order |
+| 6 | Picky customers: no chili, extra herbs, no ice | Get 3 special requests just right |
+| 7 | Party on the lane: a big afternoon crowd | Sell 16 pastries |
+
+While you're learning, Bà hands out pastries for you, but she always leaves Kevin, the critic and big orders to you. Quiet stretches of the day, when nobody is in the shop or about to arrive, pass three times faster.
 
 Know the game already? Tick **Experienced baker** on the new-game screen, or in Settings, and everything opens at once. Bakeries saved before this update keep everything they already had.
 

@@ -302,7 +302,7 @@ describe('first-week unlock schedule and the next goal', () => {
   it('something new arrives on its scheduled day, and the next unlock is always known', async () => {
     const { nextUnlock } = await import('../../src/engine/progression');
     let s = createNewGame(21);
-    expect(morning(s).unlocked).not.toContain('banhChuoi'); // level 1, but scheduled for the morning of day 4
+    expect(morning(s).unlocked).not.toContain('banhChuoi'); // level 1, but scheduled for the morning of day 3
     for (let d = 0; d < 3; d++) s = autoDay(s); // day 1 → the morning of day 4
     expect(s.day).toBe(4);
     expect(s.unlocked).toContain('banhChuoi');

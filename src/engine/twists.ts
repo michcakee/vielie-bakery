@@ -36,9 +36,9 @@ export function twistsOn(s: Pick<GameState, 'allUnlocked' | 'day'>): boolean {
 }
 
 /** Pick a twist for an order of `p`, or none. `rand` is the day's twist stream. */
-export function rollTwist(p: ProductId, rand: () => number): Twist | undefined {
+export function rollTwist(p: ProductId, rand: () => number, chance = TWIST.chance): Twist | undefined {
   const steps = PRODUCTS[p].steps;
-  if (!steps?.length || rand() > TWIST.chance) return undefined;
+  if (!steps?.length || rand() > chance) return undefined;
   const r = rand();
   if (r < 0.25) return { kind: 'rush' };
   // The first step is the base (bread, tea, milk): never skipped.

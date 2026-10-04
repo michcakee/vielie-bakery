@@ -245,7 +245,11 @@ function Game({ onQuit }: { onQuit: () => void }) {
     if (newHere && s.phase !== 'service') dispatch({ type: 'hint', id: `tab:${tab}` });
   }, [newHere, tab, s.phase, dispatch]);
 
-  const rate = (prefs.relaxed ? 4 : 6) * speed;
+  // Quiet stretches (nobody in the shop, nobody due for a while) pass three times faster,
+  // so slow afternoons don't drag. The day's customers and money are exactly the same.
+  const svc = s.service;
+  const quiet = !!svc && !svc.visits.some((v) => v.status === 'waiting' || v.status === 'walking' || (v.status === 'coming' && v.arrive - svc.clock < 10));
+  const rate = (prefs.relaxed ? 4 : 6) * speed * (quiet ? 3 : 1);
   const running = s.phase === 'service' && !paused && !hidden && drawer === null;
   useServiceClock(running, rate);
   useServiceSounds(s);

@@ -5,10 +5,33 @@ import { toast } from './helpers';
 import { rngFor } from './rng';
 import { twistsOn } from './twists';
 import { featureOn } from './unlocks';
-import type { Challenge, GameState } from './types';
+import type { Challenge, GameState, OpeningEventId } from './types';
 
 /** One small task each morning, with a small reward. Guided games start on day 3. */
 export const CHALLENGE = { fromDay: 3, xp: 20, cash: 8 };
+
+/**
+ * The opening week of a guided game: each of days 2 to 7 has its own twist that changes who
+ * walks in (service.ts), with a goal and a bigger reward than a daily challenge. It takes the
+ * daily challenge's place on those days, so the first week never plays the same twice.
+ */
+export const OPENING: Record<OpeningEventId, { day: number; title: string; blurb: string; target: number; xp: number; cash: number }> = {
+  rush: { day: 2, title: 'Morning rush', blurb: 'The school down the lane starts late today, so a crowd of parents comes in for breakfast around 8.', target: 10, xp: 40, cash: 25 },
+  tasteTest: { day: 3, title: 'Taste test', blurb: 'Word is out about Bà’s banana cake, and people are coming in just to try it. Bà left you enough for a first tray.', target: 6, xp: 40, cash: 25 },
+  critic: { day: 4, title: 'The Food Critic visits', blurb: 'A food critic is coming in early, around 8:30, and she loves bánh flan. Bake it in the golden zone today and serve her quickly: she grades harder than anyone.', target: 1, xp: 50, cash: 30 },
+  bigOrder: { day: 5, title: 'Big order', blurb: 'Someone from the office tower is coming before lunch to buy for the whole team. Have plenty in the case!', target: 1, xp: 45, cash: 30 },
+  requests: { day: 6, title: 'Picky customers', blurb: 'No chili, extra herbs, no ice: today everyone wants it their way. Read each order and get it just right for a bigger tip.', target: 3, xp: 45, cash: 30 },
+  laneParty: { day: 7, title: 'Party on the lane', blurb: 'The neighbours are throwing a street party this afternoon. Expect a big crowd after lunch: bake plenty of pastries!', target: 16, xp: 60, cash: 40 },
+};
+const OPENING_ORDER: OpeningEventId[] = ['rush', 'tasteTest', 'critic', 'bigOrder', 'requests', 'laneParty'];
+
+export const isOpening = (c: Pick<Challenge, 'id'> | null | undefined): c is Challenge & { id: OpeningEventId } => !!c && c.id in OPENING;
+
+/** The opening-week event on this day of a guided game, if any. */
+export function openingOn(s: Pick<GameState, 'allUnlocked'>, day: number): OpeningEventId | null {
+  if (s.allUnlocked !== false) return null;
+  return OPENING_ORDER.find((id) => OPENING[id].day === day) ?? null;
+}
 
 const avg = (s: GameState, f: (h: GameState['history'][number]) => number) => {
   const h = s.history.slice(-3);
@@ -18,6 +41,11 @@ const clampInt = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi
 
 /** Pick today's challenge. Targets sit a little above what the player has been doing. */
 export function pickChallenge(s: GameState): Challenge | null {
+  const opening = openingOn(s, s.day);
+  // The taste test needs the new recipe on the menu; otherwise it's an ordinary day.
+  if (opening && (opening !== 'tasteTest' || onMenu(s).includes('banhChuoi'))) {
+    return { id: opening, target: OPENING[opening].target, product: opening === 'tasteTest' ? 'banhChuoi' : undefined, done: false, day: s.day };
+  }
   if (s.day < (s.allUnlocked === false ? CHALLENGE.fromDay : 2)) return null;
   const rand = rngFor(s.seed, s.day, 77);
   const served = avg(s, (h) => h.served) || 10;
@@ -54,15 +82,35 @@ export function challengeText(c: Challenge): string {
       return `Get ${c.target} special requests just right`;
     case 'regulars':
       return `Serve ${c.target} neighbours you know by name`;
+    case 'rush':
+      return `Serve ${c.target} customers before lunch`;
+    case 'tasteTest':
+      return `Sell ${c.target} ${PRODUCTS.banhChuoi.name}`;
+    case 'critic':
+      return 'Give the Food Critic a 4- or 5-star order';
+    case 'bigOrder':
+      return 'Serve the big order';
+    case 'requests':
+      return `Get ${c.target} special requests just right`;
+    case 'laneParty':
+      return `Sell ${c.target} pastries from the glass case`;
   }
+}
+
+/** XP and cash for finishing this challenge. */
+export function challengeReward(s: Pick<GameState, 'macro'>, c: Challenge): { xp: number; cash: number } {
+  const base = isOpening(c) ? OPENING[c.id] : CHALLENGE;
+  return { xp: base.xp, cash: Math.round(base.cash * s.macro.priceIndex) };
 }
 
 export function challengeProgress(s: GameState, c: Challenge): number {
   const t = s.today;
   switch (c.id) {
     case 'sellItem':
+    case 'tasteTest':
       return t.sold[c.product!] ?? 0;
     case 'beforeNoon':
+    case 'rush':
       return t.servedBeforeNoon;
     case 'love':
       return t.love;
@@ -71,17 +119,24 @@ export function challengeProgress(s: GameState, c: Challenge): number {
     case 'noLeave':
       return t.lostSlow === 0 ? 1 : 0;
     case 'twists':
+    case 'requests':
       return t.twistsRight ?? 0;
     case 'regulars':
       return t.regularsServed;
+    case 'critic':
+      return t.criticPleased ?? 0;
+    case 'bigOrder':
+      return t.bigOrders ?? 0;
+    case 'laneParty':
+      return (Object.keys(t.sold) as (keyof typeof t.sold)[]).reduce((n, p) => n + (PRODUCTS[p]?.kind === 'tray' ? t.sold[p] ?? 0 : 0), 0);
   }
 }
 
 function win(s: GameState, c: Challenge): GameState {
-  const cash = Math.round(CHALLENGE.cash * s.macro.priceIndex);
-  let next: GameState = { ...s, challenge: { ...c, done: true }, xp: s.xp + CHALLENGE.xp, lifetime: { ...s.lifetime, challenges: (s.lifetime.challenges ?? 0) + 1 } };
+  const { xp, cash } = challengeReward(s, c);
+  let next: GameState = { ...s, challenge: { ...c, done: true }, xp: s.xp + xp, lifetime: { ...s.lifetime, challenges: (s.lifetime.challenges ?? 0) + 1 } };
   next = move(next, 'cashOperatingOther', cash, { otherIncome: cash });
-  return toast(next, 'quest', 'Daily challenge done!', `${challengeText(c)}: +${CHALLENGE.xp} XP and $${cash} in the tip jar.`);
+  return isOpening(c) ? toast(next, 'quest', `${OPENING[c.id].title}: done!`, `${challengeText(c)}: +${xp} XP and $${cash} in the tip jar.`) : toast(next, 'quest', 'Daily challenge done!', `${challengeText(c)}: +${xp} XP and $${cash} in the tip jar.`);
 }
 
 /** During the day: counted challenges finish the moment the number is reached. */

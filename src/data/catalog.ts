@@ -550,7 +550,7 @@ export const DECOR_ORDER: DecorId[] = ['plant', 'stools', 'stringLights', 'sign'
 export const UNLOCK_SCHEDULE: { day: number; kind: 'recipe' | 'regular' | 'decor'; id: string; tease: string }[] = [
   // Recipe days never share a morning with a new system (see FEATURES in data/unlocks.ts).
   { day: 3, kind: 'regular', id: 'mai', tease: 'A new face on the lane: the Eco Volunteer' },
-  { day: 4, kind: 'recipe', id: 'banhChuoi', tease: 'New recipe: Bánh chuối nướng' },
+  { day: 3, kind: 'recipe', id: 'banhChuoi', tease: 'New recipe: Bánh chuối nướng' },
   { day: 5, kind: 'decor', id: 'stringLights', tease: 'A gift from Bà for the shop' },
   { day: 6, kind: 'recipe', id: 'traTac', tease: 'New recipe: Trà tắc' },
   { day: 8, kind: 'regular', id: 'hung', tease: 'A new face: the Motorbike Driver' },

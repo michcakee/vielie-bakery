@@ -135,22 +135,37 @@ function placeCustomers(s: GameState): Placed[] {
   return out;
 }
 
-function useStageScale(ref: React.RefObject<HTMLDivElement>) {
-  const [scale, setScale] = useState(3);
+/** Computers: the room fills the left column (as tall as the window allows). Phones: whole-pixel steps. */
+const WIDE = 980;
+function useStageScale(ref: React.RefObject<HTMLDivElement>): { scale: number; fill: boolean } {
+  const [fit, setFit] = useState({ scale: 3, fill: false });
   useLayoutEffect(() => {
     const el = ref.current;
-    if (!el) return;
-    // Whole device pixels only: the largest integer multiple that fits, expressed in CSS pixels.
-    const fit = () => {
+    const box = el?.parentElement;
+    if (!el || !box) return;
+    const measure = () => {
       const dpr = window.devicePixelRatio || 1;
-      setScale(Math.max(1, Math.floor((el.clientWidth * dpr) / STAGE_W)) / dpr);
+      if (window.innerWidth > WIDE) {
+        // Any size that fits, so there are no empty bands beside the room. Leaves room for the
+        // top bar above and the Paint button below.
+        const hud = document.querySelector('.hud')?.getBoundingClientRect().height ?? 86;
+        const s = Math.min((box.clientWidth - 8) / STAGE_W, (window.innerHeight - hud - 96) / STAGE_H);
+        setFit({ scale: Math.max(1, Math.floor(s * dpr * 8) / (dpr * 8)), fill: true });
+      } else {
+        // Whole device pixels only: the largest integer multiple that fits, expressed in CSS pixels.
+        setFit({ scale: Math.max(1, Math.floor((el.clientWidth * dpr) / STAGE_W)) / dpr, fill: false });
+      }
     };
-    const ro = new ResizeObserver(fit);
-    ro.observe(el);
-    fit();
-    return () => ro.disconnect();
+    const ro = new ResizeObserver(measure);
+    ro.observe(box);
+    window.addEventListener('resize', measure);
+    measure();
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', measure);
+    };
   }, [ref]);
-  return scale;
+  return fit;
 }
 
 /** Bà's look: grey bun, glasses, green apron. */
@@ -312,7 +327,7 @@ export function BakeryScene({ onCustomer, baking = false, caption }: Props) {
   const counterRef = useRef<HTMLCanvasElement>(null);
   const frontRef = useRef<HTMLCanvasElement>(null);
   const windowRef = useRef<HTMLCanvasElement>(null);
-  const scale = useStageScale(wrap);
+  const { scale, fill } = useStageScale(wrap);
   const light = sceneLight(s);
   const tet = isTet(s.day);
   const opts: SceneOpts = useMemo(
@@ -382,7 +397,7 @@ export function BakeryScene({ onCustomer, baking = false, caption }: Props) {
   };
 
   return (
-    <div className={`stage-wrap light-${light} ${open ? 'is-open' : ''} ${reduced ? 'still' : ''}`} ref={wrap} style={{ height: STAGE_H * scale }}>
+    <div className={`stage-wrap light-${light} ${open ? 'is-open' : ''} ${reduced ? 'still' : ''}`} ref={wrap} style={fill ? { width: STAGE_W * scale + 8, height: STAGE_H * scale + 8, marginInline: 'auto' } : { height: STAGE_H * scale }}>
       <div className="stage" style={{ transform: `translateX(${(-STAGE_W / 2) * scale}px) scale(${scale})` }} aria-hidden="true">
         <canvas ref={roomRef} width={STAGE_W} height={STAGE_H} className="layer" />
 

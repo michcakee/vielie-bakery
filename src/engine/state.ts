@@ -1,5 +1,5 @@
 import { STAR_XP, starsFor } from './goals';
-import { BAGUETTE, DECOR, INGREDIENTS, INGREDIENT_ORDER, PRODUCTS, PRODUCT_ORDER, START_PRODUCTS, SUPPLIERS, UPGRADES } from '../data/catalog';
+import { BAGUETTE, DECOR, INGREDIENTS, INGREDIENT_ORDER, PRODUCTS, PRODUCT_ORDER, START_PRODUCTS, SUPPLIERS, UNLOCK_SCHEDULE, UPGRADES } from '../data/catalog';
 import { DIFFICULTY, ECON, type Difficulty } from '../data/config';
 import { LOCATIONS, ROLES, SCENARIOS } from '../data/world';
 import { accrue, addBooks, balanceSheet, emptyBooks, incomeStatement, inventoryValue, move, netProfit, sumBooks } from './accounting';
@@ -910,6 +910,17 @@ function startDay(s: GameState): GameState {
   next.today = { ...emptyDay(day, next.market.weather), community: next.community, reputation: next.reputation };
 
   next = applySchedule(next);
+  // A new recipe in a guided game comes with enough from Bà for a first tray, so it can be tried today.
+  if (next.allUnlocked === false) {
+    for (const u of UNLOCK_SCHEDULE.filter((x) => x.kind === 'recipe' && x.day === day)) {
+      const def = PRODUCTS[u.id as ProductId];
+      if (def.kind !== 'tray') continue;
+      for (const [id, n] of Object.entries(def.recipe) as [IngredientId, number][]) {
+        const short = n - next.pantry[id].qty;
+        if (short > 0) next = addToPantry(next, id, short, 0, 80, 50);
+      }
+    }
+  }
   next = applyFeatureUnlocks(next);
   // Today's special: one everyday item from the menu pays more.
   next.special = null;

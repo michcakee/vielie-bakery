@@ -577,7 +577,8 @@ kbd {
   display: grid;
   grid-template-columns: minmax(0, 1.45fr) minmax(360px, 1fr);
   gap: 18px;
-  max-width: 1440px;
+  /* Wide enough that the bakery keeps growing on big monitors. */
+  max-width: 1880px;
   margin: 0 auto;
   padding: 18px;
   align-items: start;
@@ -7107,3 +7108,29 @@ html[data-motion='reduced'] .menu-cursor {
   .diamond-pack .pack-price { grid-row: 1; grid-column: 3; margin: 0; }
 }
 .report-stars > span.report-diamonds { filter: none; animation: star-pop-in 0.5s steps(3) both; animation-delay: 1.2s; }
+
+/* ---------- opening week: one twist a day, days 2 to 7 ---------- */
+.opening-event {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 10px 0;
+  padding: 10px 12px;
+  background: var(--butter);
+  border: 3px solid var(--ink);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+}
+.opening-event > div { display: grid; gap: 4px; min-width: 0; }
+.opening-title { font-size: 1.15rem; color: var(--forest); }
+.opening-goal { font-size: 0.95rem; }
+.opening-event.done { background: var(--mint); }
+.opening-tomorrow {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  padding: 8px 10px;
+  border: 2px dashed var(--ink-soft);
+  border-radius: 8px;
+}

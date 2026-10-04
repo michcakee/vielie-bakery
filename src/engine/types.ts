@@ -164,8 +164,11 @@ export interface StoryState {
   result?: 'won' | 'second';
 }
 
+/** The scripted first week of a guided game: one twist a day, days 2 to 7 (engine/challenge.ts). */
+export type OpeningEventId = 'rush' | 'tasteTest' | 'critic' | 'bigOrder' | 'requests' | 'laneParty';
+
 export interface Challenge {
-  id: 'sellItem' | 'beforeNoon' | 'love' | 'perfect' | 'noLeave' | 'twists' | 'regulars';
+  id: 'sellItem' | 'beforeNoon' | 'love' | 'perfect' | 'noLeave' | 'twists' | 'regulars' | OpeningEventId;
   target: number;
   product?: ProductId;
   done: boolean;
@@ -301,6 +304,9 @@ export interface DayStats {
   /** Five-star orders the player made by hand, and special requests done just right (daily challenges). */
   fiveStar?: number;
   twistsRight?: number;
+  /** Opening week: the critic left happy (4 stars or more), and big orders served. */
+  criticPleased?: number;
+  bigOrders?: number;
   community: number;
   reputation: number;
   xp: number;

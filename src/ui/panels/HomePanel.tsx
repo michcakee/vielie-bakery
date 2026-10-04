@@ -42,7 +42,9 @@ export function readiness(s: GameState) {
   const left = trayCapacity(s) - s.traysToday;
   if (trays.length && left > 0) {
     const sold = (p: string) => s.history.slice(-7).reduce((t, h) => t + (h.sold[p as keyof typeof h.sold] ?? 0), 0);
-    const best = [...trays].sort((a, b) => sold(b) - sold(a)).slice(0, 2);
+    // On a taste-test day the new cake goes first, whatever sold before.
+    const first = (p: string) => (s.challenge?.id === 'tasteTest' && !s.challenge.done && p === s.challenge.product ? 1e6 : 0);
+    const best = [...trays].sort((a, b) => first(b) + sold(b) - (first(a) + sold(a))).slice(0, 2);
     const names = best.map((p) => PRODUCTS[p].name).join(' and ');
     // With nothing in the case, say so: baking baguettes alone doesn't fill it.
     const caseEmpty = menu.every((p) => PRODUCTS[p].kind !== 'tray' || s.display[p].qty === 0);

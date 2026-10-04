@@ -183,6 +183,34 @@ export function buildSchedule(s: GameState): Visit[] {
     make({ part: rand() < 0.5 ? 1 : 2, segment: 'event', specialOrder: true });
   }
 
+  // Opening week (guided games, days 2 to 7): the day's twist brings its own customers.
+  const opening = s.challenge && s.challenge.day === s.day && !s.challenge.done ? s.challenge.id : null;
+  if (opening === 'rush') {
+    for (let i = 0; i < 7; i++) make({ part: 0, arrive: 55 + i * 12 + rand() * 8, source: 'rush', segment: rand() < 0.5 ? 'vnFamilies' : 'office' });
+  } else if (opening === 'tasteTest' && onMenu(s).includes('banhChuoi')) {
+    // They come for the banana cake whether or not it's baked: an empty case is a lesson too.
+    for (let i = 0; i < 5; i++) make({ part: i < 2 ? 1 : 2, wants: 'banhChuoi', source: 'taste' });
+  } else if (opening === 'critic') {
+    const critic = REGULARS.find((r) => r.critic);
+    const wants = critic?.favorite.find((p) => offered.includes(p) && (PRODUCTS[p].kind !== 'tray' || s.display[p].qty > 0));
+    if (critic) {
+      // Today's visit replaces her usual one. She comes early, while the case is still full;
+      // if her pastry is gone she'll take a cà phê instead.
+      const usual = visits.findIndex((v) => v.who === critic.id);
+      if (usual >= 0) visits.splice(usual, 1);
+      make({ part: 0, arrive: 100, who: critic.id, name: critic.name, look: critic.look, budget: critic.budget, patience: 1.3, wants, segment: regularSegment(critic.id), loyal: true, critic: true });
+      const v = visits[visits.length - 1];
+      if (v?.critic && v.wants !== 'caPhe' && offered.includes('caPhe')) v.alt = 'caPhe';
+    }
+  } else if (opening === 'bigOrder') {
+    // They buy whatever the case has most of, so a full case is all it takes.
+    const best = [...trays].sort((a, b) => s.display[b].qty - s.display[a].qty)[0];
+    const wants = best && s.display[best].qty >= ECON.service.specialOrder.qty ? best : offered.includes('banhMi') ? 'banhMi' : best;
+    if (wants) make({ part: 1, arrive: 230, segment: 'event', specialOrder: true, wants });
+  } else if (opening === 'laneParty' && trays.length) {
+    for (let i = 0; i < 12; i++) make({ part: 2, arrive: 425 + rand() * 170, wants: trays[Math.floor(rand() * trays.length)], source: 'party', segment: 'vnFamilies' });
+  }
+
   if (trays.length) {
     const hunters = Math.round(n * ECON.demand.lastCallShare);
     for (let i = 0; i < hunters; i++) make({ part: 3, arrive: 600 + rand() * 100, lastCallOnly: true, segment: 'budget' });
@@ -192,7 +220,7 @@ export function buildSchedule(s: GameState): Visit[] {
   // daypart they keep their order but are spaced evenly, with a little jitter.
   const paceRand = rngFor(s.seed, s.day, 13);
   DAYPARTS.forEach(([start, len], k) => {
-    const group = visits.filter((v) => v.who === 'walkin' && !v.lastCallOnly && !v.specialOrder && v.arrive >= start && v.arrive < start + len && (k === DAYPARTS.length - 1 || v.arrive < DAYPARTS[k + 1][0]));
+    const group = visits.filter((v) => v.who === 'walkin' && !v.lastCallOnly && !v.specialOrder && v.source !== 'rush' && v.source !== 'party' && v.arrive >= start && v.arrive < start + len && (k === DAYPARTS.length - 1 || v.arrive < DAYPARTS[k + 1][0]));
     group.sort((a, b) => a.arrive - b.arrive);
     group.forEach((v, i) => {
       v.arrive = Math.round(start + ((i + 0.5 + (paceRand() - 0.5) * 0.5) / group.length) * len);
@@ -203,7 +231,7 @@ export function buildSchedule(s: GameState): Visit[] {
   const twisty = twistsOn(s);
   return visits
     .sort((a, b) => a.arrive - b.arrive)
-    .map((v, i) => ({ ...v, id: i + 1, twist: twisty && v.who !== KEVIN.id && !v.specialOrder ? rollTwist(v.wants, twistRand) : undefined }));
+    .map((v, i) => ({ ...v, id: i + 1, twist: twisty && v.who !== KEVIN.id && !v.specialOrder ? rollTwist(v.wants, twistRand, opening === 'requests' ? 0.7 : undefined) : undefined }));
 }
 
 export function makeServers(s: GameState, auto: boolean): ServerSlot[] {
@@ -422,6 +450,8 @@ export function serve(s: GameState, visitId: number, process?: number, by: strin
   if (svc.clock < 300) t.servedBeforeNoon++;
   if (by === 'player' && grade.stars === 5) t.fiveStar = (t.fiveStar ?? 0) + 1;
   if (twistTip > 0) t.twistsRight = (t.twistsRight ?? 0) + 1;
+  if (v.critic && grade.stars >= 4) t.criticPleased = (t.criticPleased ?? 0) + 1;
+  if (v.specialOrder) t.bigOrders = (t.bigOrders ?? 0) + 1;
   if (dream) t.dreamTips = round2((t.dreamTips ?? 0) + tip);
   if (by === 'player' || by === 'owner') t.ownerServed++;
   else t.staffServed++;
@@ -527,6 +557,7 @@ function dispatchServers(s: GameState): GameState {
     }
   }
   const waiting = next.service!.visits.filter((v) => v.status === 'waiting' && !v.servedBy).sort((a, b) => (a.waitStart ?? 0) - (b.waitStart ?? 0));
+  // Bà, while you learn, leaves Kevin, critics and big orders to you: they're your moments.
   // "Help when I'm busy": staff leave the two oldest orders for the player for a short while and take
   // everything else at once, so the player always has something to make and the line keeps moving.
   const leaveForPlayer = !next.service!.auto && (next.staffMode ?? 'help') === 'help' && next.staff.length > 0;
@@ -535,7 +566,7 @@ function dispatchServers(s: GameState): GameState {
     const kind = PRODUCTS[v.wants].kind;
     const waited = clock - (v.waitStart ?? clock);
     const playersTurn = forPlayer.has(v.id) && waited < staffWait(v);
-    const free = next.service!.servers.filter((x) => x.visitId === null && canServe(next, x.id, kind) && !(x.id === 'ba' && v.who === KEVIN.id) && !(playersTurn && x.id.startsWith('staff:')));
+    const free = next.service!.servers.filter((x) => x.visitId === null && canServe(next, x.id, kind) && !(x.id === 'ba' && (v.who === KEVIN.id || v.critic || v.specialOrder)) && !(playersTurn && x.id.startsWith('staff:')));
     if (!free.length) continue;
     const srv = free.find((x) => x.id !== 'owner') ?? free[0];
     const minutes = minutesFor(next, srv.id, kind) * (v.qty > 1 && kind === 'tray' ? 1 + 0.25 * (v.qty - 1) : 1);

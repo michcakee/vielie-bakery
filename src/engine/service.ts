@@ -557,7 +557,8 @@ function dispatchServers(s: GameState): GameState {
     }
   }
   const waiting = next.service!.visits.filter((v) => v.status === 'waiting' && !v.servedBy).sort((a, b) => (a.waitStart ?? 0) - (b.waitStart ?? 0));
-  // Bà, while you learn, leaves Kevin, critics and big orders to you: they're your moments.
+  // When you're at the counter, Bà and the team leave critics and big orders to you: they're your
+  // moments. (Bà also leaves Kevin, your first customer.)
   // "Help when I'm busy": staff leave the two oldest orders for the player for a short while and take
   // everything else at once, so the player always has something to make and the line keeps moving.
   const leaveForPlayer = !next.service!.auto && (next.staffMode ?? 'help') === 'help' && next.staff.length > 0;
@@ -566,7 +567,9 @@ function dispatchServers(s: GameState): GameState {
     const kind = PRODUCTS[v.wants].kind;
     const waited = clock - (v.waitStart ?? clock);
     const playersTurn = forPlayer.has(v.id) && waited < staffWait(v);
-    const free = next.service!.servers.filter((x) => x.visitId === null && canServe(next, x.id, kind) && !(x.id === 'ba' && (v.who === KEVIN.id || v.critic || v.specialOrder)) && !(playersTurn && x.id.startsWith('staff:')));
+    // In "help" mode (you serve, they help) a critic or big order waits for you, unless they're about to give up.
+    const yours = !next.service!.auto && (next.staffMode ?? 'help') === 'help' && (v.critic || v.specialOrder) && waited < v.patience * 0.8;
+    const free =next.service!.servers.filter((x) => x.visitId === null && canServe(next, x.id, kind) && !(x.id === 'ba' && v.who === KEVIN.id) && !(yours && x.id !== 'owner') && !(playersTurn && x.id.startsWith('staff:')));
     if (!free.length) continue;
     const srv = free.find((x) => x.id !== 'owner') ?? free[0];
     const minutes = minutesFor(next, srv.id, kind) * (v.qty > 1 && kind === 'tray' ? 1 + 0.25 * (v.qty - 1) : 1);

@@ -7267,3 +7267,17 @@ html[data-motion='reduced'] .menu-cursor {
 .lesson-card .lesson-en {
   margin-left: 4px;
 }
+
+/* Bà's welcome on day 1: her portrait beside her words */
+.intro-says {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.intro-says > div {
+  min-width: 0;
+}
+/* keep the close button clear of the heading on narrow screens */
+.paint-sheet > h2 {
+  padding-right: 44px;
+}

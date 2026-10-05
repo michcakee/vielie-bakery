@@ -18,8 +18,8 @@ const PRESETS = [
   { x: 8, y: 118 },
   { x: 214, y: 82 },
   { x: 198, y: 84 },
-  { x: 48, y: 140 },
-  { x: 150, y: 136 },
+  { x: 30, y: 112 },
+  { x: 124, y: 104 },
 ];
 
 /** Paint the walls, pick a floor and a counter, dress the shop front, and move your decorations. Free, and it changes straight away. */

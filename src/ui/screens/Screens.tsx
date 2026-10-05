@@ -13,6 +13,7 @@ import { LookEditor, lookLocked } from '../LookEditor';
 import { Person, Sprite } from '../pixel/Sprite';
 import { PERSON_H, PERSON_W, winkURL } from '../pixel/render';
 import { Exterior } from './Exterior';
+import { Speaker } from '../Speaker';
 import { CreditsPage } from '../Legal';
 import { Modal } from '../overlays';
 import { Settings } from '../Settings';
@@ -479,10 +480,15 @@ export function IntroLines({ onDone, guided = false }: { onDone: () => void; gui
   });
   return (
     <div className="intro-box" role="dialog" aria-label="Opening">
-      <p className="intro-vi" lang="vi" key={i}>
-        {lines[i].vi}
-      </p>
-      <p className="intro-en">{i === 0 && state.playerName ? `The bakery is yours now, ${state.playerName}.` : lines[i].en}</p>
+      <div className="intro-says">
+        <Speaker who="Bà" />
+        <div>
+          <p className="intro-vi" lang="vi" key={i}>
+            {lines[i].vi}
+          </p>
+          <p className="intro-en">{i === 0 && state.playerName ? `The bakery is yours now, ${state.playerName}.` : lines[i].en}</p>
+        </div>
+      </div>
       <Btn kind="go" onClick={next} sfx={null} className="big" data-spot="intro-next">
         {i + 1 >= lines.length ? (guided ? 'Let’s start!' : 'Open the doors') : 'Next'}
       </Btn>

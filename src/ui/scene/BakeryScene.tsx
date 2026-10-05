@@ -198,7 +198,7 @@ const START_SPOTS = [
   { x: 8, y: 112 },
   { x: 214, y: 82 },
   { x: 28, y: 52 },
-  { x: 172, y: 138 },
+  { x: 44, y: 70 },
   { x: 30, y: 96 },
   { x: 8, y: 50 },
   { x: 120, y: 102 },
@@ -215,13 +215,15 @@ export function floorPieces(s: GameState): Piece[] {
   // During Tết the hoa mai is out for everyone; it takes a spot the plant isn't using.
   const maiSpot = s.decor.includes('hoaMai') ? decorSpot(s.style, 'hoaMai') : [2, 1, 0].find((i) => !s.decor.includes('plant') || i !== plantSpot)!;
   const out: Piece[] = [];
-  if (s.decor.includes('plant')) out.push({ id: 'plant', ...(pos.plant ?? FLOOR_SPOTS[plantSpot]) });
-  if (s.decor.includes('hoaMai') || tet) out.push({ id: 'hoaMai', ...(pos.hoaMai ?? FLOOR_SPOTS[maiSpot]) });
+  // A saved spot is checked again, so nothing ever hides behind the counter or a table.
+  const saved = (id: string) => (pos[id] ? clampPlace(id, pos[id].x, pos[id].y) : undefined);
+  if (s.decor.includes('plant')) out.push({ id: 'plant', ...(saved('plant') ?? FLOOR_SPOTS[plantSpot]) });
+  if (s.decor.includes('hoaMai') || tet) out.push({ id: 'hoaMai', ...(saved('hoaMai') ?? FLOOR_SPOTS[maiSpot]) });
   // Pieces you haven't moved yet take the first free spot, so new ones never pile up on each other.
   const free = (x: number, y: number) => out.every((p) => Math.abs(p.x - x) > 12 || Math.abs(p.y - y) > 14);
   for (const d of Object.values(DECOS)) {
     if (d.kind !== 'floor' || !owns(s, d.id)) continue;
-    const at = pos[d.id] ?? START_SPOTS.map((p) => clampPlace(d.id, p.x, p.y)).find((p) => free(p.x, p.y)) ?? DEFAULT_POS[d.id];
+    const at = saved(d.id) ?? START_SPOTS.map((p) => clampPlace(d.id, p.x, p.y)).find((p) => free(p.x, p.y)) ?? DEFAULT_POS[d.id];
     out.push({ id: d.id, ...at });
   }
   return out;

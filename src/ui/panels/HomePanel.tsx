@@ -67,7 +67,7 @@ function AimFor({ onQuests }: { onQuests: () => void }) {
   const lp = levelProgress(s.xp);
   const level = levelOf(s.xp);
   const next = LEVELS[lp.level];
-  const newRecipes = next ? PRODUCT_ORDER.filter((p) => PRODUCTS[p].level === next.level && !PRODUCTS[p].season).map((p) => PRODUCTS[p].name) : [];
+  const newRecipes = next ? PRODUCT_ORDER.filter((p) => PRODUCTS[p].level === next.level && !PRODUCTS[p].season && !s.unlocked.includes(p)).map((p) => PRODUCTS[p].name) : [];
   const pi = s.macro.priceIndex;
   const save = feature('growth.equipment')
     ? Object.values(UPGRADES)

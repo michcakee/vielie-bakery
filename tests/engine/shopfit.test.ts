@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { owns, starsToSpend } from '../../src/data/cosmetics';
-import { clampPlace, COUNTER_BAND, DECO_SETS, DECOS, MAX_TIER, RENOVATIONS } from '../../src/data/shopfit';
+import { BLOCKED, clampPlace, COUNTER_BAND, DECO_SETS, DECOS, MAX_TIER, RENOVATIONS } from '../../src/data/shopfit';
 import { LEVELS } from '../../src/data/catalog';
 import { balanceSheet, bookEquity } from '../../src/engine/accounting';
 import { expectedWalkIns } from '../../src/engine/economy';
@@ -80,9 +80,9 @@ describe('star-shop decorations and themed sets', () => {
 describe('placing things anywhere on the floor', () => {
   it('only things you have can be placed, and they stay on the floor and out from behind the counter', () => {
     let s = withStars(start(), 50);
-    expect(act(s, { type: 'placeDecor', id: 'fishTank', x: 100, y: 120 })).toBe(s);
-    s = act(s, { type: 'buyCosmetic', id: 'fishTank' }, { type: 'placeDecor', id: 'fishTank', x: 100, y: 120 });
-    expect(s.style?.pos?.fishTank).toEqual({ x: 100, y: 120 });
+    expect(act(s, { type: 'placeDecor', id: 'fishTank', x: 130, y: 102 })).toBe(s);
+    s = act(s, { type: 'buyCosmetic', id: 'fishTank' }, { type: 'placeDecor', id: 'fishTank', x: 130, y: 102 });
+    expect(s.style?.pos?.fishTank).toEqual({ x: 130, y: 102 });
     // Off the edge: pulled back in.
     s = act(s, { type: 'placeDecor', id: 'fishTank', x: 999, y: -50 });
     const at = s.style!.pos!.fishTank;
@@ -92,6 +92,14 @@ describe('placing things anywhere on the floor', () => {
     const behind = clampPlace('fishTank', 120, 60);
     const overlaps = behind.x + 18 > COUNTER_BAND.x0 && behind.x < COUNTER_BAND.x1 && behind.y + 18 > COUNTER_BAND.y0 && behind.y < COUNTER_BAND.y1;
     expect(overlaps).toBe(false);
+    // On a café table (where it would be hidden): nudged off it.
+    const table = clampPlace('fishTank', 130, 136);
+    for (const b of BLOCKED) expect(table.x + 18 > b.x0 && table.x < b.x1 && table.y + 18 > b.y0 && table.y < b.y1).toBe(false);
+    // Anywhere at all ends up somewhere visible.
+    for (let x = 0; x < 240; x += 7) for (let y = 30; y < 170; y += 7) {
+      const at = clampPlace('kumquatTree', x, y);
+      for (const b of BLOCKED) expect(at.x + 14 > b.x0 && at.x < b.x1 && at.y + 22 > b.y0 && at.y < b.y1).toBe(false);
+    }
     // Garlands aren't floor pieces.
     s = act(s, { type: 'buyCosmetic', id: 'neonStrip' });
     expect(act(s, { type: 'placeDecor', id: 'neonStrip', x: 50, y: 100 })).toBe(s);

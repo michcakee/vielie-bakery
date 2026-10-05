@@ -115,27 +115,43 @@ export const DEFAULT_POS: Record<string, { x: number; y: number }> = {
 export const PLACE_AREA = { x0: 6, x1: 234, y0: 44, y1: 160 };
 export const COUNTER_BAND = { x0: 50, x1: 198, y0: 46, y1: 98 };
 
-/** Keep a piece on the floor and out from behind the counter. */
+/**
+ * Where a piece would be hidden: behind the counter, or behind a café table and its chairs (the
+ * two tables, and the corner table the coffee corner adds).
+ */
+export const BLOCKED = [
+  COUNTER_BAND,
+  { x0: 58, x1: 112, y0: 128, y1: 160 },
+  { x0: 116, x1: 170, y0: 128, y1: 160 },
+  { x0: 176, x1: 230, y0: 128, y1: 160 },
+];
+
+/** Keep a piece on the floor and out from behind the counter and the tables. */
 export function clampPlace(id: string, x: number, y: number): { x: number; y: number } {
   const size = PLACE_SIZE[id] ?? { w: 12, h: 16 };
-  let px = Math.round(Math.max(PLACE_AREA.x0, Math.min(PLACE_AREA.x1 - size.w, x)));
-  let py = Math.round(Math.max(PLACE_AREA.y0, Math.min(PLACE_AREA.y1 - size.h, y)));
-  const overlapsX = px + size.w > COUNTER_BAND.x0 && px < COUNTER_BAND.x1;
-  const overlapsY = py + size.h > COUNTER_BAND.y0 && py < COUNTER_BAND.y1;
-  if (overlapsX && overlapsY) {
-    // Nudge it to whichever side of the counter is nearest.
+  const inArea = (px: number, py: number) => ({
+    x: Math.round(Math.max(PLACE_AREA.x0, Math.min(PLACE_AREA.x1 - size.w, px))),
+    y: Math.round(Math.max(PLACE_AREA.y0, Math.min(PLACE_AREA.y1 - size.h, py))),
+  });
+  const hits = (p: { x: number; y: number }) => BLOCKED.find((b) => p.x + size.w > b.x0 && p.x < b.x1 && p.y + size.h > b.y0 && p.y < b.y1);
+  let at = inArea(x, y);
+  // Nudge it to the nearest free side; a couple of tries, since moving off one thing can land on another.
+  for (let tries = 0; tries < 4; tries++) {
+    const b = hits(at);
+    if (!b) return at;
     const options = [
-      { x: COUNTER_BAND.x0 - size.w, y: py, d: px + size.w - COUNTER_BAND.x0 },
-      { x: COUNTER_BAND.x1, y: py, d: COUNTER_BAND.x1 - px },
-      { x: px, y: COUNTER_BAND.y1, d: COUNTER_BAND.y1 - py },
-    ].filter((o) => o.x >= PLACE_AREA.x0 && o.x + size.w <= PLACE_AREA.x1);
-    const best = options.sort((a, b) => a.d - b.d)[0];
-    if (best) {
-      px = best.x;
-      py = Math.max(PLACE_AREA.y0, Math.min(PLACE_AREA.y1 - size.h, best.y));
-    }
+      { x: b.x0 - size.w, y: at.y },
+      { x: b.x1, y: at.y },
+      { x: at.x, y: b.y0 - size.h },
+      { x: at.x, y: b.y1 },
+    ]
+      .map((o) => inArea(o.x, o.y))
+      .filter((o) => !hits(o));
+    const best = options.sort((p, q) => Math.hypot(p.x - at.x, p.y - at.y) - Math.hypot(q.x - at.x, q.y - at.y))[0];
+    if (best) return best;
+    at = inArea(b.x0 - size.w, b.y0 - size.h);
   }
-  return { x: px, y: py };
+  return at;
 }
 
 /** Shop front colours. Index 0 is how the shop starts. */

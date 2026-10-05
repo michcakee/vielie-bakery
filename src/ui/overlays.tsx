@@ -224,6 +224,8 @@ export function DayReport() {
         ? 'Ngon quá! A good day.'
         : r.profit > -10
           ? 'Phew. Close one.'
+          : r.profit + prize > 0
+            ? 'Sales didn’t cover the costs today, but the prize money did. Keep going!'
           : r.day <= 7
             ? served >= 0.8
               ? `You served ${t.served} of ${t.customers}. Great job! New shops often lose a little at first. Bà did too.`

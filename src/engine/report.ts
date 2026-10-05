@@ -28,7 +28,9 @@ export function recap(s: GameState, t: DayStats): string[] {
   const rivals = Object.entries(t.divertedTo).sort((a, b) => b[1] - a[1]);
   if (rivals.length) out.push(`${t.diverted} ${t.diverted === 1 ? 'person' : 'people'} chose a rival instead${rivals[0] ? `, mostly ${rivals[0][0]}` : ''}.`);
   if (t.lostSlow >= 3) out.push(`${t.lostSlow} customers gave up waiting in the queue.`);
-  if (t.staffServed > 0) out.push(`Your team served ${t.staffServed} customers${t.ownerServed ? `; you served ${t.ownerServed}` : ''}.`);
+  const ba = t.baServed ?? 0;
+  if (t.staffServed > 0) out.push(`Your team served ${t.staffServed} customers${t.ownerServed ? `; you served ${t.ownerServed}` : ''}${ba ? `; Bà covered ${ba} for you` : ''}.`);
+  else if (ba > 0) out.push(`Bà covered the counter for you and served ${ba} ${ba === 1 ? 'customer' : 'customers'}.`);
   if (t.deliveries > 0) out.push(`Riders delivered ${t.deliveries} orders around the neighbourhood.`);
   const reg = REGULARS.filter((r) => s.service?.visits.some((v) => v.who === r.id && v.mood && ['love', 'happy', 'ok'].includes(v.mood)));
   if (reg.length) out.push(`${reg.map((r) => r.name).join(', ')} ${s.day === 1 ? (reg.length === 1 ? 'stopped by today.' : 'all stopped by today.') : reg.length === 1 ? 'came back today.' : 'all came back today.'}`);

@@ -6,7 +6,7 @@ import { incomeStatement, inventoryValue } from '../../engine/accounting';
 import { dateLabel, daysToMonthStart, festivalsOn, FESTIVALS } from '../../engine/calendar';
 import { activeRivals, canBakeTray, effectActive, has, levelOf, levelProgress, makeable, onMenu, rent, trayCapacity, effectivePrice } from '../../engine/economy';
 import { REGIMES } from '../../engine/macro';
-import { activeQuests, nextUnlock } from '../../engine/progression';
+import { activeQuests, levelGift, nextUnlock } from '../../engine/progression';
 import type { GameState } from '../../engine/types';
 import { money, money2, signedMoney } from '../../lib/format';
 import { Spark } from '../charts';
@@ -90,7 +90,7 @@ function AimFor({ onQuests }: { onQuests: () => void }) {
                 Level {next.level}: {next.name}
               </b>
               <span className="small">
-                {Math.max(0, Math.ceil(next.xp - s.xp)).toLocaleString('en-US')} XP to go. Bà sends ${100 * next.level}
+                {Math.max(0, Math.ceil(next.xp - s.xp)).toLocaleString('en-US')} XP to go. Bà sends ${levelGift(next.level)}
                 {newRecipes.length ? `, plus new recipes: ${newRecipes.slice(0, 2).join(', ')}` : ''}.
               </span>
               <Meter value={lp.into / lp.span} tone="xp" label="Progress to the next level" />

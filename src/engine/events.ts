@@ -21,6 +21,8 @@ export interface EventChoice {
   cost?: number;
   fromFund?: boolean;
   enabled?: (s: GameState) => boolean;
+  /** Why it can't be picked, when `enabled` says no (shown on the greyed-out choice). */
+  why?: string;
   /** Only offered once this system is unlocked (choices paid from the fund need the fund). */
   needs?: FeatureId;
   apply: (s: GameState) => GameState;
@@ -172,7 +174,7 @@ export const EVENTS: Record<string, EventDef> = {
     concept: 'externality',
     text: () => 'The neighbourhood is running Green Week. For 7 days, many more eco-minded shoppers are out, and they pay more at green bakeries.',
     choices: (s) => [
-      { id: 'reusable', label: 'Switch to reusable cups & tins', detail: 'Costs more per sale, and your eco score jumps.', enabled: () => s.packaging !== 'reusable', apply: (x) => learn(addEffect({ ...x, packaging: 'reusable' }, 'greenWeek', 7), 'externality') },
+      { id: 'reusable', label: 'Switch to reusable cups & tins', detail: 'Costs more per sale, and your eco score jumps.', enabled: () => s.packaging !== 'reusable', why: 'You already use them', apply: (x) => learn(addEffect({ ...x, packaging: 'reusable' }, 'greenWeek', 7), 'externality') },
       { id: 'cleanup', label: `Join the canal clean-up (${money(scaled(s, 60))})`, detail: '+4 community. Your neighbours notice.', cost: scaled(s, 60), apply: (x) => paid(x, scaled(x, 60), false, (y) => learn(addEffect({ ...y, community: bump(y.community, 4) }, 'greenWeek', 7), 'externality')) },
       { id: 'skip', label: 'Business as usual', detail: 'Green Week still happens around you.', apply: (x) => addEffect(x, 'greenWeek', 7) },
     ],
@@ -201,7 +203,13 @@ export const EVENTS: Record<string, EventDef> = {
       return `A bánh mì stand opened across the street. Its bánh mì is $${(c?.prices.banhMi ?? 5.5).toFixed(2)} and its coffee $${(c?.prices.caPhe ?? 4.25).toFixed(2)}. Some customers will be curious; how you respond decides how many stay.`;
     },
     choices: (s) => [
-      { id: 'welcome', label: 'Bring them a welcome flan', detail: 'Good neighbours share customers and tips. +5 community.', enabled: () => s.display.flan.qty > 0, apply: (x) => learn({ ...x, display: { ...x.display, flan: { ...x.display.flan, qty: x.display.flan.qty - 1 } }, community: bump(x.community, 5), questProgress: { ...x.questProgress, neighbor: 1 } }, 'competition') },
+      {
+        id: 'welcome',
+        label: 'Bring them a welcome flan',
+        // Mornings usually start with an empty case, so Bà makes one when there's none to take.
+        detail: `Good neighbours share customers and tips. +5 community.${s.display.flan.qty > 0 ? '' : ' The case is empty, so Bà makes one for you.'}`,
+        apply: (x) => learn({ ...x, display: x.display.flan.qty > 0 ? { ...x.display, flan: { ...x.display.flan, qty: x.display.flan.qty - 1 } } : x.display, community: bump(x.community, 5), questProgress: { ...x.questProgress, neighbor: 1 } }, 'competition'),
+      },
       {
         id: 'match',
         label: 'Match her bánh mì price',
@@ -222,8 +230,8 @@ export const EVENTS: Record<string, EventDef> = {
     concept: 'savings',
     text: () => 'The compressor gave up overnight. Without it, flan and cake can\'t be kept and fresh ingredients spoil twice as fast.',
     choices: (s) => [
-      { id: 'repair', label: `Repair it now (${money(scaled(s, 280))})`, detail: 'From your cash.', cost: scaled(s, 280), enabled: () => s.cash >= scaled(s, 280), apply: (x) => paid(x, scaled(x, 280), false, (y) => y, 'maintenance') },
-      { id: 'fund', label: `Pay from the safety fund (${money(scaled(s, 280))})`, detail: 'Exactly what the fund is for.', cost: scaled(s, 280), fromFund: true, enabled: () => s.safetyFund >= scaled(s, 280), apply: (x) => paid(x, scaled(x, 280), true, (y) => learn({ ...y, questProgress: { ...y.questProgress, fundUsed: 1 } }, 'savings'), 'maintenance') },
+      { id: 'repair', label: `Repair it now (${money(scaled(s, 280))})`, detail: 'From your cash.', cost: scaled(s, 280), apply: (x) => paid(x, scaled(x, 280), false, (y) => y, 'maintenance') },
+      { id: 'fund', label: `Pay from the safety fund (${money(scaled(s, 280))})`, detail: 'Exactly what the fund is for.', cost: scaled(s, 280), fromFund: true, apply: (x) => paid(x, scaled(x, 280), true, (y) => learn({ ...y, questProgress: { ...y.questProgress, fundUsed: 1 } }, 'savings'), 'maintenance') },
       { id: 'wait', label: 'Wait 3 days for a cheaper repair', detail: 'No fridge until then.', apply: (x) => learn(addEffect(x, 'fridgeBroken', 3), 'savings') },
     ],
   },
@@ -285,7 +293,6 @@ export const EVENTS: Record<string, EventDef> = {
         label: `Pay ${money(scaled(s, 300))} for the video`,
         detail: 'Risky: the average outcome is around +30 customers.',
         cost: scaled(s, 300),
-        enabled: () => s.cash >= scaled(s, 300),
         apply: (x) => {
           const extra = Math.floor(rngFor(x.seed, x.day, 77)() * 61);
           return paid(x, scaled(x, 300), false, (y) => learn({ ...addEffect(y, 'marketing', 4, { perDay: extra / 4, total: extra, source: 'Vy\'s video' }), lifetime: { ...y.lifetime, marketingSpent: y.lifetime.marketingSpent + scaled(x, 300) } }, 'risk'), 'marketing');
@@ -301,8 +308,8 @@ export const EVENTS: Record<string, EventDef> = {
     vi: 'Sắp Tết rồi!',
     text: (s) => `Lunar New Year arrives in ${Math.max(1, 31 - dateOf(s.day).dom)} days. Families are already buying mứt dừa gift boxes, and during Tết shoppers spend more. You can bake gift boxes from now until the holiday ends.`,
     choices: (s) => [
-      { id: 'hoaMai', label: `Buy a hoa mai tree (${money(240)})`, detail: 'Yellow apricot blossoms by the door: +5% customers during Tết.', cost: 240, enabled: () => !s.decor.includes('hoaMai') && s.cash >= 240, apply: (x) => capexDecor(x, 'hoaMai', 240) },
-      { id: 'lanterns', label: `Hang red lanterns (${money(220)})`, detail: '+2 reputation, and they stay up afterwards.', cost: 220, enabled: () => !s.decor.includes('lanterns') && s.cash >= 220, apply: (x) => capexDecor(x, 'lanterns', 220) },
+      { id: 'hoaMai', label: `Buy a hoa mai tree (${money(240)})`, detail: 'Yellow apricot blossoms by the door: +5% customers during Tết.', cost: 240, enabled: () => !s.decor.includes('hoaMai'), why: 'You already have one', apply: (x) => capexDecor(x, 'hoaMai', 240) },
+      { id: 'lanterns', label: `Hang red lanterns (${money(220)})`, detail: '+2 reputation, and they stay up afterwards.', cost: 220, enabled: () => !s.decor.includes('lanterns'), why: 'They’re already up', apply: (x) => capexDecor(x, 'lanterns', 220) },
       { id: 'simple', label: 'Keep it simple', detail: 'Save the money for gift-box ingredients.', apply: (x) => x },
     ],
   },
@@ -531,7 +538,7 @@ export const EVENTS: Record<string, EventDef> = {
           },
         },
         { id: 'quality', label: 'Stay premium and push quality', detail: 'Lose some bargain hunters, keep your margin.', apply: (x) => learn(x, 'competition') },
-        { id: 'loyalty', label: `Launch a loyalty card (${money(scaled(s, 200))})`, detail: 'Regulars get every 10th coffee free. Loyal customers ignore rivals\' sales.', cost: scaled(s, 200), enabled: () => has(s, 'pos'), apply: (x) => paid(x, scaled(x, 200), false, (y) => addEffect(y, 'loyaltyCard', 60), 'marketing') },
+        { id: 'loyalty', label: `Launch a loyalty card (${money(scaled(s, 200))})`, detail: 'Regulars get every 10th coffee free. Loyal customers ignore rivals\' sales.', cost: scaled(s, 200), enabled: () => has(s, 'pos'), why: 'Needs a POS system (Growth → equipment)', apply: (x) => paid(x, scaled(x, 200), false, (y) => addEffect(y, 'loyaltyCard', 60), 'marketing') },
       ];
     },
   },

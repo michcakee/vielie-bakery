@@ -50,7 +50,7 @@ export function Hud({ onQuests, onSettings, onHelp, questCount, onConcepts, onDi
         )}
         <span className="hud-stat cash" aria-label={`Cash ${money2(s.cash)}`}>
           <Sprite name="coin" scale={3} />
-          <b className={s.cash < 0 ? 'neg' : ''}>{money(cash, 2)}</b>
+          <b className={s.cash < 0 ? 'neg' : ''}>{money(cash, Math.abs(cash) >= 10000 ? 0 : 2)}</b>
           {floats.map((f) => (
             <span key={f.id} className="hud-float" aria-hidden="true">
               +{money2(f.amount)}

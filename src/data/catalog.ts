@@ -483,7 +483,7 @@ export interface UpgradeDef {
 }
 
 export const UPGRADES: Record<UpgradeId, UpgradeDef> = {
-  ovenBasic: { id: 'ovenBasic', name: 'Countertop oven', vi: 'Lò nướng nhỏ', cost: 1200, level: 1, group: 'kitchen', life: 5, max: 1, trays: 4, maintenance: 0.6, blurb: 'Bà\'s faithful old oven. Four trays a morning.', effect: '4 trays a day' },
+  ovenBasic: { id: 'ovenBasic', name: 'Countertop oven', vi: 'Lò nướng nhỏ', cost: 1200, level: 1, group: 'kitchen', life: 5, max: 1, trays: 4, maintenance: 0.6, blurb: 'A small oven to start with. Four trays a morning.', effect: '4 trays a day' },
   oven2: { id: 'oven2', name: 'Deck oven', vi: 'Lò nướng lớn', cost: 3800, level: 1, group: 'kitchen', life: 6, max: 2, trays: 6, utilities: 4, maintenance: 1.2, blurb: 'A proper bakery oven. Six more trays every morning.', effect: '+6 trays a day' },
   oven3: { id: 'oven3', name: 'Rack oven', vi: 'Lò công nghiệp', cost: 9500, level: 4, group: 'kitchen', life: 8, max: 1, trays: 10, utilities: 8, maintenance: 2.5, requires: 'renovation', blurb: 'An industrial rotating rack. Ten trays at once.', effect: '+10 trays a day' },
   mixer: { id: 'mixer', name: 'Stand mixer', vi: 'Máy trộn bột', cost: 1400, level: 1, group: 'kitchen', life: 6, max: 1, maintenance: 0.4, blurb: 'Bakers get 30% more done.', effect: 'Bakers +30% trays' },
@@ -506,7 +506,7 @@ export const UPGRADES: Record<UpgradeId, UpgradeDef> = {
   loft: { id: 'loft', name: 'Upstairs loft', vi: 'Gác lửng', cost: 28000, level: 5, requires: 'corner', group: 'room', life: 15, max: 1, rent: 30, blurb: 'A cosy mezzanine with more seats. The flagship, fully grown.', effect: '+25% customers, rent +$900/month' },
 };
 
-export const UPGRADE_ORDER: UpgradeId[] = ['fridge', 'fan', 'display', 'oven2', 'mixer', 'steamer', 'coffeeBar', 'pos', 'bike', 'storage', 'compost', 'solar', 'website', 'corner', 'renovation', 'walkIn', 'oven3', 'garden', 'loft', 'van'];
+export const UPGRADE_ORDER: UpgradeId[] = ['ovenBasic', 'fridge', 'fan', 'display', 'oven2', 'mixer', 'steamer', 'coffeeBar', 'pos', 'bike', 'storage', 'compost', 'solar', 'website', 'corner', 'renovation', 'walkIn', 'oven3', 'garden', 'loft', 'van'];
 
 // ------------------------------------------------------------------ decorations
 

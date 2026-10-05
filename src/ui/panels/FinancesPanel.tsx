@@ -50,7 +50,18 @@ function Statements({ days }: { days: DaySummary[] }) {
   const toggle = (k: string) => setOpen(open === k ? null : k);
 
   if (!business) {
-    const verdict = is.netProfit > 0 ? 'You\'re making money.' : is.netProfit > -50 ? 'You\'re roughly breaking even.' : 'You\'re losing money.';
+    // One-offs (hiring fees, renovations, events) and prize money get their own lines, so the
+    // verdict can tell a shop that earns its keep from one that doesn't.
+    const oneOff = b.otherExpense;
+    const running = is.opex - oneOff + is.interest;
+    const verdict =
+      is.netProfit > 0
+        ? 'You\'re making money.'
+        : is.netProfit + oneOff > 0
+          ? 'The shop earns its keep. One-off costs put you behind for now.'
+          : is.netProfit > -50
+            ? 'You\'re roughly breaking even.'
+            : 'You\'re losing money.';
     return (
       <Card title="In plain words" icon="note" spot="profit">
         <p className="big-verdict">{verdict}</p>
@@ -65,8 +76,20 @@ function Statements({ days }: { days: DaySummary[] }) {
           </div>
           <div>
             <dt>Running the shop (wages, rent, power…)</dt>
-            <dd>−{money2(is.opex + is.interest - is.otherIncome)}</dd>
+            <dd>−{money2(running)}</dd>
           </div>
+          {oneOff > 0.005 && (
+            <div>
+              <dt>One-off costs (hiring, renovations, events)</dt>
+              <dd>−{money2(oneOff)}</dd>
+            </div>
+          )}
+          {is.otherIncome > 0.005 && (
+            <div>
+              <dt>Prize money</dt>
+              <dd className="pos">+{money2(is.otherIncome)}</dd>
+            </div>
+          )}
           <div className="total">
             <dt>What the bakery made</dt>
             <dd className={is.netProfit >= 0 ? 'pos' : 'neg'}>{signedMoney(is.netProfit, 2)}</dd>

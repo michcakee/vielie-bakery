@@ -9,7 +9,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { LEVELS, PRODUCTS, WEATHER } from '../data/catalog';
 import { EVENTS, visibleChoices } from '../engine/events';
 import { FEATURE } from '../data/unlocks';
-import { ACHIEVEMENTS, activeQuests, goalMet, nextUnlock, QUESTS, WEEKLY_GOALS } from '../engine/progression';
+import { ACHIEVEMENTS, activeQuests, goalMet, nextUnlock, QUESTS, weeklyReward, WEEKLY_GOALS } from '../engine/progression';
 import { keepsOvernight } from '../engine/service';
 import type { DayStats, LeftoverChoice, ProductId } from '../engine/types';
 import { money, money2, pct, signedMoney } from '../lib/format';
@@ -92,12 +92,14 @@ export function EventCard() {
       <p className="event-text">{def.text(s)}</p>
       <div className="event-choices">
         {visibleChoices(def, s).map((c) => {
-          const ok = (!c.enabled || c.enabled(s)) && (c.cost === undefined || (c.fromFund ? s.safetyFund >= c.cost : s.cash >= c.cost));
+          const allowed = !c.enabled || c.enabled(s);
+          const afford = c.cost === undefined || (c.fromFund ? s.safetyFund >= c.cost : s.cash >= c.cost);
+          const ok = allowed && afford;
           return (
             <button key={c.id} type="button" className="choice" disabled={!ok} onClick={() => (play('pop'), dispatch({ type: 'resolveEvent', choice: c.id }))}>
               <b>{c.label}</b>
               <span>{c.detail}</span>
-              {!ok && <em>{c.cost !== undefined ? 'Not enough money' : 'Not possible right now'}</em>}
+              {!ok && <em>{!allowed ? (c.why ?? 'Not possible right now') : c.fromFund ? 'Not enough in the safety fund' : 'Not enough money'}</em>}
             </button>
           );
         })}
@@ -182,14 +184,19 @@ const WEATHER_ICON = { sunny: 'sun', cloudy: 'cloud', rainy: 'rain', hot: 'hot',
 /** Why the day fell short of the next star, biggest reason first, each with something to try. */
 export function missedStars(t: DayStats): { icon: string; text: string; fix: string }[] {
   const out: { n: number; icon: string; text: string; fix: string }[] = [];
-  const soldOut = (Object.keys(t.soldOutAt) as ProductId[]).map((p) => PRODUCTS[p].name);
+  const ranOut = Object.keys(t.soldOutAt) as ProductId[];
+  const soldOut = ranOut.map((p) => PRODUCTS[p].name);
+  // Pastries run out of trays; bánh mì and drinks run out of ingredients (or baguettes).
+  const baked = ranOut.some((p) => PRODUCTS[p].kind === 'tray');
+  const made = ranOut.some((p) => PRODUCTS[p].kind !== 'tray');
+  const fix = baked && made ? 'Bake more trays, and stock up at the Market.' : made ? 'Stock up on its ingredients at the Market (and baguettes for bánh mì).' : 'Bake more trays of it.';
   if (t.lostSoldOut > 0)
-    out.push({ n: t.lostSoldOut, icon: 'box', text: `${t.lostSoldOut} ${t.lostSoldOut === 1 ? 'person' : 'people'} wanted something that ran out${soldOut.length ? ` (${soldOut.slice(0, 2).join(', ')})` : ''}.`, fix: 'Bake more trays of it.' });
+    out.push({ n: t.lostSoldOut, icon: 'box', text: `${t.lostSoldOut} ${t.lostSoldOut === 1 ? 'person' : 'people'} wanted something that ran out${soldOut.length ? ` (${soldOut.slice(0, 2).join(', ')})` : ''}.`, fix });
   if (t.lostSlow > 0) out.push({ n: t.lostSlow, icon: 'clock', text: `${t.lostSlow} gave up waiting.`, fix: 'Serve the worried faces first, or hire help.' });
   if (t.lostPrice > 0) out.push({ n: t.lostPrice, icon: 'coin', text: `${t.lostPrice} thought the price was too high.`, fix: 'Try a little lower in Kitchen → Prices.' });
   if (t.diverted > 0) out.push({ n: t.diverted, icon: 'shop', text: `${t.diverted} went to a rival bakery.`, fix: 'Check their prices on the Customers tab.' });
-  const baked = Object.values(t.made).reduce((a, b) => a + b, 0);
-  if (baked < 12) out.push({ n: 12 - baked + 1, icon: 'hot', text: baked ? `Only ${baked} pastries were baked.` : 'No pastries were baked today.', fix: 'Bake more trays in the Kitchen before you open.' });
+  const pastries = Object.values(t.made).reduce((a, b) => a + b, 0);
+  if (pastries < 12) out.push({ n: 12 - pastries + 1, icon: 'hot', text: pastries ? `Only ${pastries} pastries were baked.` : 'No pastries were baked today.', fix: 'Bake more trays in the Kitchen before you open.' });
   if (t.weather === 'rainy') out.push({ n: 0.5, icon: 'rain', text: 'Rain kept people at home.', fix: 'Quieter days happen: bake a bit less so less goes to waste.' });
   out.sort((a, b) => b.n - a.n);
   if (!out.length) out.push({ n: 0, icon: 'star', text: 'You served everyone who came in.', fix: 'To earn more, bake more, add a favourite to the menu, or raise a price a little.' });
@@ -217,15 +224,22 @@ export function DayReport() {
   const is = incomeStatement(t.books);
   const spent = is.revenue - (is.netProfit - is.otherIncome);
   const served = t.customers ? t.served / t.customers : 0;
+  // The mood follows how the counter did: prize money and one-off costs (a hiring fee, a renovation) have their own lines.
+  const oneOff = t.books.otherExpense;
+  const own = is.netProfit - prize + oneOff;
   const mood =
-    r.profit > 40
+    own > 0 && is.netProfit < 0 && oneOff > 0
+      ? 'A good day at the counter! One-off costs put today in the red, but they won’t come back tomorrow.'
+      : own > 40 && is.netProfit > 40
       ? 'LOOK AT THAT!'
-      : r.profit > 0
+      : own > 0
         ? 'Ngon quá! A good day.'
-        : r.profit > -10
+        : own > -10
           ? 'Phew. Close one.'
-          : r.profit + prize > 0
+          : is.netProfit > 0
             ? 'Sales didn’t cover the costs today, but the prize money did. Keep going!'
+          : r.stars === 3
+            ? 'Three stars, but the costs were bigger than the sales. The Money page shows where it went.'
           : r.day <= 7
             ? served >= 0.8
               ? `You served ${t.served} of ${t.customers}. Great job! New shops often lose a little at first. Bà did too.`
@@ -536,7 +550,7 @@ export function WeeklyReview() {
             <button key={id} type="button" className="choice" onClick={() => (play('pop'), dispatch({ type: 'pickGoal', id }))}>
               <b>{g.title}</b>
               <span>{g.text(g.target(s))}</span>
-              <em className="reward">Reward: $40 and bonus XP</em>
+              <em className="reward">Reward: ${weeklyReward(s)} and bonus XP</em>
             </button>
           );
         })}

@@ -144,14 +144,16 @@ export function explainChange(now: DaySummary[], before: DaySummary[]): string[]
   const custNow = avg(now, (d) => d.customers + d.diverted);
   const custBefore = avg(before, (d) => d.customers + d.diverted);
   if (custBefore && Math.abs(custNow / custBefore - 1) > 0.05) {
+    // Only name the causes that push the same way as the change.
+    const up = custNow > custBefore;
     const rain = now.filter((d) => d.weather === 'rainy').length - before.filter((d) => d.weather === 'rainy').length;
+    const weather = avg(now, (d) => WEATHER[d.weather]?.traffic ?? 1) / Math.max(0.01, avg(before, (d) => WEATHER[d.weather]?.traffic ?? 1)) - 1;
     const conf = avg(now, (d) => d.confidence) - avg(before, (d) => d.confidence);
-    const reasons: string[] = [];
-    if (rain > 0) reasons.push(`${rain} more rainy day${rain > 1 ? 's' : ''}`);
-    if (rain < 0) reasons.push('better weather');
-    if (Math.abs(conf) > 3) reasons.push(conf < 0 ? 'shoppers feeling less confident about the economy' : 'a more confident economy');
     const repDiff = avg(now, (d) => d.reputation) - avg(before, (d) => d.reputation);
-    if (Math.abs(repDiff) > 2) reasons.push(repDiff > 0 ? 'a better reputation' : 'a weaker reputation');
+    const reasons: string[] = [];
+    if (Math.abs(weather) > 0.03 && (weather > 0) === up) reasons.push(up ? 'better weather' : rain > 0 ? `${rain} more rainy day${rain > 1 ? 's' : ''}` : 'worse weather');
+    if (Math.abs(conf) > 3 && (conf > 0) === up) reasons.push(up ? 'a more confident economy' : 'shoppers feeling less confident about the economy');
+    if (Math.abs(repDiff) > 2 && (repDiff > 0) === up) reasons.push(up ? 'a better reputation' : 'a weaker reputation');
     out.push({ size: Math.abs(custNow - custBefore) * 5, text: `Foot traffic ${custNow > custBefore ? 'up' : 'down'} ${pct(custNow / custBefore - 1)}${reasons.length ? `, from ${reasons.join(', ')}` : ''}.` });
   }
   const divNow = avg(now, (d) => d.diverted);

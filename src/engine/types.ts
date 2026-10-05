@@ -324,7 +324,10 @@ export interface DayStats {
   trays: number;
   satisfaction: number;
   staffServed: number;
+  /** Served by you at the counter. */
   ownerServed: number;
+  /** Served by Bà while she covered the counter for you (team days, or after you hand over). */
+  baServed?: number;
   deliveries: number;
   notes: string[];
 }

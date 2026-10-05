@@ -16,12 +16,12 @@ export const CHALLENGE = { fromDay: 3, xp: 20, cash: 8 };
  * daily challenge's place on those days, so the first week never plays the same twice.
  */
 export const OPENING: Record<OpeningEventId, { day: number; title: string; blurb: string; target: number; xp: number; cash: number }> = {
-  rush: { day: 2, title: 'Morning rush', blurb: 'The school down the lane starts late today, so a crowd of parents comes in for breakfast around 8.', target: 10, xp: 40, cash: 25 },
-  tasteTest: { day: 3, title: 'Taste test', blurb: 'Word is out about Bà’s banana cake, and people are coming in just to try it. Bà left you enough for a first tray.', target: 6, xp: 40, cash: 25 },
-  critic: { day: 4, title: 'The Food Critic visits', blurb: 'A food critic is coming in early, around 8:30, and she loves bánh flan. Bake it in the golden zone today and serve her quickly: she grades harder than anyone.', target: 1, xp: 50, cash: 30 },
-  bigOrder: { day: 5, title: 'Big order', blurb: 'Someone from the office tower is coming before lunch to buy for the whole team. Have plenty in the case!', target: 1, xp: 45, cash: 30 },
-  requests: { day: 6, title: 'Picky customers', blurb: 'No chili, extra herbs, no ice: today everyone wants it their way. Read each order and get it just right for a bigger tip.', target: 3, xp: 45, cash: 30 },
-  laneParty: { day: 7, title: 'Party on the lane', blurb: 'The neighbours are throwing a street party this afternoon. Expect a big crowd after lunch: bake plenty of pastries!', target: 16, xp: 60, cash: 40 },
+  rush: { day: 2, title: 'Morning rush', blurb: 'The school down the lane starts late today, so a crowd of parents comes in for breakfast around 8.', target: 10, xp: 40, cash: 10 },
+  tasteTest: { day: 3, title: 'Taste test', blurb: 'Word is out about Bà’s banana cake, and people are coming in just to try it. Bà left you enough for a first tray.', target: 6, xp: 40, cash: 10 },
+  critic: { day: 4, title: 'The Food Critic visits', blurb: 'A food critic is coming in early, around 8:30, and she loves bánh flan. Bake it in the golden zone today and serve her quickly: she grades harder than anyone.', target: 1, xp: 50, cash: 15 },
+  bigOrder: { day: 5, title: 'Big order', blurb: 'Someone from the office tower is coming before lunch to buy for the whole team. Have plenty in the case!', target: 1, xp: 45, cash: 15 },
+  requests: { day: 6, title: 'Picky customers', blurb: 'No chili, extra herbs, no ice: today everyone wants it their way. Read each order and get it just right for a bigger tip.', target: 3, xp: 45, cash: 10 },
+  laneParty: { day: 7, title: 'Party on the lane', blurb: 'The neighbours are throwing a street party this afternoon. Expect a big crowd after lunch: bake plenty of pastries!', target: 16, xp: 60, cash: 20 },
 };
 const OPENING_ORDER: OpeningEventId[] = ['rush', 'tasteTest', 'critic', 'bigOrder', 'requests', 'laneParty'];
 

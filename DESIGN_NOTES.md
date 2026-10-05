@@ -577,7 +577,7 @@ Source: `PLAYTEST_FEEDBACK.md` (a scripted phone playtest as a 9–12 year old) 
 
 ### What changed (commits 93393e8 → 45fc14f)
 - **Fair counter:** customers extra patient for 3 weeks in guided games; relaxed pace by default; Bà hands out pastries until a cashier is hired; bottom-sheet assembly on phones with every step button on screen; fixed ingredient spots; strong next-step glow for a week; "Not yet! Next: …" on wrong taps; a "N left" chip; compact controls with More.
-- **Goal and rewards:** daily 3-star goal; levels at 150 / 800 / 2,200 / 4,500 / 7,500 / 11,000 / 15,500 XP with a $100 × level gift; one recipe a morning.
+- **Goal and rewards:** daily 3-star goal; levels at 150 / 800 / 2,200 / 4,500 / 7,500 / 11,000 / 15,500 XP with a $25 × level gift; one recipe a morning.
 - **Never lost:** "What now?" sheet; tab help lines; day 1 shows only Bà's lesson (bake flan → open and serve → close); the welcome lines lead into it; spotlight targets the first tappable control in a card and opens the right Kitchen section.
 - **Every function used:** "Try this tomorrow" in the report names one unlocked feature not yet used; tips, events and level toasts never mention locked systems; hiring shows Bà's pick and honest value.
 - **Honest money:** prize money is its own report line; rent-day toast and 5-day countdown; confirmation sheets for loans, investors and new shops; price guesses compare buyers per 10 shoppers.

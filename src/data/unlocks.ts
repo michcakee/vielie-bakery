@@ -258,7 +258,7 @@ export const FEATURES: FeatureDef[] = [
       who: 'Bà',
       vi: 'Bán được nhiều chưa chắc là lời nhiều.',
       en: 'Selling a lot doesn’t always mean earning a lot.',
-      steps: [{ text: 'Open Finances and find yesterday’s profit.', tab: 'money', spot: 'profit', visit: true, done: (s) => seen(s, 'visit:finances.income') }],
+      steps: [{ text: 'Open Finances and find what the bakery made.', tab: 'money', spot: 'profit', visit: true, done: (s) => seen(s, 'visit:finances.income') }],
       after: 'Profit = what you sold minus what it cost. Green means you made money!',
       xp: 20,
     },

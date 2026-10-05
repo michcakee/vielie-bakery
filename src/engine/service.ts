@@ -453,7 +453,8 @@ export function serve(s: GameState, visitId: number, process?: number, by: strin
   if (v.critic && grade.stars >= 4) t.criticPleased = (t.criticPleased ?? 0) + 1;
   if (v.specialOrder) t.bigOrders = (t.bigOrders ?? 0) + 1;
   if (dream) t.dreamTips = round2((t.dreamTips ?? 0) + tip);
-  if (by === 'player' || by === 'owner') t.ownerServed++;
+  if (by === 'player') t.ownerServed++;
+  else if (byBa) t.baServed = (t.baServed ?? 0) + 1;
   else t.staffServed++;
   if (!byBa) t.xp += ECON.progression.xpPerServe + (mood === 'love' ? ECON.progression.xpPerLove : 0);
   t.segments = segStat(next, v.segment, { served: 1, revenue: paid, loyal: v.loyal ? 1 : 0 });

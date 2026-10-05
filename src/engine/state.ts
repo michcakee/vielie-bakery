@@ -53,7 +53,7 @@ import { hireValue, makeEmployee, marketWage, quitters, updateMorale, weeklyAppl
 import { DIAMOND, DREAM, isDreamId } from '../data/dream';
 import { createMacro, dailyMacro, monthlyMacro } from './macro';
 import { generateMarket } from './market';
-import { applySchedule, checkProgress, goalMet, WEEKLY_GOALS } from './progression';
+import { applySchedule, checkProgress, goalMet, weeklyReward, WEEKLY_GOALS } from './progression';
 import { applyFeatureUnlocks, checkIntro, emptyIntro, featureOn, introLater, introStart, refreshIntroBase, seeTab, startingFeatures, unlockAll } from './unlocks';
 import { ACTION_FEATURE, type FeatureId } from '../data/unlocks';
 import { businessTip, recap } from './report';
@@ -722,7 +722,8 @@ function finalSummary(h: DaySummary, s: GameState): DaySummary {
 
 function finishDay(s: GameState): GameState {
   if (s.phase !== 'closing') return s;
-  const cashBefore = s.cash;
+  // Cash over the whole day: from last night's close (this morning's shopping and hiring included).
+  const cashBefore = s.lastReport?.day === s.day - 1 ? s.lastReport.cashAfter : s.cash;
   const levelBefore = levelOf(s.xp);
   const ecoBefore = ecoScore(s);
   let next = closeBooks(settleChallenge(s));
@@ -746,7 +747,8 @@ function finishDay(s: GameState): GameState {
   // A 3-star day pays diamonds (the free way to the Dream team).
   const diamonds = stars === 3 ? DIAMOND.perThreeStarDay : 0;
   if (diamonds) next = { ...next, diamonds: (next.diamonds ?? 0) + diamonds, diamondsEarned: (next.diamondsEarned ?? 0) + diamonds };
-  const xpGain = t.xp + starXp + Math.max(0, Math.round(profit / ECON.progression.xpProfitDivisor));
+  // XP comes from what the bakery earned, not from prize money (or prizes would snowball into more levels).
+  const xpGain = t.xp + starXp + Math.max(0, Math.round((profit - t.books.otherIncome) / ECON.progression.xpProfitDivisor));
   next = {
     ...next,
     safetyFund: fund,
@@ -1002,7 +1004,7 @@ function startDay(s: GameState): GameState {
 function enterWeekly(s: GameState): GameState {
   let next = s;
   if (s.weeklyGoal && goalMet(s)) {
-    const reward = Math.round(150 * s.macro.priceIndex);
+    const reward = weeklyReward(s);
     next = toast(move({ ...next, xp: next.xp + 60 }, 'cashOperatingOther', reward, { otherIncome: reward }), 'quest', `Weekly goal met: ${WEEKLY_GOALS[s.weeklyGoal.id].title}`, `Reward: $${reward} and a big XP boost`);
   }
   let dividends = 0;
@@ -1307,7 +1309,7 @@ function reduce(s: GameState, a: Action): GameState {
       const def = EVENTS[pending.id];
       if (!def) return { ...s, events: s.events.slice(1) };
       const choice = visibleChoices(def, s).find((c) => c.id === a.choice);
-      if (!choice || (choice.enabled && !choice.enabled(s))) return s;
+      if (!choice || (choice.enabled && !choice.enabled(s)) || (choice.cost !== undefined && (choice.fromFund ? s.safetyFund : s.cash) < choice.cost)) return s;
       let next = choice.apply(s);
       next = { ...next, eventsSeen: [...new Set([...(next.eventsSeen ?? []), pending.id])] };
       if (def.concept) next = learn(next, def.concept);

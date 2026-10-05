@@ -218,7 +218,7 @@ On Android, the back button closes windows and sheets, then returns to Today.
 
 - **Every day has a 3-star goal**: three sales targets set from your recent days. One star is easy; three stars means beating your usual day. Stars pay 10 / 25 / 50 XP.
 - **XP** also comes from profit, quests, intro quests and good guesses on price changes.
-- **Levels** (8 of them) bring new recipes, one a morning, and a gift from Bà of $100 × the new level.
+- **Levels** (8 of them) bring new recipes, one a morning, and a small gift from Bà of $25 × the new level.
 - **Big decisions ask first.** Loans, investors and new shops show what they really cost every month before you say yes.
 
 ## Tips for a great first month

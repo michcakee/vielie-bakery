@@ -158,7 +158,12 @@ export function BuildPanel() {
 
       {feature('growth.equipment') && (
       <Card spot="equipment" fresh={fresh('growth.equipment')} title="Kitchen & equipment" icon="hot">
-        <ul className="shop-list">{UPGRADE_ORDER.filter((id) => UPGRADES[id].group === 'kitchen' || UPGRADES[id].group === 'shop' || UPGRADES[id].group === 'delivery').map(upgrade)}</ul>
+        <ul className="shop-list">
+          {UPGRADE_ORDER.filter((id) => UPGRADES[id].group === 'kitchen' || UPGRADES[id].group === 'shop' || UPGRADES[id].group === 'delivery')
+            // The small oven is for a bakery that starts without one. Bà's own (the one you start with) isn't listed, so nobody sells it by accident.
+            .filter((id) => id !== 'ovenBasic' || !s.equipment.some((e) => e.kind === 'ovenBasic' && e.boughtDay === 0))
+            .map(upgrade)}
+        </ul>
       </Card>
       )}
 

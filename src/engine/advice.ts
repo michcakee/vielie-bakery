@@ -74,13 +74,25 @@ export function biggestProblem(s: GameState): Advice | null {
         text: `About ${people} people a day found the pastry case empty: your oven is full every morning. A ${u.name.toLowerCase()} (${money0(u.cost * s.macro.priceIndex)}) adds ${extra} trays a day.${needBaker ? ' You’ll also need a baker to fill it.' : ''}`,
       };
     }
-    return { id: 'soldOut', tab: 'kitchen', spot: 'bake', text: `About ${people} people a day found the pastry case empty. Bake every tray you can each morning, starting with what sells out first.` };
+    return featureOn(s, 'kitchen.prices')
+      ? { id: 'soldOut', tab: 'kitchen', spot: 'price', text: `About ${people} people a day found the pastry case empty. Fill every tray each morning with what sells out first. If the oven is already full, a slightly higher price on those earns more from the same trays.` }
+      : { id: 'soldOut', tab: 'kitchen', spot: 'bake', text: `About ${people} people a day found the pastry case empty. Bake every tray you can each morning, starting with what sells out first.` };
   }
 
-  // 3. People giving up in the queue.
-  const slow = avg((h) => h.lostSlow);
+  // 3. People giving up in the queue (counting only days since the newest hire, so the help gets a fair go).
+  const counter = s.staff.filter((e) => (e.branch ?? null) === null);
+  const hiredOn = Math.max(0, ...counter.map((e) => e.hiredDay));
+  const since = recent.filter((h) => h.day >= hiredOn);
+  const slow = since.length ? since.reduce((t, h) => t + h.lostSlow, 0) / since.length : 0;
   if (slow >= 4 && featureOn(s, 'staff.hire'))
-    return { id: 'slow', tab: 'staff', spot: 'hire-btn', text: `About ${Math.round(slow)} people a day gave up waiting in line. A helper serves the customers you can’t reach.` };
+    return {
+      id: 'slow',
+      tab: 'staff',
+      spot: 'hire-btn',
+      text: counter.length
+        ? `About ${Math.round(slow)} people a day still gave up waiting in line. Another helper would reach them, if the extra sales cover the wage.`
+        : `About ${Math.round(slow)} people a day gave up waiting in line. A helper serves the customers you can’t reach.`,
+    };
 
   // 4. Prices scaring people off.
   const priceShare = recent.reduce((t, h) => t + h.lostPrice, 0) / Math.max(1, recent.reduce((t, h) => t + h.customers, 0));

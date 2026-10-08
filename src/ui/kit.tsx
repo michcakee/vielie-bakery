@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { NOTEBOOK } from '../data/notebook';
 import { play } from './audio';
 import { LEVELS } from '../data/catalog';
+import { spendWarning } from '../engine/advice';
 import { useGame } from './GameContext';
 import { Sprite } from './pixel/Sprite';
 
@@ -203,6 +204,23 @@ export function ConfirmBtn({ children, title, lines, warn, onConfirm, disabled, 
         </div>
       )}
     </>
+  );
+}
+
+/** A buy button that asks first when the purchase would leave too little cash for rent day or the week's bills. */
+export function SpendBtn({ cost, title, onConfirm, disabled, children, sfx }: { cost: number; title: string; onConfirm: () => void; disabled?: boolean; children: ReactNode; sfx?: 'sparkle' }) {
+  const { state: s } = useGame();
+  const warn = disabled ? null : spendWarning(s, cost);
+  if (!warn)
+    return (
+      <Btn kind="primary" disabled={disabled} onClick={onConfirm} sfx={sfx}>
+        {children}
+      </Btn>
+    );
+  return (
+    <ConfirmBtn title={title} lines={[`It costs $${Math.round(cost).toLocaleString('en-US')} and you have $${Math.round(s.cash).toLocaleString('en-US')}.`]} warn={warn} onConfirm={onConfirm}>
+      {children}
+    </ConfirmBtn>
   );
 }
 

@@ -5,7 +5,7 @@ import { DECOR, DECOR_ORDER, INGREDIENTS, LEVELS, PRODUCTS, UPGRADES } from '../
 import { COSMETICS, owns, starsToSpend } from '../../src/data/cosmetics';
 import { FEATURE } from '../../src/data/unlocks';
 import { balanceSheet } from '../../src/engine/accounting';
-import { canBakeTray, levelOf, onMenu, trayCapacity } from '../../src/engine/economy';
+import { canBakeTray, levelOf, rent, onMenu, trayCapacity } from '../../src/engine/economy';
 import { EVENTS, visibleChoices } from '../../src/engine/events';
 import { activeQuests, QUESTS } from '../../src/engine/progression';
 import { createNewGame, gameReducer, type Action } from '../../src/engine/state';
@@ -118,10 +118,13 @@ export function play(seed: number, maxDays: number, style: 'keen' | 'casual') {
       }
     }
 
-    // ---- growth: hire when people give up waiting, buy what's affordable, decorate, spend stars
+    // ---- growth: hire when people give up waiting, buy what's affordable, decorate, spend stars.
+    // A sensible player keeps next month's rent and a week of wages in the drawer first.
+    const wagesPerDay = s.staff.reduce((t, e) => t + e.wage * 8 * 1.1, 0);
+    const reserve = rent(s) * 30 + wagesPerDay * 7;
     const recent = s.history.slice(-5);
     const lostSlow = recent.length ? recent.reduce((t, h) => t + h.lostSlow, 0) / recent.length : 0;
-    if (featureOn(s, 'staff.hire') && s.applicants.length && lostSlow >= 3 && s.staff.length < 1 + Math.floor(levelOf(s.xp) / 2) && s.cash > 1500) {
+    if (featureOn(s, 'staff.hire') && s.applicants.length && lostSlow >= 3 && s.staff.length < 1 + Math.floor(levelOf(s.xp) / 2) && s.cash > 1500 + reserve) {
       const a = s.applicants.find((x) => x.name === 'Kevin Nguyen') ?? s.applicants.find((x) => ['helper', 'cashier', 'cook', 'barista'].includes(x.role)) ?? s.applicants[0];
       const n = s.staff.length;
       apply({ type: 'hire', applicantId: a.id });
@@ -132,7 +135,7 @@ export function play(seed: number, maxDays: number, style: 'keen' | 'casual') {
       for (const id of want) {
         const u = UPGRADES[id];
         if (s.upgrades.includes(id) || u.level > levelOf(s.xp) || (u.requires && !s.upgrades.includes(u.requires))) continue;
-        if (s.cash > u.cost * (style === 'keen' ? 1.8 : 3) + 1500) {
+        if (s.cash > u.cost * (style === 'keen' ? 1.8 : 3) + 1500 + reserve) {
           const n = s.equipment.length;
           apply({ type: 'buyUpgrade', id });
           if (s.equipment.length > n) news.push(`bought:${id}`);
@@ -142,7 +145,7 @@ export function play(seed: number, maxDays: number, style: 'keen' | 'casual') {
     }
     if (featureOn(s, 'growth.decor'))
       for (const id of DECOR_ORDER)
-        if (!s.decor.includes(id) && DECOR[id].level <= levelOf(s.xp) && s.cash > DECOR[id].cost * 6 + 2000) {
+        if (!s.decor.includes(id) && DECOR[id].level <= levelOf(s.xp) && s.cash > DECOR[id].cost * 6 + 2000 + reserve) {
           apply({ type: 'buyDecor', id });
           if (s.decor.includes(id)) news.push(`decor:${id}`);
           break;

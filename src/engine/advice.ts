@@ -1,7 +1,8 @@
 import { UPGRADES } from '../data/catalog';
 import type { TabId } from '../data/unlocks';
 import { incomeStatement, sumBooks } from './accounting';
-import { has, laborTrays, levelOf, ovenCapacity } from './economy';
+import { daysToMonthStart } from './calendar';
+import { has, laborTrays, levelOf, ovenCapacity, rent, wages } from './economy';
 import { featureOn } from './unlocks';
 import type { GameState, UpgradeId } from './types';
 
@@ -99,5 +100,20 @@ export function biggestProblem(s: GameState): Advice | null {
   if (priceShare >= 0.25 && featureOn(s, 'kitchen.prices'))
     return { id: 'price', tab: 'kitchen', spot: 'price', text: `About ${Math.round(priceShare * 10)} in 10 customers walked away because of the price. Try lowering your priciest item a little and see what happens.` };
 
+  return null;
+}
+
+/**
+ * A heads-up for a purchase that would leave too little in the drawer: rent for the whole month is
+ * taken in one go, and ingredients and wages still have to be paid after it. Null when it's safe.
+ */
+export function spendWarning(s: GameState, cost: number): string | null {
+  const after = s.cash - cost;
+  const bill = rent(s) * 30;
+  const toRent = daysToMonthStart(s.day);
+  if (toRent > 0 && toRent <= 10 && after < bill)
+    return `Rent day is in ${toRent} day${toRent === 1 ? '' : 's'} and the whole month, ${money0(bill)}, is taken at once. After this you would have ${money0(Math.max(0, after))}. If the drawer runs dry you can’t buy ingredients, and wages still go out.`;
+  const floor = wages(s) * 3 + 150;
+  if (after < floor) return `This would leave you ${money0(Math.max(0, after))}. Ingredients and ${s.staff.length ? 'wages' : 'bills'} come out of the drawer every day, so a few slow days could run it dry.`;
   return null;
 }

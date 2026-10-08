@@ -9,7 +9,7 @@ import type { DecorId, LocationId, SegmentId, UpgradeId } from '../../engine/typ
 import { money, money2, pct } from '../../lib/format';
 import { useGame } from '../GameContext';
 import { Painter } from '../Painter';
-import { LevelLock, Btn, Card, ConfirmBtn, Tip } from '../kit';
+import { LevelLock, Btn, Card, ConfirmBtn, SpendBtn, Tip } from '../kit';
 import { LookChanger } from '../LookEditor';
 import { Sprite } from '../pixel/Sprite';
 
@@ -114,9 +114,9 @@ export function BuildPanel() {
           ) : needs ? (
             <span className="lock-tag">Needs {needs}</span>
           ) : (
-            <Btn kind="primary" disabled={!shopping || s.cash < cost} onClick={() => dispatch({ type: 'buyUpgrade', id })} sfx="sparkle">
+            <SpendBtn cost={cost} title={`Buy ${u.name}?`} disabled={!shopping || s.cash < cost} onConfirm={() => dispatch({ type: 'buyUpgrade', id })} sfx="sparkle">
               {money(cost)}
-            </Btn>
+            </SpendBtn>
           )}
         </div>
       </li>
@@ -269,9 +269,9 @@ export function BuildPanel() {
                   ) : locked ? (
                     <LevelLock level={d.level} />
                   ) : (
-                    <Btn kind="primary" disabled={!shopping || s.cash < d.cost} onClick={() => dispatch({ type: 'buyDecor', id })} sfx="sparkle">
+                    <SpendBtn cost={d.cost} title={`Buy ${d.name}?`} disabled={!shopping || s.cash < d.cost} onConfirm={() => dispatch({ type: 'buyDecor', id })} sfx="sparkle">
                       {money(d.cost)}
-                    </Btn>
+                    </SpendBtn>
                   )}
                 </div>
               </li>

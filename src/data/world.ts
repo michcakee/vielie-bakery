@@ -32,7 +32,7 @@ export const LOCATIONS: Record<LocationId, LocationDef> = {
     name: 'Saigon Street',
     vi: 'Phố Sài Gòn',
     blurb: 'Bà\'s lane. Cheap rent, loyal elders, steady foot traffic, room to grow.',
-    rent: 80,
+    rent: 60,
     traffic: 1,
     income: 0.95,
     segments: { vnElders: 0.24, vnFamilies: 0.22, budget: 0.14, office: 0.1, students: 0.1, coffee: 0.16, families: 0.04 },

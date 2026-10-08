@@ -45,7 +45,7 @@ A probe of one passive bakery at day 150 showed the rest: $24,700 monthly revenu
 | --- | --- |
 | Regulars **churn** 1.4% a day, plus 6% per point of satisfaction below 0.75 | `ECON.demand.loyalChurn`, `loyalChurnUnhappy` |
 | New regulars slow toward a **neighbourhood cap** of 4 days' foot traffic | `ECON.demand.loyalCapDays` |
-| **Rent ×1.8**: Old Lane $80/day (≈$2,400/month) … Downtown $225/day | `LOCATIONS[*].rent` |
+| **Rent ×1.8**: Saigon Street $60/day (≈$1,800/month) … Downtown $225/day | `LOCATIONS[*].rent` |
 | Difficulty scales **rent, utilities and maintenance** (0.85× … 1.3×) and **churn** (0.7× … 1.7×) | `DIFFICULTY[*].costMult`, `churnMult` |
 | Valuation base multiple 3 → **2.5**× earnings | `ECON.valuation.baseMultiple` |
 | "Build value" goal $250k → **$1M** | `GOALS.value`, `goalProgress` |

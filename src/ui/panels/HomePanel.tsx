@@ -51,8 +51,10 @@ export function readiness(s: GameState) {
     const caseEmpty = menu.every((p) => PRODUCTS[p].kind !== 'tray' || s.display[p].qty === 0);
     warnings.push({ text: caseEmpty ? `The glass case is empty. Bake pastries to fill it: ${names}.` : `Bake your ${left} tray${left === 1 ? '' : 's'}: start with ${names}.`, tab: 'kitchen', spot: `bake-${best[0]}` });
   }
+  if (s.cash < 40 && s.phase === 'morning' && s.history.length > 1)
+    warnings.push({ text: `Only ${money(Math.max(0, s.cash))} in the drawer. You can’t buy ingredients, and ${s.staff.length ? 'wages still go out' : 'bills still come'}. Sell what you have, use the credit line, or let someone go.`, tab: 'money', big: true });
   const toRent = daysToMonthStart(s.day);
-  if (toRent > 0 && toRent <= 5) warnings.push({ text: `Rent day in ${toRent} day${toRent === 1 ? '' : 's'}: about ${money(rent(s) * 30)} for the month.${s.cash < rent(s) * 30 ? ' Save up!' : ' You have enough.'}`, tab: 'today' });
+  if (toRent > 0 && toRent <= 10) warnings.push({ text: `Rent day in ${toRent} day${toRent === 1 ? '' : 's'}: about ${money(rent(s) * 30)} for the month.${s.cash < rent(s) * 30 ? ' Save up!' : ' You have enough.'}`, tab: 'today' });
   else if (s.cash < rent(s) * 5 && s.cash >= 0) warnings.push({ text: `Cash is getting thin: ${money(s.cash)}. Next month's rent is about ${money(rent(s) * 30)}.`, tab: 'money' });
   if (s.creditLine.balance > 0) warnings.push({ text: `You're using ${money(s.creditLine.balance)} of the bank's credit line. It charges high interest every day.`, tab: 'money' });
   return warnings.filter((w) => tabOn(s, w.tab));

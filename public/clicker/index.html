@@ -4,55 +4,30 @@
   <title>Pokemon Clicker</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: Arial;
       background-color: #ffcb05;
       text-align: center;
-      margin: 0;
     }
 
     h1 {
       color: #2a75bb;
-      text-shadow: 2px 2px #ffffff;
-      font-size: 40px;
-      margin-top: 30px;
-    }
-
-    .game {
-      background-color: white;
-      width: 400px;
-      margin: 0 auto;
-      padding: 20px;
-      border-radius: 15px;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
     }
 
     #pikachu {
       width: 200px;
       cursor: pointer;
-      image-rendering: pixelated;
     }
 
-    #pikachu:hover {
-      transform: scale(1.1);
-    }
-
-    #pikachu:active {
-      transform: scale(0.9);
-    }
-
-    .shop {
-      background-color: #e3350d;
-      color: white;
+    button {
       font-size: 16px;
-      border: none;
-      border-radius: 8px;
-      padding: 10px 15px;
-      margin: 8px;
+      padding: 8px;
+      margin: 5px;
       cursor: pointer;
     }
 
-    .shop:hover {
-      background-color: #b02a0a;
+    #badge {
+      font-weight: bold;
+      display: none;
     }
   </style>
 </head>
@@ -60,17 +35,17 @@
 
   <h1>Pokemon Clicker</h1>
 
-  <div class="game">
-    <h2>Pokemon caught: <span id="count">0</span></h2>
+  <p>Pokemon caught: <span id="count">0</span></p>
 
-    <img id="pikachu" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png">
+  <img id="pikachu" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png">
 
-    <p>Per click: <span id="perClick">1</span> &nbsp; | &nbsp; Per second: <span id="perSecond">0</span></p>
+  <p>Per click: <span id="perClick">1</span> | Per second: <span id="perSecond">0</span></p>
 
-    <button id="greatBall" class="shop">Great Ball (+1 per click) - <span id="greatBallCost">10</span></button>
-    <br>
-    <button id="trainer" class="shop">Hire Trainer (+1 per second) - <span id="trainerCost">25</span></button>
-  </div>
+  <button id="greatBall">Great Ball (+1 per click) - Cost: <span id="greatBallCost">10</span></button>
+  <br>
+  <button id="trainer">Hire Trainer (+1 per second) - Cost: <span id="trainerCost">25</span></button>
+
+  <p id="badge">Badge earned: Pokemon Master (100 caught)</p>
 
   <script>
     var pokemon = 0;
@@ -117,6 +92,11 @@
       document.getElementById("perSecond").textContent = perSecond;
       document.getElementById("greatBallCost").textContent = greatBallCost;
       document.getElementById("trainerCost").textContent = trainerCost;
+
+      // badge shows up at 100
+      if (pokemon >= 100) {
+        document.getElementById("badge").style.display = "block";
+      }
     }
   </script>
 

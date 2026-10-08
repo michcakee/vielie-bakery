@@ -52,6 +52,8 @@
 
   <p id="badge">Badge earned: Pokemon Master (100 caught)</p>
 
+  <p id="lucky"></p>
+
   <script>
     var pokemon = 0;
     var perClick = 1;
@@ -90,6 +92,17 @@
       pokemon = pokemon + perSecond;
       update();
     }, 1000);
+
+    // runs every 30 seconds, 50% chance of a bonus
+    setInterval(function() {
+      if (Math.random() < 0.5) {
+        pokemon = pokemon + 20;
+        document.getElementById("lucky").textContent = "A wild Pokemon wandered by! +20";
+      } else {
+        document.getElementById("lucky").textContent = "Nothing in the tall grass this time...";
+      }
+      update();
+    }, 30000);
 
     function update() {
       document.getElementById("count").textContent = pokemon;

@@ -23,7 +23,7 @@
       margin: 0 auto;
       padding: 20px;
       border-radius: 15px;
-      border: 4px solid #2a75bb;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
     }
 
     #pikachu {
@@ -54,13 +54,6 @@
     .shop:hover {
       background-color: #b02a0a;
     }
-
-    #achievement {
-      color: #2a75bb;
-      font-weight: bold;
-      font-size: 20px;
-      display: none;
-    }
   </style>
 </head>
 <body>
@@ -77,8 +70,6 @@
     <button id="greatBall" class="shop">Great Ball (+1 per click) - <span id="greatBallCost">10</span></button>
     <br>
     <button id="trainer" class="shop">Hire Trainer (+1 per second) - <span id="trainerCost">25</span></button>
-
-    <p id="achievement">Achievement unlocked: Pokemon Master! (100 caught)</p>
   </div>
 
   <script>
@@ -126,10 +117,6 @@
       document.getElementById("perSecond").textContent = perSecond;
       document.getElementById("greatBallCost").textContent = greatBallCost;
       document.getElementById("trainerCost").textContent = trainerCost;
-
-      if (pokemon >= 100) {
-        document.getElementById("achievement").style.display = "block";
-      }
     }
   </script>
 

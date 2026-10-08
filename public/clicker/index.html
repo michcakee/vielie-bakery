@@ -4,33 +4,61 @@
   <title>Pokemon Clicker</title>
   <style>
     body {
-      font-family: Arial;
+      font-family: Arial, sans-serif;
+      background-color: #ffcb05;
       text-align: center;
-      background-color: #f0f4ff;
+      margin: 0;
     }
 
-    #catchButton {
-      font-size: 80px;
+    h1 {
+      color: #2a75bb;
+      text-shadow: 2px 2px #ffffff;
+      font-size: 40px;
+      margin-top: 30px;
+    }
+
+    .game {
+      background-color: white;
+      width: 400px;
+      margin: 0 auto;
+      padding: 20px;
+      border-radius: 15px;
+      border: 4px solid #2a75bb;
+    }
+
+    #pikachu {
+      width: 200px;
+      cursor: pointer;
+      image-rendering: pixelated;
+    }
+
+    #pikachu:hover {
+      transform: scale(1.1);
+    }
+
+    #pikachu:active {
+      transform: scale(0.9);
+    }
+
+    .shop {
       background-color: #e3350d;
       color: white;
-      border: 5px solid black;
-      border-radius: 50%;
-      width: 180px;
-      height: 180px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 15px;
+      margin: 8px;
       cursor: pointer;
     }
 
-    .shopButton {
-      font-size: 18px;
-      padding: 10px;
-      margin: 10px;
-      cursor: pointer;
+    .shop:hover {
+      background-color: #b02a0a;
     }
 
     #achievement {
-      color: gold;
-      font-size: 24px;
+      color: #2a75bb;
       font-weight: bold;
+      font-size: 20px;
       display: none;
     }
   </style>
@@ -39,75 +67,66 @@
 
   <h1>Pokemon Clicker</h1>
 
-  <h2>Pokemon caught: <span id="pokemonCount">0</span></h2>
+  <div class="game">
+    <h2>Pokemon caught: <span id="count">0</span></h2>
 
-  <button id="catchButton">O</button>
+    <img id="pikachu" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png">
 
-  <p>Per click: <span id="perClick">1</span> | Per second: <span id="perSecond">0</span></p>
+    <p>Per click: <span id="perClick">1</span> &nbsp; | &nbsp; Per second: <span id="perSecond">0</span></p>
 
-  <button id="greatBallButton" class="shopButton">Buy Great Ball (+1 per click) - Cost: <span id="greatBallCost">10</span></button>
-  <br>
-  <button id="trainerButton" class="shopButton">Hire Trainer (+1 per second) - Cost: <span id="trainerCost">25</span></button>
+    <button id="greatBall" class="shop">Great Ball (+1 per click) - <span id="greatBallCost">10</span></button>
+    <br>
+    <button id="trainer" class="shop">Hire Trainer (+1 per second) - <span id="trainerCost">25</span></button>
 
-  <p id="achievement">ACHIEVEMENT UNLOCKED: Pokemon Master! (100 caught)</p>
+    <p id="achievement">Achievement unlocked: Pokemon Master! (100 caught)</p>
+  </div>
 
   <script>
-    // ---------- variables ----------
     var pokemon = 0;
     var perClick = 1;
     var perSecond = 0;
     var greatBallCost = 10;
     var trainerCost = 25;
 
-    // ---------- clicking the pokeball ----------
-    function catchPokemon() {
+    // clicking pikachu
+    document.getElementById("pikachu").addEventListener("click", function() {
       pokemon = pokemon + perClick;
-      updateScreen();
-    }
+      update();
+    });
 
-    document.getElementById("catchButton").addEventListener("click", catchPokemon);
-
-    // ---------- upgrade: more per click ----------
-    function buyGreatBall() {
+    // great ball = more per click
+    document.getElementById("greatBall").addEventListener("click", function() {
       if (pokemon >= greatBallCost) {
         pokemon = pokemon - greatBallCost;
         perClick = perClick + 1;
         greatBallCost = greatBallCost * 2;
+        update();
       }
-      updateScreen();
-    }
+    });
 
-    document.getElementById("greatBallButton").addEventListener("click", buyGreatBall);
-
-    // ---------- upgrade: automatic catching ----------
-    function hireTrainer() {
+    // trainer = catches pokemon for you
+    document.getElementById("trainer").addEventListener("click", function() {
       if (pokemon >= trainerCost) {
         pokemon = pokemon - trainerCost;
         perSecond = perSecond + 1;
         trainerCost = trainerCost * 2;
+        update();
       }
-      updateScreen();
-    }
+    });
 
-    document.getElementById("trainerButton").addEventListener("click", hireTrainer);
-
-    // this runs every 1000 milliseconds (1 second)
-    function autoCatch() {
+    // runs once every second
+    setInterval(function() {
       pokemon = pokemon + perSecond;
-      updateScreen();
-    }
+      update();
+    }, 1000);
 
-    setInterval(autoCatch, 1000);
-
-    // ---------- updating the page ----------
-    function updateScreen() {
-      document.getElementById("pokemonCount").textContent = pokemon;
+    function update() {
+      document.getElementById("count").textContent = pokemon;
       document.getElementById("perClick").textContent = perClick;
       document.getElementById("perSecond").textContent = perSecond;
       document.getElementById("greatBallCost").textContent = greatBallCost;
       document.getElementById("trainerCost").textContent = trainerCost;
 
-      // achievement: show the hidden text once you reach 100
       if (pokemon >= 100) {
         document.getElementById("achievement").style.display = "block";
       }

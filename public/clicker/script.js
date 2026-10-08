@@ -1,469 +1,427 @@
-/* ============================================================
-   Pokémon Clicker - game logic
-   ------------------------------------------------------------
-   The file is organized into numbered sections. Each section is
-   one "feature column" so two partners can work in parallel and
-   merge without stepping on each other. See TEAM_SPLIT.md.
-   ============================================================ */
+// ================================================================
+// POKEMON CLICKER
+// ================================================================
 
-// ============================================================
-// SECTION 1: GAME STATE
-// All the numbers the game tracks live in one object so saving,
-// loading and rendering can all look in the same place.
-// ============================================================
 
-const state = {
-  pokemon: 0,          // Pokémon you currently have (spendable)
-  totalCaught: 0,      // lifetime catches (used for achievements)
-  gymBadges: 0,        // secondary currency
-  totalBadges: 0,      // lifetime badges earned (for achievements)
+// ================================================================
+// PART 1: VARIABLES (the game state)
+// ================================================================
 
-  basePerClick: 1,     // raised by Pokéball upgrades
-  basePerSecond: 0,    // raised by trainers
+// main resource
+var pokemon = 0;        // how many Pokemon you have right now (you spend these)
+var totalCaught = 0;    // how many you have caught in total (for achievements)
 
-  clickMultiplier: 1,  // raised by Badge Shop items
-  autoMultiplier: 1,   // raised by Badge Shop items
+// how much you earn
+var perClick = 1;       // Pokemon per click
+var perSecond = 0;      // Pokemon per second from trainers
 
-  wonGamble: false,    // for the "Shiny Hunter" achievement
-  totalClicks: 0
-};
+// Badge Shop multipliers (start at 1 = normal, 2 = double)
+var clickMultiplier = 1;
+var autoMultiplier = 1;
 
-const GYM_COST = 50;       // Pokémon traded for one Gym Badge
-const WILD_INTERVAL = 45;  // seconds between wild encounters
-const WILD_DURATION = 15;  // seconds an encounter stays on screen
+// secondary currency
+var gymBadges = 0;
+var totalBadgesEver = 0;
 
-// Helper: how many Pokémon one click is worth right now
-function getPerClick() {
-  return Math.floor(state.basePerClick * state.clickMultiplier);
+// Pokeball upgrades (more per click)
+var greatBallCost = 15;
+var greatBallOwned = 0;
+
+var ultraBallCost = 100;
+var ultraBallOwned = 0;
+
+var masterBallCost = 800;
+var masterBallOwned = 0;
+
+// Trainers (more per second)
+var youngsterCost = 25;
+var youngsterOwned = 0;
+
+var bugCatcherCost = 200;
+var bugCatcherOwned = 0;
+
+var gymLeaderCost = 1500;
+var gymLeaderOwned = 0;
+
+// Badge Shop items (true = already bought)
+var hasRareCandy = false;
+var hasExpShare = false;
+var hasTrophy = false;
+
+// Wild encounter stuff
+var wildActive = false;     // is a wild Pokemon on screen right now?
+var wildSafeReward = 0;     // how much you get for the safe choice
+var wildWager = 0;          // how much you risk for the gamble
+var wildSecondsLeft = 0;    // countdown until it runs away
+var wonAGamble = false;     // for the Shiny Hunter achievement
+
+
+// ================================================================
+// PART 2: THE MAIN CLICK
+// ================================================================
+
+function catchPokemon() {
+  var amount = perClick * clickMultiplier;
+  pokemon = pokemon + amount;
+  totalCaught = totalCaught + amount;
+  updateScreen();
 }
 
-// Helper: how many Pokémon the trainers catch per second right now
-function getPerSecond() {
-  return Math.floor(state.basePerSecond * state.autoMultiplier);
-}
+document.getElementById("catchButton").addEventListener("click", catchPokemon);
 
-// ============================================================
-// SECTION 2: SHOP DATA
-// Every upgrade is an object in an array. The shop UI is built
-// from these arrays, so adding a new item = adding one object.
-// ============================================================
 
-// Productivity upgrades: more Pokémon per click. Repeatable, cost grows each time.
-const upgrades = [
-  { id: "great",  name: "Great Ball",  desc: "+1 per click",  baseCost: 15,   owned: 0, effect: 1 },
-  { id: "ultra",  name: "Ultra Ball",  desc: "+5 per click",  baseCost: 120,  owned: 0, effect: 5 },
-  { id: "quick",  name: "Quick Ball",  desc: "+25 per click", baseCost: 900,  owned: 0, effect: 25 },
-  { id: "master", name: "Master Ball", desc: "+150 per click", baseCost: 7000, owned: 0, effect: 150 }
-];
+// ================================================================
+// PART 3: POKEBALL UPGRADES (productivity - more per click)
+// ================================================================
 
-// Time-based upgrades: trainers catch Pokémon for you every second.
-const trainers = [
-  { id: "youngster", name: "Youngster",   desc: "+1 per second",   baseCost: 25,    owned: 0, effect: 1 },
-  { id: "bug",       name: "Bug Catcher", desc: "+5 per second",   baseCost: 200,   owned: 0, effect: 5 },
-  { id: "ace",       name: "Ace Trainer", desc: "+20 per second",  baseCost: 1200,  owned: 0, effect: 20 },
-  { id: "leader",    name: "Gym Leader",  desc: "+100 per second", baseCost: 8000,  owned: 0, effect: 100 }
-];
-
-// Badge Shop: spent with Gym Badges (the secondary currency). One-time purchases.
-const badgeShop = [
-  { id: "candy",  name: "Rare Candy",     desc: "Trainers catch 50% more",  cost: 3,  owned: false,
-    apply: () => { state.autoMultiplier += 0.5; } },
-  { id: "exp",    name: "Exp. Share",     desc: "Clicks are worth 50% more", cost: 3,  owned: false,
-    apply: () => { state.clickMultiplier += 0.5; } },
-  { id: "bike",   name: "Bicycle",        desc: "Trainers catch 2x more",    cost: 8,  owned: false,
-    apply: () => { state.autoMultiplier *= 2; } },
-  { id: "elite",  name: "Elite Four Trophy", desc: "Everything x2",          cost: 20, owned: false,
-    apply: () => { state.clickMultiplier *= 2; state.autoMultiplier *= 2; } }
-];
-
-// Cost rises 15% per copy owned so the game keeps getting harder.
-function getCost(item) {
-  return Math.floor(item.baseCost * Math.pow(1.15, item.owned));
-}
-
-// ============================================================
-// SECTION 3: DOM REFERENCES
-// Grab every element once so we don't query the page over and over.
-// ============================================================
-
-const el = {
-  pokemonCount:   document.getElementById("pokemon-count"),
-  totalCaught:    document.getElementById("total-caught"),
-  perClick:       document.getElementById("per-click"),
-  perSecond:      document.getElementById("per-second"),
-  gymBadgeCount:  document.getElementById("gym-badge-count"),
-  gymCost:        document.getElementById("gym-cost"),
-  message:        document.getElementById("message"),
-
-  catchButton:    document.getElementById("catch-button"),
-  gymButton:      document.getElementById("gym-button"),
-
-  upgradeList:    document.getElementById("upgrade-list"),
-  trainerList:    document.getElementById("trainer-list"),
-  badgeShopList:  document.getElementById("badge-shop-list"),
-  achievementList: document.getElementById("achievement-list"),
-
-  wildBox:        document.getElementById("wild-box"),
-  wildText:       document.getElementById("wild-text"),
-  wildSafe:       document.getElementById("wild-safe"),
-  wildGamble:     document.getElementById("wild-gamble"),
-  wildSeconds:    document.getElementById("wild-seconds"),
-  wildIdle:       document.getElementById("wild-idle"),
-  wildInterval:   document.getElementById("wild-interval"),
-
-  saveButton:     document.getElementById("save-button"),
-  resetButton:    document.getElementById("reset-button")
-};
-
-// ============================================================
-// SECTION 4: CORE CLICK LOOP
-// The one thing every clicker game needs: click -> number goes up.
-// ============================================================
-
-function catchPokemon(event) {
-  const amount = getPerClick();
-  addPokemon(amount);
-  state.totalClicks += 1;
-  showFloatingText("+" + formatNumber(amount), event);
-  render();
-}
-
-// Central place where Pokémon are added so achievements always get checked.
-function addPokemon(amount) {
-  state.pokemon += amount;
-  state.totalCaught += amount;
-  checkAchievements();
-}
-
-el.catchButton.addEventListener("click", catchPokemon);
-
-// Little "+5" text that floats up from where you clicked.
-function showFloatingText(text, event) {
-  const float = document.createElement("span");
-  float.className = "float-text";
-  float.textContent = text;
-  float.style.left = event.clientX + "px";
-  float.style.top = (event.clientY - 20) + "px";
-  document.body.appendChild(float);
-  setTimeout(() => float.remove(), 800);
-}
-
-// ============================================================
-// SECTION 5: PRODUCTIVITY UPGRADES (better Pokéballs)
-// ============================================================
-
-function buyUpgrade(item) {
-  const cost = getCost(item);
-  if (state.pokemon < cost) {
-    setMessage("Not enough Pokémon for a " + item.name + "!");
-    return;
+function buyGreatBall() {
+  if (pokemon >= greatBallCost) {
+    pokemon = pokemon - greatBallCost;
+    greatBallOwned = greatBallOwned + 1;
+    perClick = perClick + 1;
+    greatBallCost = Math.floor(greatBallCost * 1.5);   // gets more expensive each time
+    showMessage("You bought a Great Ball!");
+  } else {
+    showMessage("Not enough Pokemon for a Great Ball!");
   }
-  state.pokemon -= cost;
-  item.owned += 1;
-  state.basePerClick += item.effect;
-  setMessage("You bought a " + item.name + ". Each throw now catches " + formatNumber(getPerClick()) + "!");
-  if (item.id === "master") el.catchButton.classList.add("master");
-  render();
+  updateScreen();
 }
 
-// ============================================================
-// SECTION 6: TIME-BASED UPGRADES (trainers + the game tick)
-// ============================================================
-
-function buyTrainer(item) {
-  const cost = getCost(item);
-  if (state.pokemon < cost) {
-    setMessage("Not enough Pokémon to recruit a " + item.name + "!");
-    return;
+function buyUltraBall() {
+  if (pokemon >= ultraBallCost) {
+    pokemon = pokemon - ultraBallCost;
+    ultraBallOwned = ultraBallOwned + 1;
+    perClick = perClick + 5;
+    ultraBallCost = Math.floor(ultraBallCost * 1.5);
+    showMessage("You bought an Ultra Ball!");
+  } else {
+    showMessage("Not enough Pokemon for an Ultra Ball!");
   }
-  state.pokemon -= cost;
-  item.owned += 1;
-  state.basePerSecond += item.effect;
-  setMessage("A " + item.name + " joined your team! +" + item.effect + " per second.");
-  render();
+  updateScreen();
 }
 
-// The game "tick": runs 10 times per second so the counter feels smooth.
-// Each tick adds one tenth of the per-second income.
-const TICKS_PER_SECOND = 10;
-setInterval(() => {
-  const perSecond = getPerSecond();
-  if (perSecond > 0) {
-    addPokemon(perSecond / TICKS_PER_SECOND);
-    render();
+function buyMasterBall() {
+  if (pokemon >= masterBallCost) {
+    pokemon = pokemon - masterBallCost;
+    masterBallOwned = masterBallOwned + 1;
+    perClick = perClick + 25;
+    masterBallCost = Math.floor(masterBallCost * 1.5);
+    showMessage("You bought a Master Ball! Your Pokeball turned purple!");
+    // change the look of the big Pokeball
+    document.getElementById("catchButton").classList.add("masterBall");
+  } else {
+    showMessage("Not enough Pokemon for a Master Ball!");
   }
-}, 1000 / TICKS_PER_SECOND);
+  updateScreen();
+}
 
-// ============================================================
-// SECTION 7: SECONDARY CURRENCY (Gym Badges + Badge Shop)
-// Trade Pokémon for badges, spend badges on permanent multipliers.
-// ============================================================
+document.getElementById("greatBallButton").addEventListener("click", buyGreatBall);
+document.getElementById("ultraBallButton").addEventListener("click", buyUltraBall);
+document.getElementById("masterBallButton").addEventListener("click", buyMasterBall);
+
+
+// ================================================================
+// PART 4: TRAINERS (time based - automatic catching with setInterval)
+// ================================================================
+
+function buyYoungster() {
+  if (pokemon >= youngsterCost) {
+    pokemon = pokemon - youngsterCost;
+    youngsterOwned = youngsterOwned + 1;
+    perSecond = perSecond + 1;
+    youngsterCost = Math.floor(youngsterCost * 1.5);
+    showMessage("A Youngster joined your team!");
+  } else {
+    showMessage("Not enough Pokemon to recruit a Youngster!");
+  }
+  updateScreen();
+}
+
+function buyBugCatcher() {
+  if (pokemon >= bugCatcherCost) {
+    pokemon = pokemon - bugCatcherCost;
+    bugCatcherOwned = bugCatcherOwned + 1;
+    perSecond = perSecond + 5;
+    bugCatcherCost = Math.floor(bugCatcherCost * 1.5);
+    showMessage("A Bug Catcher joined your team!");
+  } else {
+    showMessage("Not enough Pokemon to recruit a Bug Catcher!");
+  }
+  updateScreen();
+}
+
+function buyGymLeader() {
+  if (pokemon >= gymLeaderCost) {
+    pokemon = pokemon - gymLeaderCost;
+    gymLeaderOwned = gymLeaderOwned + 1;
+    perSecond = perSecond + 25;
+    gymLeaderCost = Math.floor(gymLeaderCost * 1.5);
+    showMessage("A Gym Leader joined your team!");
+  } else {
+    showMessage("Not enough Pokemon to recruit a Gym Leader!");
+  }
+  updateScreen();
+}
+
+document.getElementById("youngsterButton").addEventListener("click", buyYoungster);
+document.getElementById("bugCatcherButton").addEventListener("click", buyBugCatcher);
+document.getElementById("gymLeaderButton").addEventListener("click", buyGymLeader);
+
+// This runs every 1000 milliseconds (1 second) forever.
+// It adds whatever your trainers catch per second.
+function autoCatch() {
+  var amount = perSecond * autoMultiplier;
+  if (amount > 0) {
+    pokemon = pokemon + amount;
+    totalCaught = totalCaught + amount;
+    updateScreen();
+  }
+}
+
+setInterval(autoCatch, 1000);
+
+
+// ================================================================
+// PART 5: GYM BADGES (secondary currency) and the BADGE SHOP
+// ================================================================
 
 function challengeGym() {
-  if (state.pokemon < GYM_COST) {
-    setMessage("You need " + GYM_COST + " Pokémon to challenge a gym.");
-    return;
+  if (pokemon >= 50) {
+    pokemon = pokemon - 50;
+    gymBadges = gymBadges + 1;
+    totalBadgesEver = totalBadgesEver + 1;
+    showMessage("You beat the gym and earned a Gym Badge!");
+  } else {
+    showMessage("You need 50 Pokemon to challenge a gym!");
   }
-  state.pokemon -= GYM_COST;
-  state.gymBadges += 1;
-  state.totalBadges += 1;
-  setMessage("You won a Gym Badge! 🏅 Spend it in the Badge Shop.");
-  checkAchievements();
-  render();
+  updateScreen();
 }
 
-el.gymButton.addEventListener("click", challengeGym);
+document.getElementById("gymButton").addEventListener("click", challengeGym);
 
-function buyBadgeItem(item) {
-  if (item.owned) return;
-  if (state.gymBadges < item.cost) {
-    setMessage("You need " + item.cost + " Gym Badges for " + item.name + ".");
-    return;
+function buyRareCandy() {
+  if (hasRareCandy == true) {
+    showMessage("You already have Rare Candy!");
+  } else if (gymBadges >= 3) {
+    gymBadges = gymBadges - 3;
+    hasRareCandy = true;
+    autoMultiplier = autoMultiplier * 2;
+    showMessage("Rare Candy! Your trainers catch twice as much!");
+    document.getElementById("rareCandyButton").classList.add("soldOut");
+  } else {
+    showMessage("You need 3 Gym Badges for Rare Candy!");
   }
-  state.gymBadges -= item.cost;
-  item.owned = true;
-  item.apply();
-  setMessage(item.name + " purchased! " + item.desc + ".");
-  render();
+  updateScreen();
 }
 
-// ============================================================
-// SECTION 8: ACHIEVEMENTS (badge / milestone unlocks)
-// Each achievement has a condition function. checkAchievements()
-// runs it and flips the CSS class on the matching element.
-// ============================================================
+function buyExpShare() {
+  if (hasExpShare == true) {
+    showMessage("You already have the Exp. Share!");
+  } else if (gymBadges >= 3) {
+    gymBadges = gymBadges - 3;
+    hasExpShare = true;
+    clickMultiplier = clickMultiplier * 2;
+    showMessage("Exp. Share! Your clicks are worth twice as much!");
+    document.getElementById("expShareButton").classList.add("soldOut");
+  } else {
+    showMessage("You need 3 Gym Badges for the Exp. Share!");
+  }
+  updateScreen();
+}
 
-const achievements = [
-  { id: "first",    icon: "🐛", name: "First Catch",    check: () => state.totalCaught >= 1 },
-  { id: "hundred",  icon: "🐦", name: "100 Caught",     check: () => state.totalCaught >= 100 },
-  { id: "thousand", icon: "🦎", name: "1,000 Caught",   check: () => state.totalCaught >= 1000 },
-  { id: "tenk",     icon: "🐉", name: "10,000 Caught",  check: () => state.totalCaught >= 10000 },
-  { id: "team",     icon: "🧢", name: "Team of 5",      check: () => trainers.reduce((sum, t) => sum + t.owned, 0) >= 5 },
-  { id: "badges",   icon: "🏅", name: "8 Gym Badges",   check: () => state.totalBadges >= 8 },
-  { id: "clicks",   icon: "👆", name: "500 Throws",     check: () => state.totalClicks >= 500 },
-  { id: "shiny",    icon: "✨", name: "Shiny Hunter",   check: () => state.wonGamble },
-  { id: "champion", icon: "👑", name: "Champion",       check: () => badgeShop.every(b => b.owned) }
-];
+function buyTrophy() {
+  if (hasTrophy == true) {
+    showMessage("You already have the Elite Four Trophy!");
+  } else if (gymBadges >= 10) {
+    gymBadges = gymBadges - 10;
+    hasTrophy = true;
+    clickMultiplier = clickMultiplier * 2;
+    autoMultiplier = autoMultiplier * 2;
+    showMessage("You beat the Elite Four! EVERYTHING is doubled!");
+    document.getElementById("trophyButton").classList.add("soldOut");
+  } else {
+    showMessage("You need 10 Gym Badges for the Elite Four Trophy!");
+  }
+  updateScreen();
+}
+
+document.getElementById("rareCandyButton").addEventListener("click", buyRareCandy);
+document.getElementById("expShareButton").addEventListener("click", buyExpShare);
+document.getElementById("trophyButton").addEventListener("click", buyTrophy);
+
+
+// ================================================================
+// PART 6: ACHIEVEMENTS (badge unlocks with if statements)
+// ================================================================
 
 function checkAchievements() {
-  for (const a of achievements) {
-    if (!a.unlocked && a.check()) {
-      a.unlocked = true;
-      const card = document.getElementById("achievement-" + a.id);
-      if (card) card.classList.add("unlocked");
-      setMessage("🏆 Achievement unlocked: " + a.name + "!");
-    }
+  var totalTrainers = youngsterOwned + bugCatcherOwned + gymLeaderOwned;
+
+  if (totalCaught >= 1) {
+    document.getElementById("ach1").classList.add("unlocked");
+  }
+  if (totalCaught >= 100) {
+    document.getElementById("ach2").classList.add("unlocked");
+  }
+  if (totalCaught >= 1000) {
+    document.getElementById("ach3").classList.add("unlocked");
+  }
+  if (totalTrainers >= 5) {
+    document.getElementById("ach4").classList.add("unlocked");
+  }
+  if (totalBadgesEver >= 8) {
+    document.getElementById("ach5").classList.add("unlocked");
+  }
+  if (wonAGamble == true) {
+    document.getElementById("ach6").classList.add("unlocked");
   }
 }
 
-// ============================================================
-// SECTION 9: CHANCE / GAMBLING (Wild Encounter)
-// Every WILD_INTERVAL seconds a wild Pokémon appears. The player
-// can take a safe bonus or gamble: Math.random() decides.
-// ============================================================
 
-let wildOffer = null;        // the current offer, or null when nothing is on screen
-let wildCountdown = null;    // the interval that counts the offer down
+// ================================================================
+// PART 7: WILD ENCOUNTER (chance / gambling with Math.random)
+// ================================================================
 
-const wildNames = ["Pidgey", "Rattata", "Zubat", "Magikarp", "Caterpie", "Geodude"];
-const rareNames = ["Dragonite", "Snorlax", "Lapras", "Gyarados", "Charizard"];
+var wildNames = ["Pidgey", "Rattata", "Zubat", "Magikarp", "Caterpie"];
+var rareNames = ["Dragonite", "Snorlax", "Charizard", "Gyarados", "Mewtwo"];
 
+var wildName = "";
+var rareName = "";
+
+// This runs every 45 seconds
 function startWildEncounter() {
-  if (wildOffer) return; // one at a time
+  if (wildActive == true) {
+    return;   // one at a time
+  }
 
-  // The safe reward scales with how far along you are.
-  const safeAmount = Math.max(10, getPerSecond() * 10 + getPerClick() * 5);
-  const wager = Math.max(5, Math.floor(state.pokemon * 0.25));
+  wildActive = true;
 
-  wildOffer = {
-    name: wildNames[Math.floor(Math.random() * wildNames.length)],
-    rare: rareNames[Math.floor(Math.random() * rareNames.length)],
-    safeAmount: safeAmount,
-    wager: wager,
-    secondsLeft: WILD_DURATION
-  };
+  // pick random names from the lists
+  var randomIndex1 = Math.floor(Math.random() * wildNames.length);
+  var randomIndex2 = Math.floor(Math.random() * rareNames.length);
+  wildName = wildNames[randomIndex1];
+  rareName = rareNames[randomIndex2];
 
-  el.wildText.textContent = "A wild " + wildOffer.name + " appeared! Catch it, or chase the "
-    + wildOffer.rare + " you spotted behind it?";
-  el.wildSafe.textContent = "Catch " + wildOffer.name + " (+" + formatNumber(safeAmount) + ")";
-  el.wildGamble.textContent = "Chase " + wildOffer.rare + " (risk " + formatNumber(wager) + " for 50% chance of x3)";
-  el.wildSeconds.textContent = WILD_DURATION;
-  el.wildBox.classList.remove("hidden");
-  el.wildIdle.classList.add("hidden");
+  // safe reward is bigger when you are further in the game
+  wildSafeReward = 10 + (perSecond * 10) + (perClick * 5);
 
-  wildCountdown = setInterval(() => {
-    wildOffer.secondsLeft -= 1;
-    el.wildSeconds.textContent = wildOffer.secondsLeft;
-    if (wildOffer.secondsLeft <= 0) {
-      setMessage("The wild " + wildOffer.name + " ran away...");
-      endWildEncounter();
-    }
-  }, 1000);
+  // the gamble risks a quarter of what you have (minimum 5)
+  wildWager = Math.floor(pokemon / 4);
+  if (wildWager < 5) {
+    wildWager = 5;
+  }
+
+  wildSecondsLeft = 15;
+
+  // put the text on screen
+  document.getElementById("wildText").textContent = "A wild " + wildName + " appeared! But you also see a " + rareName + " behind it...";
+  document.getElementById("safeButton").textContent = "Catch " + wildName + " (get +" + wildSafeReward + ")";
+  document.getElementById("gambleButton").textContent = "Chase " + rareName + " (risk " + wildWager + ", 50% chance to win " + (wildWager * 3) + ")";
+  document.getElementById("wildTimer").textContent = wildSecondsLeft;
+
+  // show the box, hide the "waiting" text
+  document.getElementById("wildBox").classList.remove("hidden");
+  document.getElementById("wildIdle").classList.add("hidden");
 }
 
-function takeSafeReward() {
-  if (!wildOffer) return;
-  addPokemon(wildOffer.safeAmount);
-  setMessage("You caught " + wildOffer.name + "! +" + formatNumber(wildOffer.safeAmount));
+function takeSafeChoice() {
+  if (wildActive == false) {
+    return;
+  }
+  pokemon = pokemon + wildSafeReward;
+  totalCaught = totalCaught + wildSafeReward;
+  showMessage("You caught " + wildName + "! +" + wildSafeReward + " Pokemon");
   endWildEncounter();
-  render();
+  updateScreen();
 }
 
 function takeGamble() {
-  if (!wildOffer) return;
-  const wager = Math.min(wildOffer.wager, state.pokemon);
-  if (Math.random() < 0.5) {
-    const winnings = wager * 3;
-    addPokemon(winnings);
-    state.wonGamble = true;
-    setMessage("✨ You caught " + wildOffer.rare + "! +" + formatNumber(winnings) + " Pokémon!");
-  } else {
-    state.pokemon -= wager;
-    setMessage(wildOffer.rare + " fled and scattered your team. -" + formatNumber(wager) + " Pokémon.");
+  if (wildActive == false) {
+    return;
   }
-  checkAchievements();
+
+  // you can't risk more than you have
+  if (wildWager > pokemon) {
+    wildWager = pokemon;
+  }
+
+  // Math.random() gives a number between 0 and 1, so < 0.5 is a 50% chance
+  var roll = Math.random();
+  if (roll < 0.5) {
+    var winnings = wildWager * 3;
+    pokemon = pokemon + winnings;
+    totalCaught = totalCaught + winnings;
+    wonAGamble = true;
+    showMessage("YOU CAUGHT " + rareName + "! +" + winnings + " Pokemon!!!");
+  } else {
+    pokemon = pokemon - wildWager;
+    showMessage(rareName + " got away and you lost " + wildWager + " Pokemon...");
+  }
+
   endWildEncounter();
-  render();
+  updateScreen();
 }
 
 function endWildEncounter() {
-  clearInterval(wildCountdown);
-  wildOffer = null;
-  el.wildBox.classList.add("hidden");
-  el.wildIdle.classList.remove("hidden");
+  wildActive = false;
+  document.getElementById("wildBox").classList.add("hidden");
+  document.getElementById("wildIdle").classList.remove("hidden");
 }
 
-el.wildSafe.addEventListener("click", takeSafeReward);
-el.wildGamble.addEventListener("click", takeGamble);
-el.wildInterval.textContent = WILD_INTERVAL;
-setInterval(startWildEncounter, WILD_INTERVAL * 1000);
-
-// ============================================================
-// SECTION 10: RENDERING (DOM manipulation)
-// One render() function redraws everything from state. Call it
-// after any change so the page always matches the numbers.
-// ============================================================
-
-function formatNumber(n) {
-  n = Math.floor(n);
-  if (n >= 1000000) return (n / 1000000).toFixed(2) + "M";
-  if (n >= 10000) return (n / 1000).toFixed(1) + "k";
-  return n.toLocaleString();
-}
-
-function setMessage(text) {
-  el.message.textContent = text;
-}
-
-// Builds the shop cards once. Later renders only update text and disabled state.
-function buildShop(container, items, onBuy, buttonClass) {
-  container.innerHTML = "";
-  for (const item of items) {
-    const card = document.createElement("div");
-    card.className = "shop-item";
-    card.id = "shop-" + item.id;
-    card.innerHTML =
-      '<div class="info">' +
-        '<div class="name">' + item.name + '</div>' +
-        '<div class="desc">' + item.desc + '</div>' +
-        '<div class="owned"></div>' +
-      '</div>' +
-      '<button class="buy-button ' + buttonClass + '"></button>';
-    card.querySelector("button").addEventListener("click", () => onBuy(item));
-    container.appendChild(card);
+// counts down the timer once per second while a wild Pokemon is showing
+function wildCountdown() {
+  if (wildActive == true) {
+    wildSecondsLeft = wildSecondsLeft - 1;
+    document.getElementById("wildTimer").textContent = wildSecondsLeft;
+    if (wildSecondsLeft <= 0) {
+      showMessage("The wild " + wildName + " ran away...");
+      endWildEncounter();
+    }
   }
 }
 
-function buildAchievements() {
-  el.achievementList.innerHTML = "";
-  for (const a of achievements) {
-    const card = document.createElement("div");
-    card.className = "achievement" + (a.unlocked ? " unlocked" : "");
-    card.id = "achievement-" + a.id;
-    card.innerHTML = '<span class="icon">' + a.icon + '</span>' + a.name;
-    el.achievementList.appendChild(card);
-  }
+document.getElementById("safeButton").addEventListener("click", takeSafeChoice);
+document.getElementById("gambleButton").addEventListener("click", takeGamble);
+
+setInterval(startWildEncounter, 45000);   // 45 seconds
+setInterval(wildCountdown, 1000);         // 1 second
+
+
+// ================================================================
+// PART 8: UPDATING THE SCREEN (DOM manipulation)
+// ================================================================
+
+function showMessage(text) {
+  document.getElementById("message").textContent = text;
 }
 
-function render() {
-  // Top counters
-  el.pokemonCount.textContent = formatNumber(state.pokemon);
-  el.totalCaught.textContent = formatNumber(state.totalCaught);
-  el.perClick.textContent = formatNumber(getPerClick());
-  el.perSecond.textContent = formatNumber(getPerSecond());
-  el.gymBadgeCount.textContent = state.gymBadges;
-  el.gymCost.textContent = GYM_COST;
-  el.gymButton.disabled = state.pokemon < GYM_COST;
+function updateScreen() {
+  // main numbers
+  document.getElementById("pokemonCount").textContent = Math.floor(pokemon);
+  document.getElementById("totalCaught").textContent = Math.floor(totalCaught);
+  document.getElementById("perClick").textContent = perClick * clickMultiplier;
+  document.getElementById("perSecond").textContent = perSecond * autoMultiplier;
+  document.getElementById("badgeCount").textContent = gymBadges;
 
-  // Pokémon-priced shops
-  for (const item of upgrades.concat(trainers)) {
-    const card = document.getElementById("shop-" + item.id);
-    const cost = getCost(item);
-    card.querySelector(".owned").textContent = "Owned: " + item.owned;
-    const button = card.querySelector("button");
-    button.textContent = formatNumber(cost) + " 🔴";
-    button.disabled = state.pokemon < cost;
-  }
+  // Pokeball shop
+  document.getElementById("greatBallCost").textContent = greatBallCost;
+  document.getElementById("greatBallOwned").textContent = greatBallOwned;
+  document.getElementById("ultraBallCost").textContent = ultraBallCost;
+  document.getElementById("ultraBallOwned").textContent = ultraBallOwned;
+  document.getElementById("masterBallCost").textContent = masterBallCost;
+  document.getElementById("masterBallOwned").textContent = masterBallOwned;
 
-  // Badge-priced shop
-  for (const item of badgeShop) {
-    const card = document.getElementById("shop-" + item.id);
-    const button = card.querySelector("button");
-    card.querySelector(".owned").textContent = item.owned ? "Owned ✔" : "";
-    button.textContent = item.owned ? "Bought" : item.cost + " 🏅";
-    button.disabled = item.owned || state.gymBadges < item.cost;
-  }
+  // trainer shop
+  document.getElementById("youngsterCost").textContent = youngsterCost;
+  document.getElementById("youngsterOwned").textContent = youngsterOwned;
+  document.getElementById("bugCatcherCost").textContent = bugCatcherCost;
+  document.getElementById("bugCatcherOwned").textContent = bugCatcherOwned;
+  document.getElementById("gymLeaderCost").textContent = gymLeaderCost;
+  document.getElementById("gymLeaderOwned").textContent = gymLeaderOwned;
+
+  // every time the numbers change, see if a new achievement got unlocked
+  checkAchievements();
 }
 
-// ============================================================
-// SECTION 11: SAVE / LOAD (localStorage) and start-up
-// ============================================================
-
-const SAVE_KEY = "pokemon-clicker-save";
-
-function saveGame(showMessage = true) {
-  const data = {
-    state: state,
-    upgrades: upgrades.map(u => u.owned),
-    trainers: trainers.map(t => t.owned),
-    badgeShop: badgeShop.map(b => b.owned),
-    achievements: achievements.map(a => !!a.unlocked)
-  };
-  localStorage.setItem(SAVE_KEY, JSON.stringify(data));
-  if (showMessage === true) setMessage("Game saved.");
-}
-
-function loadGame() {
-  const raw = localStorage.getItem(SAVE_KEY);
-  if (!raw) return;
-  try {
-    const data = JSON.parse(raw);
-    Object.assign(state, data.state);
-    upgrades.forEach((u, i) => u.owned = data.upgrades[i] || 0);
-    trainers.forEach((t, i) => t.owned = data.trainers[i] || 0);
-    badgeShop.forEach((b, i) => b.owned = data.badgeShop[i] || false);
-    achievements.forEach((a, i) => a.unlocked = data.achievements[i] || false);
-    if (upgrades.find(u => u.id === "master").owned > 0) el.catchButton.classList.add("master");
-    setMessage("Welcome back, trainer!");
-  } catch (e) {
-    console.error("Could not load save:", e);
-  }
-}
-
-function resetGame() {
-  if (!confirm("Release all your Pokémon and start over?")) return;
-  localStorage.removeItem(SAVE_KEY);
-  location.reload();
-}
-
-el.saveButton.addEventListener("click", () => saveGame(true));
-el.resetButton.addEventListener("click", resetGame);
-setInterval(() => saveGame(false), 30000); // silent autosave every 30 seconds
-
-// Start-up: build the page, load any save, draw everything.
-buildShop(el.upgradeList, upgrades, buyUpgrade, "");
-buildShop(el.trainerList, trainers, buyTrainer, "");
-buildShop(el.badgeShopList, badgeShop, buyBadgeItem, "badge-cost");
-loadGame();
-buildAchievements();
-render();
+// draw everything once when the page loads
+updateScreen();

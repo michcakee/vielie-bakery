@@ -1,247 +1,185 @@
-/* ============================================================
-   Pokémon Clicker - styles
-   ============================================================ */
-
-:root {
-  --bg: #f3f6ff;
-  --red: #e3350d;
-  --red-dark: #a82609;
-  --blue: #2a75bb;
-  --yellow: #ffcb05;
-  --yellow-dark: #c7a000;
-  --green: #4dad5b;
-  --ink: #1f2a44;
-  --panel: #ffffff;
-  --locked: #dfe3ec;
-}
-
-* { box-sizing: border-box; }
-
 body {
-  margin: 0;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  background: var(--bg);
-  color: var(--ink);
-}
-
-header {
+  font-family: Arial, sans-serif;
+  background-color: #f0f4ff;
+  color: #222;
   text-align: center;
-  padding: 16px;
-  background: var(--red);
-  color: white;
-  border-bottom: 6px solid var(--yellow);
-}
-header h1 { margin: 0; font-size: 2.2rem; letter-spacing: 1px; }
-.tagline { margin: 4px 0 0; opacity: 0.9; }
-
-main {
-  display: grid;
-  grid-template-columns: 1fr 1.2fr 1fr;
-  gap: 16px;
-  padding: 16px;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-@media (max-width: 900px) {
-  main { grid-template-columns: 1fr; }
+  margin: 0;
+  padding: 10px;
 }
 
-.panel {
-  background: var(--panel);
-  border-radius: 12px;
-  padding: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+h1 {
+  color: #e3350d;
+  margin-bottom: 0;
 }
-.panel h2 {
-  font-size: 1.1rem;
-  margin: 16px 0 8px;
-  border-bottom: 2px solid var(--bg);
-  padding-bottom: 4px;
+
+.subtitle {
+  margin-top: 5px;
+  color: #555;
 }
-.panel h2:first-child { margin-top: 0; }
-.panel h2 small { font-weight: normal; color: #6b7590; font-size: 0.8rem; }
 
-/* ---------- field column ---------- */
-.field { text-align: center; }
-
-.counter { margin-bottom: 12px; }
-#pokemon-count {
-  display: block;
-  font-size: 3rem;
-  font-weight: bold;
-  color: var(--blue);
+.container {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
 }
-.counter .label { color: #6b7590; }
 
-/* The Pokéball is drawn with pure CSS: red top, white bottom, black band, white button */
+.box {
+  background-color: white;
+  border-radius: 10px;
+  padding: 15px;
+  width: 340px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+#pokemonCount {
+  font-size: 48px;
+  color: #2a75bb;
+  margin: 0;
+}
+
+.small {
+  color: #777;
+  font-size: 13px;
+}
+
+/* The Pokeball is made with CSS: red on top, black line, white on bottom */
 .pokeball {
-  position: relative;
-  width: 200px;
-  height: 200px;
+  width: 180px;
+  height: 180px;
   border-radius: 50%;
-  border: 6px solid var(--ink);
-  background: linear-gradient(to bottom, var(--red) 0%, var(--red) 46%, var(--ink) 46%, var(--ink) 54%, #ffffff 54%, #ffffff 100%);
+  border: 5px solid #222;
+  background: linear-gradient(to bottom, #e3350d 0%, #e3350d 45%, #222 45%, #222 55%, white 55%, white 100%);
   cursor: pointer;
-  transition: transform 0.08s ease;
-  user-select: none;
-  padding: 0;
+  position: relative;
+  margin: 15px 0;
 }
-.pokeball-center {
+
+.pokeball:active {
+  transform: scale(0.9);
+}
+
+.pokeballCenter {
+  width: 40px;
+  height: 40px;
+  background-color: white;
+  border: 8px solid #222;
+  border-radius: 50%;
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 56px;
-  height: 56px;
-  margin: -28px 0 0 -28px;
-  border-radius: 50%;
-  background: #ffffff;
-  border: 8px solid var(--ink);
-  box-shadow: inset 0 0 0 6px #ffffff, inset 0 0 0 10px #cfd4df;
-}
-.pokeball:hover { transform: scale(1.05); }
-.pokeball:active { transform: scale(0.92) rotate(-12deg); }
-.pokeball.master {
-  background: linear-gradient(to bottom, #6f3fbf 0%, #6f3fbf 46%, var(--ink) 46%, var(--ink) 54%, #ffffff 54%, #ffffff 100%);
-  box-shadow: 0 0 24px #b388ff;
+  margin-top: -28px;
+  margin-left: -28px;
 }
 
-.stats {
-  display: flex;
-  justify-content: space-around;
-  margin: 16px 0;
-  font-size: 0.95rem;
+/* When you buy a Master Ball the ball turns purple */
+.masterBall {
+  background: linear-gradient(to bottom, #7b3fbf 0%, #7b3fbf 45%, #222 45%, #222 55%, white 55%, white 100%);
 }
 
-.badge-box {
-  background: #fff8d6;
-  border: 2px dashed var(--yellow);
-  border-radius: 10px;
-  padding: 10px;
-  margin-top: 8px;
-}
-.badge-count { font-size: 1.3rem; font-weight: bold; margin-bottom: 6px; }
-.gym-button {
-  background: var(--yellow);
+#gymButton {
+  background-color: #ffcb05;
   border: none;
-  border-radius: 8px;
-  padding: 8px 12px;
+  border-radius: 6px;
+  padding: 10px;
   font-weight: bold;
   cursor: pointer;
 }
-.gym-button:hover:not(:disabled) { background: var(--yellow-dark); }
-.gym-button:disabled { opacity: 0.4; cursor: not-allowed; }
 
-.message {
-  min-height: 1.4em;
-  margin-top: 12px;
+#message {
   font-style: italic;
-  color: var(--blue);
+  color: #2a75bb;
+  min-height: 20px;
 }
 
-/* floating "+1" text that pops out of the Pokéball */
-.float-text {
-  position: absolute;
-  pointer-events: none;
-  font-weight: bold;
-  color: var(--red-dark);
-  animation: float-up 0.8s ease-out forwards;
-}
-@keyframes float-up {
-  from { opacity: 1; transform: translateY(0); }
-  to   { opacity: 0; transform: translateY(-60px); }
-}
-
-/* ---------- shop column ---------- */
-.shop-list { display: flex; flex-direction: column; gap: 8px; }
-
-.shop-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border: 2px solid var(--bg);
-  border-radius: 8px;
-  padding: 8px 10px;
-  gap: 8px;
-}
-.shop-item .info { flex: 1; }
-.shop-item .name { font-weight: bold; }
-.shop-item .desc { font-size: 0.8rem; color: #6b7590; }
-.shop-item .owned { font-size: 0.8rem; color: var(--blue); }
-
-.buy-button {
-  background: var(--blue);
+.shopButton {
+  display: block;
+  width: 100%;
+  background-color: #2a75bb;
   color: white;
   border: none;
   border-radius: 6px;
-  padding: 8px 10px;
+  padding: 10px;
+  margin-top: 8px;
   cursor: pointer;
-  white-space: nowrap;
-  min-width: 90px;
 }
-.buy-button:hover:not(:disabled) { background: #1d568c; }
-.buy-button:disabled { background: var(--locked); color: #8a92a6; cursor: not-allowed; }
-.buy-button.badge-cost { background: var(--yellow-dark); }
-.buy-button.badge-cost:hover:not(:disabled) { background: #8f7300; }
 
-/* ---------- progress column ---------- */
-.achievement-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+.shopButton:hover {
+  background-color: #1d568c;
+}
+
+.badgeShop {
+  background-color: #c7a000;
+}
+
+.badgeShop:hover {
+  background-color: #8f7300;
+}
+
+/* grayed out when you already bought it */
+.soldOut {
+  background-color: #aaa;
+  cursor: not-allowed;
+}
+
+.owned {
+  margin: 2px 0 8px 0;
+  font-size: 13px;
+  color: #555;
+}
+
+.achievementGrid {
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
+  justify-content: center;
 }
+
+/* locked achievements are gray */
 .achievement {
-  text-align: center;
+  width: 95px;
+  padding: 10px 5px;
+  font-size: 12px;
+  background-color: #ddd;
+  color: #888;
   border-radius: 8px;
-  padding: 8px 4px;
-  font-size: 0.75rem;
-  background: var(--locked);
-  color: #8a92a6;
-  filter: grayscale(1);
-}
-.achievement .icon { font-size: 1.6rem; display: block; }
-.achievement.unlocked {
-  background: #fff3c4;
-  color: var(--ink);
-  filter: none;
-  border: 2px solid var(--yellow);
-  animation: pop 0.4s ease;
-}
-@keyframes pop {
-  0%   { transform: scale(0.6); }
-  70%  { transform: scale(1.15); }
-  100% { transform: scale(1); }
 }
 
-.wild-box {
-  background: #e9f7ec;
-  border: 2px solid var(--green);
-  border-radius: 10px;
-  padding: 12px;
-}
-.wild-box.hidden { display: none; }
-.wild-buttons { display: flex; gap: 8px; margin: 8px 0; }
-.wild-button {
-  flex: 1;
-  border: none;
-  border-radius: 8px;
-  padding: 10px 6px;
+/* unlocked achievements turn gold */
+.unlocked {
+  background-color: #fff3c4;
+  color: #222;
+  border: 2px solid #ffcb05;
   font-weight: bold;
-  cursor: pointer;
-  color: white;
 }
-.wild-button.safe { background: var(--green); }
-.wild-button.gamble { background: var(--red); }
-.wild-timer { font-size: 0.8rem; margin: 0; color: #3f6b48; }
-.wild-idle { font-size: 0.85rem; color: #6b7590; }
-.wild-idle.hidden { display: none; }
 
-.save-row { display: flex; gap: 8px; margin-top: 16px; }
-.save-row button {
-  flex: 1;
-  padding: 8px;
-  border: 2px solid var(--bg);
-  background: white;
-  border-radius: 8px;
-  cursor: pointer;
+.wildBox {
+  background-color: #e9f7ec;
+  border: 2px solid #4dad5b;
+  border-radius: 10px;
+  padding: 10px;
 }
-.save-row button:hover { background: var(--bg); }
+
+.hidden {
+  display: none;
+}
+
+.safeButton, .gambleButton {
+  display: block;
+  width: 100%;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 10px;
+  margin-top: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.safeButton {
+  background-color: #4dad5b;
+}
+
+.gambleButton {
+  background-color: #e3350d;
+}

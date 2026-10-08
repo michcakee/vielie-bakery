@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pokémon Clicker</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header>
+    <h1>Pokémon Clicker</h1>
+    <p class="tagline">Throw Pokéballs. Recruit trainers. Earn Gym Badges. Catch 'em all.</p>
+  </header>
+
+  <main>
+
+    <!-- ============================================================
+         LEFT COLUMN: the clickable Pokéball and the main counters
+         ============================================================ -->
+    <section class="panel field">
+      <div class="counter">
+        <span id="pokemon-count">0</span>
+        <span class="label">Pokémon caught</span>
+      </div>
+
+      <button id="catch-button" class="pokeball" aria-label="Throw a Pokéball">
+        <span class="pokeball-center"></span>
+      </button>
+
+      <div class="stats">
+        <div>Per click: <strong id="per-click">1</strong></div>
+        <div>Per second: <strong id="per-second">0</strong></div>
+        <div>Lifetime: <strong id="total-caught">0</strong></div>
+      </div>
+
+      <!-- Secondary currency: gym badges -->
+      <div class="badge-box">
+        <div class="badge-count">🏅 <span id="gym-badge-count">0</span> Gym Badges</div>
+        <button id="gym-button" class="gym-button">
+          Challenge a Gym: trade <span id="gym-cost">50</span> Pokémon for 🏅 1 badge
+        </button>
+      </div>
+
+      <p id="message" class="message">Click the Pokéball to catch your first Pokémon!</p>
+    </section>
+
+    <!-- ============================================================
+         MIDDLE COLUMN: shops (filled in by JavaScript)
+         ============================================================ -->
+    <section class="panel shops">
+      <h2>🎯 Better Pokéballs <small>(more per click)</small></h2>
+      <div id="upgrade-list" class="shop-list"></div>
+
+      <h2>🧢 Recruit Trainers <small>(catch automatically)</small></h2>
+      <div id="trainer-list" class="shop-list"></div>
+
+      <h2>🏅 Badge Shop <small>(spend Gym Badges)</small></h2>
+      <div id="badge-shop-list" class="shop-list"></div>
+    </section>
+
+    <!-- ============================================================
+         RIGHT COLUMN: achievements and wild encounter events
+         ============================================================ -->
+    <section class="panel progress">
+      <h2>🏆 Achievements</h2>
+      <div id="achievement-list" class="achievement-grid"></div>
+
+      <h2>🌿 Wild Encounter</h2>
+      <div id="wild-box" class="wild-box hidden">
+        <p id="wild-text"></p>
+        <div class="wild-buttons">
+          <button id="wild-safe" class="wild-button safe"></button>
+          <button id="wild-gamble" class="wild-button gamble"></button>
+        </div>
+        <p class="wild-timer">The Pokémon flees in <span id="wild-seconds">15</span>s</p>
+      </div>
+      <p id="wild-idle" class="wild-idle">
+        Something rustles in the tall grass every <span id="wild-interval">45</span> seconds...
+      </p>
+
+      <div class="save-row">
+        <button id="save-button">💾 Save</button>
+        <button id="reset-button">🗑️ Reset</button>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

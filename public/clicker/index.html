@@ -1,115 +1,118 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
   <title>Pokemon Clicker</title>
-  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      background-color: #f0f4ff;
+    }
+
+    #catchButton {
+      font-size: 80px;
+      background-color: #e3350d;
+      color: white;
+      border: 5px solid black;
+      border-radius: 50%;
+      width: 180px;
+      height: 180px;
+      cursor: pointer;
+    }
+
+    .shopButton {
+      font-size: 18px;
+      padding: 10px;
+      margin: 10px;
+      cursor: pointer;
+    }
+
+    #achievement {
+      color: gold;
+      font-size: 24px;
+      font-weight: bold;
+      display: none;
+    }
+  </style>
 </head>
 <body>
 
   <h1>Pokemon Clicker</h1>
-  <p class="subtitle">Throw Pokeballs, recruit trainers, earn Gym Badges!</p>
 
-  <div class="container">
+  <h2>Pokemon caught: <span id="pokemonCount">0</span></h2>
 
-    <!-- ===================== LEFT: the Pokeball and counters ===================== -->
-    <div class="box">
-      <h2 id="pokemonCount">0</h2>
-      <p>Pokemon caught</p>
+  <button id="catchButton">O</button>
 
-      <button id="catchButton" class="pokeball">
-        <div class="pokeballCenter"></div>
-      </button>
+  <p>Per click: <span id="perClick">1</span> | Per second: <span id="perSecond">0</span></p>
 
-      <p>Per click: <span id="perClick">1</span></p>
-      <p>Per second: <span id="perSecond">0</span></p>
-      <p>Total caught ever: <span id="totalCaught">0</span></p>
+  <button id="greatBallButton" class="shopButton">Buy Great Ball (+1 per click) - Cost: <span id="greatBallCost">10</span></button>
+  <br>
+  <button id="trainerButton" class="shopButton">Hire Trainer (+1 per second) - Cost: <span id="trainerCost">25</span></button>
 
-      <hr>
+  <p id="achievement">ACHIEVEMENT UNLOCKED: Pokemon Master! (100 caught)</p>
 
-      <h3>Gym Badges: <span id="badgeCount">0</span></h3>
-      <button id="gymButton">Challenge a Gym (costs 50 Pokemon)</button>
+  <script>
+    // ---------- variables ----------
+    var pokemon = 0;
+    var perClick = 1;
+    var perSecond = 0;
+    var greatBallCost = 10;
+    var trainerCost = 25;
 
-      <p id="message">Click the Pokeball to start catching!</p>
-    </div>
+    // ---------- clicking the pokeball ----------
+    function catchPokemon() {
+      pokemon = pokemon + perClick;
+      updateScreen();
+    }
 
-    <!-- ===================== MIDDLE: the shops ===================== -->
-    <div class="box">
-      <h2>Better Pokeballs</h2>
-      <p class="small">More Pokemon per click</p>
+    document.getElementById("catchButton").addEventListener("click", catchPokemon);
 
-      <button id="greatBallButton" class="shopButton">
-        Great Ball (+1 per click) - Cost: <span id="greatBallCost">15</span>
-      </button>
-      <p class="owned">Owned: <span id="greatBallOwned">0</span></p>
+    // ---------- upgrade: more per click ----------
+    function buyGreatBall() {
+      if (pokemon >= greatBallCost) {
+        pokemon = pokemon - greatBallCost;
+        perClick = perClick + 1;
+        greatBallCost = greatBallCost * 2;
+      }
+      updateScreen();
+    }
 
-      <button id="ultraBallButton" class="shopButton">
-        Ultra Ball (+5 per click) - Cost: <span id="ultraBallCost">100</span>
-      </button>
-      <p class="owned">Owned: <span id="ultraBallOwned">0</span></p>
+    document.getElementById("greatBallButton").addEventListener("click", buyGreatBall);
 
-      <button id="masterBallButton" class="shopButton">
-        Master Ball (+25 per click) - Cost: <span id="masterBallCost">800</span>
-      </button>
-      <p class="owned">Owned: <span id="masterBallOwned">0</span></p>
+    // ---------- upgrade: automatic catching ----------
+    function hireTrainer() {
+      if (pokemon >= trainerCost) {
+        pokemon = pokemon - trainerCost;
+        perSecond = perSecond + 1;
+        trainerCost = trainerCost * 2;
+      }
+      updateScreen();
+    }
 
-      <h2>Recruit Trainers</h2>
-      <p class="small">They catch Pokemon for you automatically</p>
+    document.getElementById("trainerButton").addEventListener("click", hireTrainer);
 
-      <button id="youngsterButton" class="shopButton">
-        Youngster (+1 per second) - Cost: <span id="youngsterCost">25</span>
-      </button>
-      <p class="owned">Owned: <span id="youngsterOwned">0</span></p>
+    // this runs every 1000 milliseconds (1 second)
+    function autoCatch() {
+      pokemon = pokemon + perSecond;
+      updateScreen();
+    }
 
-      <button id="bugCatcherButton" class="shopButton">
-        Bug Catcher (+5 per second) - Cost: <span id="bugCatcherCost">200</span>
-      </button>
-      <p class="owned">Owned: <span id="bugCatcherOwned">0</span></p>
+    setInterval(autoCatch, 1000);
 
-      <button id="gymLeaderButton" class="shopButton">
-        Gym Leader (+25 per second) - Cost: <span id="gymLeaderCost">1500</span>
-      </button>
-      <p class="owned">Owned: <span id="gymLeaderOwned">0</span></p>
+    // ---------- updating the page ----------
+    function updateScreen() {
+      document.getElementById("pokemonCount").textContent = pokemon;
+      document.getElementById("perClick").textContent = perClick;
+      document.getElementById("perSecond").textContent = perSecond;
+      document.getElementById("greatBallCost").textContent = greatBallCost;
+      document.getElementById("trainerCost").textContent = trainerCost;
 
-      <h2>Badge Shop</h2>
-      <p class="small">Spend Gym Badges on permanent boosts (one time only)</p>
+      // achievement: show the hidden text once you reach 100
+      if (pokemon >= 100) {
+        document.getElementById("achievement").style.display = "block";
+      }
+    }
+  </script>
 
-      <button id="rareCandyButton" class="shopButton badgeShop">
-        Rare Candy (trainers catch 2x) - Cost: 3 badges
-      </button>
-      <button id="expShareButton" class="shopButton badgeShop">
-        Exp. Share (clicks worth 2x) - Cost: 3 badges
-      </button>
-      <button id="trophyButton" class="shopButton badgeShop">
-        Elite Four Trophy (everything 2x) - Cost: 10 badges
-      </button>
-    </div>
-
-    <!-- ===================== RIGHT: achievements and wild encounters ===================== -->
-    <div class="box">
-      <h2>Achievements</h2>
-      <div class="achievementGrid">
-        <div id="ach1" class="achievement">First Catch<br>(1 Pokemon)</div>
-        <div id="ach2" class="achievement">Getting Good<br>(100 Pokemon)</div>
-        <div id="ach3" class="achievement">Pokemon Master<br>(1000 Pokemon)</div>
-        <div id="ach4" class="achievement">Team Leader<br>(5 trainers)</div>
-        <div id="ach5" class="achievement">Badge Collector<br>(8 badges)</div>
-        <div id="ach6" class="achievement">Shiny Hunter<br>(win a gamble)</div>
-      </div>
-
-      <h2>Wild Encounter</h2>
-      <p id="wildIdle" class="small">A wild Pokemon shows up every 45 seconds...</p>
-
-      <div id="wildBox" class="wildBox hidden">
-        <p id="wildText"></p>
-        <button id="safeButton" class="safeButton"></button>
-        <button id="gambleButton" class="gambleButton"></button>
-        <p class="small">It runs away in <span id="wildTimer">15</span> seconds</p>
-      </div>
-    </div>
-
-  </div>
-
-  <script src="script.js"></script>
 </body>
 </html>

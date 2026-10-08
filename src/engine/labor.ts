@@ -2,9 +2,10 @@ import { DIFFICULTY, ECON } from '../data/config';
 import { FRIENDS, ROLES, ROLE_ORDER, STAFF_NAMES, TRAIT_ORDER } from '../data/world';
 import { CONFIG } from '../data/catalog';
 import { DREAM, DREAM_ORDER, DREAM_WAGE_PREMIUM, type DreamId } from '../data/dream';
-import { has, productivity } from './economy';
+import { has, levelOf, productivity } from './economy';
 import { rngFor } from './rng';
 import { randomLook } from './look';
+import { featureOn } from './unlocks';
 import { clamp, round2 } from './util';
 import type { Applicant, Employee, GameState, RoleId } from './types';
 
@@ -37,8 +38,18 @@ export function weeklyApplicants(s: GameState): Applicant[] {
     taken.add(name);
     return name;
   };
+  // Only roles the bakery can use apply: a marketer before the marketing lesson, a manager with one
+  // shop or a rider with no bike would be wages for nothing, and the pricey pros wait for level 3.
+  const level = levelOf(s.xp);
+  const roles = ROLE_ORDER.filter((r) => {
+    if (r === 'marketer') return featureOn(s, 'customers.marketing');
+    if (r === 'manager') return featureOn(s, 'growth.branches');
+    if (r === 'delivery') return has(s, 'bike');
+    if (r === 'pastryChef') return level >= 3;
+    return true;
+  });
   for (let i = 0; i < n; i++) {
-    const role = ROLE_ORDER[Math.floor(rand() * ROLE_ORDER.length)];
+    const role = roles[Math.floor(rand() * roles.length)];
     const skill = 1 + Math.floor(rand() * rand() * 5);
     const ask = marketWage(s, role, skill) * (0.95 + rand() * 0.15);
     out.push({ id: s.nextId + out.length, name: nickname(), role, wage: round2(ask), skill, look: { ...randomLook(rand), apron: Math.floor(rand() * 5) } });

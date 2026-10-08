@@ -1381,7 +1381,9 @@ function reduce(s: GameState, a: Action): GameState {
       const e = s.staff.find((x) => x.id === a.id);
       if (!e || s.phase === 'service') return s;
       const severance = round2(e.wage * ECON.labor.hoursPerShift * ECON.labor.severanceDays);
-      const next = move(s, 'cashWages', -severance, { wages: severance });
+      // Severance is a one-off, not a day's wages: on the report it sits with hiring fees, so a
+      // single big "Wages" line doesn't look like the team costs that much every day.
+      const next = move(s, 'cashWages', -severance, { otherExpense: severance });
       return decide(
         withDream({ ...next, staff: next.staff.filter((x) => x.id !== a.id).map((x) => ({ ...x, morale: Math.max(0, x.morale - 8) })) }),
         { kind: 'fire', text: `Let ${e.name} go (${severance.toFixed(0)} severance).`, metric: 'profit', before: avgProfit(s) },

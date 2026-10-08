@@ -96,7 +96,7 @@ export const OPEX_LINES: { key: keyof Books; label: string }[] = [
   { key: 'waste', label: 'Unsold & donated food' },
   { key: 'spoilage', label: 'Spoiled ingredients' },
   { key: 'depreciation', label: 'Depreciation' },
-  { key: 'otherExpense', label: 'One-off costs (hiring, renovations, events)' },
+  { key: 'otherExpense', label: 'One-off costs (hiring, severance, renovations, events)' },
 ];
 
 export function incomeStatement(b: Books): IncomeStatement {

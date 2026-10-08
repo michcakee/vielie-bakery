@@ -80,7 +80,7 @@ function Statements({ days }: { days: DaySummary[] }) {
           </div>
           {oneOff > 0.005 && (
             <div>
-              <dt>One-off costs (hiring, renovations, events)</dt>
+              <dt>One-off costs (hiring, severance, renovations, events)</dt>
               <dd>−{money2(oneOff)}</dd>
             </div>
           )}

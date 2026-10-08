@@ -189,7 +189,7 @@ export function missedStars(t: DayStats): { icon: string; text: string; fix: str
   // Pastries run out of trays; bánh mì and drinks run out of ingredients (or baguettes).
   const baked = ranOut.some((p) => PRODUCTS[p].kind === 'tray');
   const made = ranOut.some((p) => PRODUCTS[p].kind !== 'tray');
-  const fix = baked && made ? 'Bake more trays, and stock up at the Market.' : made ? 'Stock up on its ingredients at the Market (and baguettes for bánh mì).' : 'Bake more trays of it.';
+  const fix = baked && made ? 'Bake more trays, and stock up at the Market.' : made ? `Stock up on its ingredients at the Market${ranOut.includes('banhMi') ? ', and bake enough baguettes' : ''}.` : 'Bake more trays of it.';
   if (t.lostSoldOut > 0)
     out.push({ n: t.lostSoldOut, icon: 'box', text: `${t.lostSoldOut} ${t.lostSoldOut === 1 ? 'person' : 'people'} wanted something that ran out${soldOut.length ? ` (${soldOut.slice(0, 2).join(', ')})` : ''}.`, fix });
   if (t.lostSlow > 0) out.push({ n: t.lostSlow, icon: 'clock', text: `${t.lostSlow} gave up waiting.`, fix: 'Serve the worried faces first, or hire help.' });

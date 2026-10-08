@@ -2523,6 +2523,9 @@ textarea {
   color: var(--bad);
   font-style: normal;
 }
+.choice em.cost-note {
+  color: var(--muted);
+}
 .choice em.reward {
   color: var(--forest);
   font-weight: 600;

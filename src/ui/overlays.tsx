@@ -11,7 +11,7 @@ import { EVENTS, visibleChoices } from '../engine/events';
 import { FEATURE } from '../data/unlocks';
 import { ACHIEVEMENTS, activeQuests, goalMet, nextUnlock, QUESTS, weeklyReward, WEEKLY_GOALS } from '../engine/progression';
 import { keepsOvernight } from '../engine/service';
-import type { DayStats, LeftoverChoice, ProductId } from '../engine/types';
+import type { DayStats, GameState, LeftoverChoice, ProductId } from '../engine/types';
 import { money, money2, pct, signedMoney } from '../lib/format';
 import { play } from './audio';
 import { onBack } from './backButton';
@@ -99,6 +99,7 @@ export function EventCard() {
             <button key={c.id} type="button" className="choice" disabled={!ok} onClick={() => (play('pop'), dispatch({ type: 'resolveEvent', choice: c.id }))}>
               <b>{c.label}</b>
               <span>{c.detail}</span>
+              {ok && c.cost !== undefined && c.cost > 0 && <em className="cost-note">{costNote(s, c.cost)}</em>}
               {!ok && <em>{!allowed ? (c.why ?? 'Not possible right now') : c.fromFund ? 'Not enough in the safety fund' : 'Not enough money'}</em>}
             </button>
           );
@@ -182,6 +183,19 @@ function Count({ value, prefix = '', signed = false, digits = 2 }: { value: numb
 const WEATHER_ICON = { sunny: 'sun', cloudy: 'cloud', rainy: 'rain', hot: 'hot', cool: 'cool' } as const;
 
 /** Why the day fell short of the next star, biggest reason first, each with something to try. */
+/** What a price tag means for this bakery: how many days of recent profit (or sales) it is. */
+function costNote(s: GameState, cost: number): string {
+  const recent = s.history.slice(-7);
+  if (recent.length < 2) return `You have ${money(s.cash)}.`;
+  const profit = recent.reduce((a, h) => a + h.profit, 0) / recent.length;
+  const sales = recent.reduce((a, h) => a + h.revenue, 0) / recent.length;
+  if (profit > 5) {
+    const days = cost / profit;
+    return days < 0.75 ? 'Less than a day’s profit.' : `About ${days < 1.5 ? 'a day' : Math.round(days) + ' days'} of profit.`;
+  }
+  return sales > 0 ? `About ${cost / sales < 0.75 ? 'half a day' : cost / sales < 1.5 ? 'a day' : Math.round(cost / sales) + ' days'} of sales, and you aren’t making a profit yet.` : `You have ${money(s.cash)}.`;
+}
+
 export function missedStars(t: DayStats): { icon: string; text: string; fix: string }[] {
   const out: { n: number; icon: string; text: string; fix: string }[] = [];
   const ranOut = Object.keys(t.soldOutAt) as ProductId[];
@@ -193,7 +207,7 @@ export function missedStars(t: DayStats): { icon: string; text: string; fix: str
   if (t.lostSoldOut > 0)
     out.push({ n: t.lostSoldOut, icon: 'box', text: `${t.lostSoldOut} ${t.lostSoldOut === 1 ? 'person' : 'people'} wanted something that ran out${soldOut.length ? ` (${soldOut.slice(0, 2).join(', ')})` : ''}.`, fix });
   if (t.lostSlow > 0) out.push({ n: t.lostSlow, icon: 'clock', text: `${t.lostSlow} gave up waiting.`, fix: 'Serve the worried faces first, or hire help.' });
-  if (t.lostPrice > 0) out.push({ n: t.lostPrice, icon: 'coin', text: `${t.lostPrice} thought the price was too high.`, fix: 'Try a little lower in Kitchen → Prices.' });
+  if (t.lostPrice > 0) out.push({ n: t.lostPrice, icon: 'coin', text: `${t.lostPrice} thought the price was too high.`, fix: t.lostSoldOut >= t.lostPrice ? 'A few always will. You sold out anyway, so hold the price and bake more.' : 'Try a little lower in Kitchen → Prices.' });
   if (t.diverted > 0) out.push({ n: t.diverted, icon: 'shop', text: `${t.diverted} went to a rival bakery.`, fix: 'Check their prices on the Customers tab.' });
   const pastries = Object.values(t.made).reduce((a, b) => a + b, 0);
   if (pastries < 12) out.push({ n: 12 - pastries + 1, icon: 'hot', text: pastries ? `Only ${pastries} pastries were baked.` : 'No pastries were baked today.', fix: 'Bake more trays in the Kitchen before you open.' });

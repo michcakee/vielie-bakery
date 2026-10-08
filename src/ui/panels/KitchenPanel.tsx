@@ -279,7 +279,7 @@ function OvenCard() {
               );
             })}
           </ul>
-          {!morning && <p className="muted small">The oven is for mornings. Come back tomorrow!</p>}
+          {!morning && <p className="muted small">{s.phase === 'weekly' ? 'Pick next week’s goal first, then bake.' : s.events.length ? 'Answer Bà’s news first, then bake.' : 'The oven is for mornings. Come back tomorrow!'}</p>}
         </>
       )}
     </Card>
